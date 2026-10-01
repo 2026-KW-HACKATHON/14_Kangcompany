@@ -1,0 +1,6 @@
+eval/receipts/*
+!eval/receipts/.gitkeep
+eval/ground_truth.json
+eval/results-*.json
+.env
+node_modules/

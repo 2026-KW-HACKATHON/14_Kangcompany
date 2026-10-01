@@ -1,0 +1,24 @@
+# 의존성 (npm install 로 다시 생성됨)
+node_modules/
+**/node_modules/
+
+# 빌드 결과물
+dist/
+**/dist/
+
+# 비밀값 — 절대 올리면 안 됨 (Supabase 키, 토스 키 등)
+.env
+.env.local
+**/.env
+**/.env.local
+
+# 영수증 정확도 측정용 실제 사진·정답 (개인정보 소지 가능)
+wolgyedeoring-backend/eval/receipts/*
+!wolgyedeoring-backend/eval/receipts/.gitkeep
+wolgyedeoring-backend/eval/ground_truth.json
+wolgyedeoring-backend/eval/results-*.json
+
+# OS·에디터 잡파일
+.DS_Store
+Thumbs.db
+.vscode/

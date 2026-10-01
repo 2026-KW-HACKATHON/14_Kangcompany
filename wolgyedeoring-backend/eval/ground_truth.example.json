@@ -1,0 +1,23 @@
+{
+  "_설명": "이 파일을 ground_truth.json 으로 복사해 채우기. 사진은 eval/receipts/ 에. menu_id 는 이 파일 안에서만 쓰는 번호. date 는 선택(행사 일시, 넣으면 일시 검증도 측정)",
+  "stores": {
+    "고기굽는집": [
+      { "id": 1, "name": "삼겹살", "price": 15000 },
+      { "id": 2, "name": "소주", "price": 5000 },
+      { "id": 3, "name": "된장찌개", "price": 8000 }
+    ]
+  },
+  "receipts": [
+    {
+      "file": "r01.jpg",
+      "store": "고기굽는집",
+      "total": 210000,
+      "date": "2026-10-14T19:00:00+09:00",
+      "items": [
+        { "menu_id": 1, "qty": 8, "amount": 120000 },
+        { "menu_id": 2, "qty": 10, "amount": 50000 },
+        { "menu_id": 3, "qty": 5, "amount": 40000 }
+      ]
+    }
+  ]
+}

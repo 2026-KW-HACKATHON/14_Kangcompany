@@ -1,0 +1,69 @@
+-- 001~007 적용 확인: SQL Editor 에서 실행 → ok 열이 모두 true 면 정상
+with expected_fn(name) as (values
+  ('respond_to_request'), ('book_slot'), ('pay_deposit_test'), ('cancel_reservation'),
+  ('finish_reservation'), ('correct_receipt_item'), ('add_receipt_item'), ('delete_receipt_item'), ('confirm_receipt'),
+  ('mark_notifications_read'), ('request_modification'), ('respond_modification'), ('open_requests_for_store'),
+  ('store_stats'), ('unmet_demand_stats'), ('prepare_deposit_payment'), ('confirm_zero_deposit'),
+  ('finalize_toss_payment'), ('save_menus'), ('set_preorder'), ('get_preorder'),
+  ('book_slot_with_menu'),
+  ('create_rsvp'), ('get_rsvp_public'), ('respond_rsvp'), ('delete_rsvp_response'), ('close_rsvp'),
+  ('expire_old_requests'), ('_store_committed_headcount')
+),
+checks(no, item, expected, actual) as (
+  select 1, '테이블 수', '15',  -- 007 은 테이블을 추가하지 않음 (컬럼만 추가)
+         (select count(*)::text from information_schema.tables where table_schema = 'public' and table_type = 'BASE TABLE')
+  union all
+  select 2, 'RLS 꺼진 테이블', '없음',
+         coalesce((select string_agg(relname, ', ') from pg_class c join pg_namespace n on n.oid = c.relnamespace
+                    where n.nspname = 'public' and c.relkind = 'r' and not c.relrowsecurity), '없음')
+  union all
+  select 3, '없는 함수', '없음',
+         coalesce((select string_agg(e.name, ', ') from expected_fn e
+                    where not exists (select 1 from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+                                       where n.nspname = 'public' and p.proname = e.name)), '없음')
+  union all
+  select 4, '통계 뷰', 'v_store_item_stats',
+         coalesce((select table_name from information_schema.views where table_schema = 'public' and table_name = 'v_store_item_stats'), '없음')
+  union all
+  select 5, '가입 시 프로필 트리거', 'on_auth_user_created',
+         coalesce((select tgname from pg_trigger where tgname = 'on_auth_user_created'), '없음')
+  union all
+  select 6, '알림 트리거 수', '4',
+         (select count(*)::text from pg_trigger where tgname in
+           ('trg_request_created', 'trg_response_changed', 'trg_reservation_changed', 'trg_receipt_changed'))
+  union all
+  select 7, '실시간(Realtime) 등록', 'notifications, rsvp_responses',
+         coalesce((select string_agg(tablename::text, ', ' order by tablename) from pg_publication_tables
+                    where pubname = 'supabase_realtime' and schemaname = 'public'
+                      and tablename in ('notifications', 'rsvp_responses')), '없음')
+  union all
+  select 8, '추가 컬럼 (slots.deposit_amount, reservations.modify_status, payments.order_id, menus.category)', '4',
+         (select count(*)::text from information_schema.columns where table_schema = 'public' and
+           ((table_name, column_name) in (('slots', 'deposit_amount'), ('reservations', 'modify_status'),
+                                          ('payments', 'order_id'), ('menus', 'category'))))
+  union all
+  select 9, '비로그인(anon) 결제 함수 실행 가능?', 'false',
+         has_function_privilege('anon', 'public.pay_deposit_test(bigint)', 'execute')::text
+  union all
+  select 10, '로그인 사용자가 결제 확정 함수 실행 가능?', 'false',
+         has_function_privilege('authenticated', 'public.finalize_toss_payment(text,text,int,text,text,timestamptz)', 'execute')::text
+  union all
+  select 11, '서버(service_role) 결제 확정 함수 실행 가능?', 'true',
+         has_function_privilege('service_role', 'public.finalize_toss_payment(text,text,int,text,text,timestamptz)', 'execute')::text
+  union all
+  select 12, '비로그인(anon) 참석 응답 가능?', 'true',
+         has_function_privilege('anon', 'public.respond_rsvp(text,text,boolean,text,text)', 'execute')::text
+  union all
+  select 13, '비로그인(anon) 조사 생성 가능?', 'false',
+         has_function_privilege('anon', 'public.create_rsvp(bigint,timestamptz,text)', 'execute')::text
+  union all
+  select 14, 'choose_response 제거됨 (선착순 즉시 확정으로 대체)', '없음',
+         coalesce((select string_agg(proname, ', ') from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+                    where n.nspname = 'public' and p.proname in ('choose_response', 'choose_response_with_menu')), '없음')
+  union all
+  select 15, 'requests.response_deadline 컬럼', '1',
+         (select count(*)::text from information_schema.columns
+           where table_schema = 'public' and table_name = 'requests' and column_name = 'response_deadline')
+)
+select no, item as "확인 항목", expected as "기대값", actual as "실제값", expected = actual as ok
+from checks order by no;
