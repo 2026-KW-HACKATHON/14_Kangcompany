@@ -96,6 +96,19 @@
 
 ---
 
+## 협업 규칙
+
+작업 전에 **[CONTRIBUTING.md](CONTRIBUTING.md)** 를 꼭 읽어주세요. 요약:
+
+- **브랜치**: `main` 직접 push 금지. `<타입>/<영역>-<설명>` 브랜치 → PR → Squash merge (예: `feat/fe-login`)
+- **커밋**: `<타입>(<영역>): <한글 요약>` (예: `feat(fe): 예약 요청 작성 화면 추가`)
+  - 타입: `feat` `fix` `design` `refactor` `docs` `test` `chore`
+  - 템플릿 적용: `git config commit.template .gitmessage`
+- **이슈**: 팀 결정이 필요한 사항은 `TBD` 라벨 이슈로 관리 → [열린 TBD 이슈](https://github.com/2026-KW-HACKATHON/14_Kangcompany/issues?q=is%3Aopen+label%3ATBD)
+- **API 변경 시** `wolgyedeoring-backend/docs/API.md` 를 같은 PR에서 수정
+
+---
+
 ## 팀 강컴퍼니
 
 | 이름 | 역할 |
