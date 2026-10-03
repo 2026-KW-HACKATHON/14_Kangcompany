@@ -1,0 +1,249 @@
+/* =====================================================================
+   월계더링 디자인 토큰 v0.1
+   - 원칙과 사용 규칙: docs/design/design-tokens.md
+   - 미리보기: docs/design/tokens-preview.html
+   - 레이어: 1) 원시값(primitive) → 2) 의미(semantic) → 컴포넌트는 의미 토큰만 쓴다
+   ===================================================================== */
+
+:root {
+  /* -------------------------------------------------------------------
+     1. 원시 컬러 (직접 쓰지 말 것 — 의미 토큰을 거쳐서 사용)
+     ------------------------------------------------------------------- */
+
+  /* 포인트 컬러: 월계수(Laurel) 그린 — 서비스명 '월계'에서 */
+  --laurel-50:  #EEF6F1;
+  --laurel-100: #D6EBDF;
+  --laurel-200: #ADD6BF;
+  --laurel-300: #7DBD99;
+  --laurel-400: #4C9F72;
+  --laurel-500: #2F8457;
+  --laurel-600: #226B45;
+  --laurel-700: #1A5537;
+  --laurel-800: #13402A;
+  --laurel-900: #0C2B1C;
+
+  /* 중립: 아주 약간 따뜻한 회색 (순수 회색보다 부드럽고, 그린과 어울림) */
+  --gray-0:   #FFFFFF;
+  --gray-50:  #F7F7F5;
+  --gray-100: #EFEFEC;
+  --gray-200: #E2E2DE;
+  --gray-300: #C9C9C3;
+  --gray-400: #8C8C85;
+  --gray-500: #6C6C65;
+  --gray-600: #585852;
+  --gray-700: #3E3E39;
+  --gray-800: #282825;
+  --gray-900: #181816;
+
+  /* 상태 전용 (배지·알림에만. 장식에 쓰지 않음) */
+  --amber-50:  #FFF5E0;
+  --amber-500: #D88A0B;
+  --amber-700: #8A5300;
+  --red-50:    #FDEDEC;
+  --red-500:   #D93B30;
+  --red-700:   #A8241B;
+
+  /* -------------------------------------------------------------------
+     2. 의미 컬러 (컴포넌트는 이것만 사용)
+     ------------------------------------------------------------------- */
+
+  /* 배경·면 */
+  --color-bg:            var(--gray-0);
+  --color-bg-subtle:     var(--gray-50);    /* 페이지 구획, 입력칸 비활성 */
+  --color-surface:       var(--gray-0);     /* 카드 */
+  --color-surface-raised:var(--gray-0);     /* 바텀시트, 모달 */
+  --color-overlay:       rgb(24 24 22 / 0.48);
+  --color-inverse-bg:    var(--gray-900);   /* 토스트 */
+  --color-inverse-fg:    var(--gray-0);
+
+  /* 텍스트 — 정보 위계 3단계 + 비활성 */
+  --color-text-primary:   var(--gray-900);  /* 제목, 본문, 금액 */
+  --color-text-secondary: var(--gray-600);  /* 보조 설명, 라벨 */
+  --color-text-tertiary:  var(--gray-500);  /* 메타 정보(시각 등). 핵심 정보에 쓰지 않음 */
+  --color-text-disabled:  var(--gray-400);
+  --color-text-on-brand:  var(--gray-0);
+
+  /* 선 */
+  --color-border:        var(--gray-200);   /* 카드·구분선 */
+  --color-border-strong: var(--gray-400);   /* 입력칸 (배경 대비 3:1 이상) */
+  --color-focus-ring:    var(--laurel-500);
+
+  /* 포인트 (브랜드) — 화면당 '가장 중요한 행동 1개'에만 */
+  --color-brand:          var(--laurel-600);
+  --color-brand-hover:    var(--laurel-700);
+  --color-brand-pressed:  var(--laurel-800);
+  --color-brand-subtle:   var(--laurel-50);  /* 선택된 항목 배경 */
+  --color-brand-text:     var(--laurel-700); /* 링크, 강조 텍스트 */
+
+  /* 상태 톤 (docs/ia/state-definitions.md 0장의 5가지 톤) */
+  --tone-neutral-bg:  var(--gray-100);
+  --tone-neutral-fg:  var(--gray-700);
+  --tone-warning-bg:  var(--amber-50);
+  --tone-warning-fg:  var(--amber-700);
+  --tone-success-bg:  var(--laurel-50);    /* success = 브랜드 그린 (색 수를 줄이기 위함) */
+  --tone-success-fg:  var(--laurel-700);
+  --tone-danger-bg:   var(--red-50);
+  --tone-danger-fg:   var(--red-700);
+  --tone-muted-bg:    var(--gray-50);
+  --tone-muted-fg:    var(--gray-500);
+
+  /* 지도 핀 */
+  --color-map-pin:          var(--laurel-600);
+  --color-map-pin-selected: var(--gray-900);
+
+  /* -------------------------------------------------------------------
+     3. 타이포그래피 — Pretendard, 굵기 3종(400/600/700)
+     ------------------------------------------------------------------- */
+  --font-family: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont,
+                 system-ui, "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+  --font-weight-regular: 400;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  /* 큰 글씨 모드: 사장님 설정에서 1.125 로 바꾸면 전체 글자가 커짐 */
+  --font-scale: 1;
+
+  /*          크기                                  / 행간  / 굵기   용도 */
+  --text-display-size: calc(28px * var(--font-scale)); --text-display-lh: 1.32; /* 700  화면당 1개: 금액·완료 메시지 */
+  --text-title1-size:  calc(22px * var(--font-scale)); --text-title1-lh:  1.36; /* 700  화면 제목 */
+  --text-title2-size:  calc(19px * var(--font-scale)); --text-title2-lh:  1.42; /* 600  섹션 제목, 카드 제목 */
+  --text-body1-size:   calc(17px * var(--font-scale)); --text-body1-lh:   1.53; /* 400/600 기본 본문, 버튼 */
+  --text-body2-size:   calc(15px * var(--font-scale)); --text-body2-lh:   1.47; /* 400  보조 설명, 목록 메타 */
+  --text-caption-size: calc(13px * var(--font-scale)); --text-caption-lh: 1.38; /* 600  배지, 입력 도움말 (핵심 정보 금지) */
+
+  --letter-spacing-tight: -0.02em;  /* 제목(display, title) */
+  --letter-spacing-normal: -0.01em; /* 본문 */
+
+  /* -------------------------------------------------------------------
+     4. 간격 · 크기 (4px 단위)
+     ------------------------------------------------------------------- */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;   /* 화면 좌우 여백, 카드 안쪽 여백 */
+  --space-5: 20px;
+  --space-6: 24px;   /* 섹션 사이 */
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-14: 56px;
+
+  --page-gutter: var(--space-4);
+  --content-max-width: 480px;      /* 데스크톱에서도 모바일 폭 유지 */
+
+  --touch-target-min: 48px;        /* 모든 탭 가능한 요소의 최소 높이 */
+  --control-height-lg: 56px;       /* 화면 하단 주요 버튼 */
+  --control-height-md: 48px;       /* 입력칸, 일반 버튼 */
+  --bottom-nav-height: 64px;
+
+  /* -------------------------------------------------------------------
+     5. 모서리 · 그림자 (그림자보다 선을 우선)
+     ------------------------------------------------------------------- */
+  --radius-sm: 8px;     /* 입력칸, 작은 버튼 */
+  --radius-md: 12px;    /* 카드, 주요 버튼 */
+  --radius-lg: 20px;    /* 바텀시트 위쪽 */
+  --radius-full: 999px; /* 배지, 칩 */
+
+  --shadow-raised: 0 8px 24px rgb(24 24 22 / 0.10), 0 2px 6px rgb(24 24 22 / 0.06); /* 바텀시트·토스트만 */
+
+  /* -------------------------------------------------------------------
+     6. 모션 — 짧고 감속하는 움직임. 목적: 위치·상태 변화를 알려주는 것
+     ------------------------------------------------------------------- */
+  --duration-instant: 100ms;  /* 눌림, 체크 */
+  --duration-fast:    180ms;  /* 배지·토스트 등장, 색 변화 */
+  --duration-base:    260ms;  /* 화면 전환, 바텀시트 */
+  --duration-slow:    400ms;  /* 완료 화면 강조 (드물게) */
+
+  --ease-standard:   cubic-bezier(0.2, 0, 0, 1);    /* 대부분 */
+  --ease-decelerate: cubic-bezier(0, 0, 0, 1);      /* 들어올 때 */
+  --ease-accelerate: cubic-bezier(0.3, 0, 1, 1);    /* 나갈 때 */
+
+  --press-scale: 0.98;        /* 버튼 눌림 */
+}
+
+/* ---------------------------------------------------------------------
+   다크 모드 (시스템 설정을 따르되 data-theme 로 강제 가능)
+   --------------------------------------------------------------------- */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --color-bg:             var(--gray-900);
+    --color-bg-subtle:      #20201E;
+    --color-surface:        #202020;
+    --color-surface-raised: #2A2A27;
+    --color-overlay:        rgb(0 0 0 / 0.6);
+    --color-inverse-bg:     #F2F2EF;
+    --color-inverse-fg:     var(--gray-900);
+
+    --color-text-primary:   #F2F2EF;
+    --color-text-secondary: #B9B9B2;
+    --color-text-tertiary:  #95958E;
+    --color-text-disabled:  #66665F;
+
+    --color-border:        #34342F;
+    --color-border-strong: #70706A;
+    --color-focus-ring:    var(--laurel-300);
+
+    --color-brand:         var(--laurel-400);
+    --color-brand-hover:   var(--laurel-300);
+    --color-brand-pressed: var(--laurel-200);
+    --color-brand-subtle:  #16301F;
+    --color-brand-text:    var(--laurel-300);
+    --color-text-on-brand: var(--gray-900);
+
+    --tone-neutral-bg: #2E2E2A;  --tone-neutral-fg: #D4D4CE;
+    --tone-warning-bg: #3A2A0C;  --tone-warning-fg: #F5C46B;
+    --tone-success-bg: #16301F;  --tone-success-fg: var(--laurel-300);
+    --tone-danger-bg:  #3D1714;  --tone-danger-fg:  #F59A92;
+    --tone-muted-bg:   #262624;  --tone-muted-fg:   #95958E;
+
+    --color-map-pin:          var(--laurel-400);
+    --color-map-pin-selected: #F2F2EF;
+  }
+}
+
+:root[data-theme="dark"] {
+  --color-bg:             var(--gray-900);
+  --color-bg-subtle:      #20201E;
+  --color-surface:        #202020;
+  --color-surface-raised: #2A2A27;
+  --color-overlay:        rgb(0 0 0 / 0.6);
+  --color-inverse-bg:     #F2F2EF;
+  --color-inverse-fg:     var(--gray-900);
+
+  --color-text-primary:   #F2F2EF;
+  --color-text-secondary: #B9B9B2;
+  --color-text-tertiary:  #95958E;
+  --color-text-disabled:  #66665F;
+
+  --color-border:        #34342F;
+  --color-border-strong: #70706A;
+  --color-focus-ring:    var(--laurel-300);
+
+  --color-brand:         var(--laurel-400);
+  --color-brand-hover:   var(--laurel-300);
+  --color-brand-pressed: var(--laurel-200);
+  --color-brand-subtle:  #16301F;
+  --color-brand-text:    var(--laurel-300);
+  --color-text-on-brand: var(--gray-900);
+
+  --tone-neutral-bg: #2E2E2A;  --tone-neutral-fg: #D4D4CE;
+  --tone-warning-bg: #3A2A0C;  --tone-warning-fg: #F5C46B;
+  --tone-success-bg: #16301F;  --tone-success-fg: var(--laurel-300);
+  --tone-danger-bg:  #3D1714;  --tone-danger-fg:  #F59A92;
+  --tone-muted-bg:   #262624;  --tone-muted-fg:   #95958E;
+
+  --color-map-pin:          var(--laurel-400);
+  --color-map-pin-selected: #F2F2EF;
+}
+
+/* 큰 글씨 모드 */
+:root[data-font-size="large"] { --font-scale: 1.125; }
+
+/* 모션 줄이기: 움직임 제거, 색·투명도 변화만 남김 */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --duration-fast: 0ms;
+    --duration-base: 0ms;
+    --duration-slow: 0ms;
+    --press-scale: 1;
+  }
+}
