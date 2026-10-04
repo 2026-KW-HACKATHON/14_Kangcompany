@@ -46,6 +46,7 @@
 | 뒷사람 (숲) | `--logo-forest` | `#1E4A3A` | `--color-logo-back` |
 | 바탕 (얼음빛) | `--logo-frost` | `#DCE7ED` (그라데이션 `#E8F0F5` → `#CCDCE5`) | `--color-logo-bg` |
 
+- **최종 파일**: [`assets/app-icon/wolgye-icon-final.svg`](assets/app-icon/wolgye-icon-final.svg) (벡터, 3a), [`wolgye-icon-final-1024.png`](assets/app-icon/wolgye-icon-final-1024.png) (1024px). 앱 아이콘·파비콘은 이 파일에서 만든다.
 - 아이콘 색은 **테마와 관계없이 고정**. 다크 배경 전용 대체 아이콘(1j 다크 글로우: 파랑 `#6F97FF`, 숲 `#4DB88E`)은 필요할 때 추가한다.
 
 ### 쓰는 규칙
@@ -167,6 +168,6 @@ body {
 ## 7. 결정 대기·다음 단계
 
 - [x] 포인트 컬러 확정 — 17번 아이콘 · 블루 (2026-10-04)
-- [ ] 앱 아이콘 시안 확정 (Claude Design 3a 기준, 제스처 변형 2a~2j·3b~3j 중 선택) → PNG/SVG 내보내기
+- [x] 앱 아이콘 시안 확정 — 3a 최종 SVG·PNG 저장 (`assets/app-icon/`, 2026-10-04)
 - [ ] 지도 SDK가 정해지면(#8) 지도 핀·말풍선 스타일을 토큰에 추가
 - [ ] 컴포넌트 목록(버튼, 입력칸, 배지, 카드, 바텀시트, 하단 탭)에 토큰 적용 → v0.2
