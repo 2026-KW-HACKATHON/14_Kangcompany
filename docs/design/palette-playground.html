@@ -445,7 +445,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-v
   // Claude Design 'wolgye-icons' 원본 색 (앞사람 머리·몸 / 뒷사람 / 바탕)
   const ICON = { a: '#3F6FE8', aBody: '#5B8BF0', b: '#1E4A3A', bg: '#DCE7ED' };
   const PRESETS = [
-    { name: '월계수 그린', desc: '현재 v0.1. 서비스명 월계(월계수)에서. 차분하고 신뢰감', c1: '#226B45', c2: null, n: 'warm' },
+    { name: '월계수 그린', desc: 'v0.1 초안 색(17번으로 교체됨). 서비스명 월계(월계수)에서. 차분하고 신뢰감', c1: '#226B45', c2: null, n: 'warm' },
     { name: '월계관', desc: '그린 + 월계관의 금빛. 축하·모임의 분위기를 더함', c1: '#2D6A4F', c2: '#B8860B', n: 'warm' },
     { name: '중랑천 블루', desc: '월계동 옆 하천. 가장 무난하고 기능적인 파랑', c1: '#1D5FAF', c2: null, n: 'cool' },
     { name: '저녁 모임', desc: '퇴근 후·수업 후 회식의 따뜻한 주황 + 밤 남색', c1: '#D9541E', c2: '#24324F', n: 'warm' },
@@ -469,7 +469,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-v
     // 16~18: 앱 아이콘(Claude Design wolgye-icons) 기준 — 숲 #1E4A3A + 파랑 #3F6FE8 + 얼음빛 바탕 #DCE7ED
     { name: '아이콘 · 숲', desc: '앱 아이콘 기준. 숲색 버튼, 아이콘의 파랑은 보조 강조, 아이콘 시트의 회청색 배경', c1: '#1E4A3A', c2: '#3F6FE8', n: 'cool',
       over: { hover: '#14342A', bg: '#F2F4F5', surface: '#FFFFFF', text: '#1B2A31', icon: ICON } },
-    { name: '아이콘 · 블루', desc: '같은 아이콘, 파랑이 버튼을 맡음. 숲색은 보조. 더 젊고 디지털한 인상', c1: '#3F6FE8', c2: '#1E4A3A', n: 'cool',
+    { name: '아이콘 · 블루 ✅ 확정', desc: 'v0.2 포인트 컬러 (10/4 결정). 같은 아이콘, 파랑이 버튼을 맡음. 숲색은 보조. 더 젊고 디지털한 인상', c1: '#3F6FE8', c2: '#1E4A3A', n: 'cool',
       over: { hover: '#3560D6', bg: '#F4F7FB', surface: '#FFFFFF', text: '#1B2A31', icon: ICON } },
     { name: '아이콘 · 얼음빛', desc: '아이콘 바탕 그라데이션의 윗색을 화면 배경으로. 흰 입력칸·카드가 또렷하게 떠 보임', c1: '#1E4A3A', c2: '#3F6FE8', n: 'cool',
       over: { hover: '#14342A', bg: '#E8F0F5', surface: '#FFFFFF', text: '#1B2A31', icon: ICON } }
@@ -532,8 +532,8 @@ button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-v
   }
 
   /* ---------------- 상태 ---------------- */
-  const KEY = 'wolgye-palette-v1';
-  let state = { preset: 0, c1: PRESETS[0].c1, c2: '#B8860B', useC2: false, neutral: PRESETS[0].n, mock: 'light', large: false };
+  const KEY = 'wolgye-palette-v2';
+  let state = { preset: 16, c1: PRESETS[16].c1, c2: PRESETS[16].c2, useC2: true, neutral: PRESETS[16].n, mock: 'light', large: false };
   try { const s = JSON.parse(localStorage.getItem(KEY) || 'null'); if (s && /^#[0-9A-F]{6}$/i.test(s.c1)) state = { ...state, ...s }; } catch (e) {}
   const save = () => { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} };
 
