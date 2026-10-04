@@ -6,7 +6,7 @@
 | 작성일 | 2026-10-03 (수정 2026-10-04) |
 | 작성 | FE 이원우 |
 | 파일 | [`tokens.css`](tokens.css) (값), [`tokens-preview.html`](tokens-preview.html) (미리보기), [`palette-playground.html`](palette-playground.html) (컬러 실험실) |
-| 연결 | 상태 톤 5종은 [`docs/ia/state-definitions.md`](../ia/state-definitions.md) 0장과 같다 |
+| 연결 | 상태 톤 5종은 [`ia/state-definitions.md`](../ia/state-definitions.md) 0장과 같다 |
 
 ---
 

@@ -96,6 +96,17 @@
 
 ---
 
+## 문서
+
+| 위치 | 내용 |
+|---|---|
+| [`docs/ui-handoff/`](docs/ui-handoff/) | **UI 작업 인계 폴더** — 페르소나, 디자인 토큰·컴포넌트, IA·콘텐츠 인벤토리·상태 정의, 예시 화면, 바이브코딩 프롬프트 |
+| [`docs/planning/`](docs/planning/) | 기능명세서·유저플로우 (Manyfast 내보내기, 10/3 기준) |
+| [`wolgyedeoring-backend/docs/`](wolgyedeoring-backend/docs/) | API 문서 |
+| [결정 기록 #13](https://github.com/2026-KW-HACKATHON/14_Kangcompany/issues/13) | 지금까지 확정된 결정 |
+
+---
+
 ## 협업 규칙
 
 작업 전에 **[CONTRIBUTING.md](CONTRIBUTING.md)** 를 꼭 읽어주세요. 요약:
