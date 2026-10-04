@@ -421,7 +421,18 @@ button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-v
     { name: '은행잎', desc: '10월 학기의 노랑 + 짙은 청록. 흰 바탕에서 버튼 면 대비가 낮은 예시', c1: '#F2B41C', c2: '#1F4E5A', n: 'warm' },
     { name: '새벽 인디고', desc: '또렷한 남보라 + 민트 보조. 젊고 디지털한 인상', c1: '#3949AB', c2: '#16A085', n: 'cool' },
     { name: '골목 틸', desc: '청록 단색. 그린보다 도시적, 블루보다 부드러움', c1: '#0E7468', c2: null, n: 'brand' },
-    { name: '노포 간판', desc: '오래된 동네 가게 간판의 빨강 + 크림 대신 남색 보조', c1: '#C2362B', c2: '#2B3A55', n: 'warm' }
+    { name: '노포 간판', desc: '오래된 동네 가게 간판의 빨강 + 크림 대신 남색 보조', c1: '#C2362B', c2: '#2B3A55', n: 'warm' },
+    // 11~: 배경·카드·텍스트까지 지정한 조합 (over 값은 라이트 모드에만 적용)
+    { name: 'Deep Teal', desc: '팀 제안 조합. 깊은 청록 + 코랄 포인트, 미색 배경 위 흰 카드', c1: '#176B66', c2: '#FF7A66', n: 'warm',
+      over: { hover: '#0F4F4B', bg: '#F7F7F2', surface: '#FFFFFF', text: '#202322' } },
+    { name: '올리브 마당', desc: '채도 낮은 올리브 + 겨자색 보조. 노포·식당가의 편안한 톤', c1: '#56652A', c2: '#C8961E', n: 'warm',
+      over: { bg: '#F6F5EE', surface: '#FFFFFF', text: '#1F211A' } },
+    { name: '청자', desc: '한국적인 청자빛 + 황토 보조. 부드럽고 차분해 고령 사용자에게 무리 없음', c1: '#3F7D70', c2: '#B08B4F', n: 'brand',
+      over: { bg: '#F4F7F5', surface: '#FFFFFF', text: '#1C2422' } },
+    { name: '밤 남색', desc: '짙은 남색 버튼 + 가로등 노랑 포인트. 대비가 강하고 또렷함', c1: '#1E3A5F', c2: '#E9B949', n: 'cool',
+      over: { bg: '#F5F6F8', surface: '#FFFFFF', text: '#161B22' } },
+    { name: '포도 동아리', desc: '보라 + 살구 보조. 학생 단체 중심의 발랄한 인상', c1: '#5A4796', c2: '#F0A07A', n: 'cool',
+      over: { bg: '#F7F6FA', surface: '#FFFFFF', text: '#1D1B24' } }
   ];
 
   const NEUTRAL = { warm: { H: 95, C: 0.006 }, neutral: { H: 0, C: 0 }, cool: { H: 250, C: 0.008 } };
@@ -431,13 +442,20 @@ button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-v
     const n = state.neutral === 'brand' ? { H: okl(state.c1).H, C: 0.01 } : NEUTRAL[state.neutral];
     const g = GRAY_L.map(L => oklchToHex({ L, C: n.C, H: n.H })); // 0,50,100,200,300,400,500,600,700,800,900
     const c2 = state.useC2 && state.c2 ? state.c2 : null;
+    const p = PRESETS[state.preset];
+    const over = p && p.over && p.c1 === state.c1 ? p.over : null; // 포인트 1을 바꾸면 지정값 해제
     const out = {};
     for (const mode of ['light', 'dark']) {
       const t = {};
       if (mode === 'light') {
         Object.assign(t, { bg: '#FFFFFF', subtle: g[1], surface: '#FFFFFF', text: g[10], text2: g[7], text3: g[6], border: g[3], borderStrong: g[5] });
+        if (over) {
+          if (over.bg) { t.bg = over.bg; const b = okl(over.bg); t.subtle = oklchToHex({ L: b.L - 0.025, C: b.C, H: b.H }); }
+          if (over.surface) t.surface = over.surface;
+          if (over.text) t.text = over.text;
+        }
         t.brand = state.c1;
-        t.brandHover = withL(state.c1, okl(state.c1).L - 0.06);
+        t.brandHover = over && over.hover ? over.hover : withL(state.c1, okl(state.c1).L - 0.06);
         t.brandSubtle = withL(state.c1, 0.965, 0.22, 0.04);
         t.brandText = ensure(state.c1, t.brandSubtle, 4.6); // 칩 배경(더 어두움)에서도 통과하면 흰 배경도 통과
         const a = c2 || state.c1;
@@ -461,7 +479,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-v
         t.accentText = ensure(oklchToHex({ L: 0.8, C: ao.C, H: ao.H }), t.accentSubtle, 4.6);
         Object.assign(t, { warnBg: '#3A2A0C', warnFg: '#F5C46B', dangerBg: '#3D1714', dangerFg: '#F59A92', mutedBg: d(0.22), mutedFg: d(0.66) });
       }
-      t.onBrand = bestOn(t.brand, '#FFFFFF', mode === 'light' ? g[10] : t.bg);
+      t.onBrand = bestOn(t.brand, '#FFFFFF', mode === 'light' ? t.text : t.bg);
       // 버튼 글자 대비가 모자라면 버튼 면을 조정
       if (contrast(t.onBrand, t.brand) < 4.5) t.brand = ensure(t.brand, t.onBrand, 4.5);
       out[mode] = t;
