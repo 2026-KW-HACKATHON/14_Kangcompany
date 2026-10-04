@@ -22,3 +22,5 @@ wolgyedeoring-backend/eval/results-*.json
 .DS_Store
 Thumbs.db
 .vscode/
+# Claude Code 로컬 설정·세션 파일
+.claude/
