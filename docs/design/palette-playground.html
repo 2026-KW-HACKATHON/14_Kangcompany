@@ -1,0 +1,610 @@
+<title>월계더링 컬러 실험실</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;600;700&display=swap">
+<style>
+/* 레이아웃: 왼쪽 조작 패널 + 오른쪽 폰 목업 2대(로그인 · 예약 요청). 좁으면 한 줄로 쌓임.
+   페이지 바탕은 무채색에 가깝게 두어, 실험 중인 색이 돋보이게 한다. */
+:root {
+  --ink: #1c1d1f;
+  --ink-2: #55585e;
+  --ink-3: #7a7d84;
+  --paper: #f4f4f2;
+  --panel: #ffffff;
+  --rule: #e2e2de;
+  --rule-strong: #c4c5c0;
+  --focus: #1c1d1f;
+  --pass: #1f6b43;
+  --pass-bg: #e6f2ea;
+  --fail: #a8241b;
+  --fail-bg: #fbe9e7;
+  --font-ui: "IBM Plex Sans KR", "Apple SD Gothic Neo", "Noto Sans KR", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --font-mock: "Pretendard Variable", Pretendard, "Noto Sans KR", "Apple SD Gothic Neo", system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --ink: #ececea; --ink-2: #b4b6ba; --ink-3: #8d9096;
+    --paper: #151617; --panel: #1e1f21; --rule: #2e3033; --rule-strong: #46494d; --focus: #ececea;
+    --pass: #8fd3a9; --pass-bg: #16301f; --fail: #f59a92; --fail-bg: #3d1714;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --ink: #ececea; --ink-2: #b4b6ba; --ink-3: #8d9096;
+  --paper: #151617; --panel: #1e1f21; --rule: #2e3033; --rule-strong: #46494d; --focus: #ececea;
+  --pass: #8fd3a9; --pass-bg: #16301f; --fail: #f59a92; --fail-bg: #3d1714;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body { background: var(--paper); color: var(--ink); font-family: var(--font-ui); font-size: 15px; line-height: 1.55; }
+.wrap { max-width: 1280px; margin: 0 auto; padding-inline: 20px; padding-block: 28px 56px; }
+header.top { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 12px 24px; margin-bottom: 24px; }
+header.top h1 { margin: 0; font-size: 26px; line-height: 1.25; font-weight: 700; letter-spacing: -0.02em; text-wrap: balance; }
+header.top p { margin: 4px 0 0; color: var(--ink-2); max-width: 62ch; }
+.eyebrow { font-size: 12px; font-weight: 600; letter-spacing: 0.08em; color: var(--ink-3); text-transform: uppercase; }
+
+.layout { display: grid; grid-template-columns: minmax(300px, 380px) minmax(0, 1fr); gap: 24px; align-items: start; }
+@media (max-width: 900px) { .layout { grid-template-columns: minmax(0, 1fr); } }
+
+.panel { background: var(--panel); border: 1px solid var(--rule); border-radius: 14px; padding: 18px; display: grid; gap: 22px; min-width: 0; }
+@media (min-width: 901px) { .panel { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 16px); max-height: calc(100vh - 32px); overflow: auto; } }
+.panel h2 { margin: 0 0 10px; font-size: 13px; font-weight: 600; letter-spacing: 0.06em; color: var(--ink-3); text-transform: uppercase; }
+
+.presets { display: grid; gap: 6px; }
+.preset { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 10px; align-items: center; width: 100%; text-align: left; padding: 9px 10px; border-radius: 10px; border: 1px solid transparent; background: transparent; color: var(--ink); font: inherit; cursor: pointer; }
+.preset:hover { background: color-mix(in srgb, var(--ink) 5%, transparent); }
+.preset[aria-pressed="true"] { border-color: var(--ink); background: color-mix(in srgb, var(--ink) 6%, transparent); }
+.preset .dots { display: flex; }
+.preset .dots i { width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--panel); margin-left: -6px; }
+.preset .dots i:first-child { margin-left: 0; }
+.preset b { display: block; font-weight: 600; font-size: 14px; }
+.preset small { display: block; color: var(--ink-2); font-size: 12.5px; line-height: 1.4; }
+.preset .num { font-family: var(--font-mono); font-size: 11px; color: var(--ink-3); margin-right: 6px; }
+
+.field-row { display: grid; grid-template-columns: 88px minmax(0, 1fr); gap: 10px; align-items: center; }
+.field-row + .field-row { margin-top: 10px; }
+.field-row > label, .field-row > span.lab { font-size: 13.5px; color: var(--ink-2); }
+.color-in { display: flex; gap: 8px; align-items: center; min-width: 0; }
+.color-in input[type="color"] { width: 40px; height: 36px; padding: 0; border: 1px solid var(--rule-strong); border-radius: 8px; background: none; cursor: pointer; flex: none; }
+.color-in input[type="text"] { min-width: 0; width: 100%; height: 36px; padding: 0 10px; border: 1px solid var(--rule-strong); border-radius: 8px; background: var(--panel); color: var(--ink); font-family: var(--font-mono); font-size: 13.5px; text-transform: uppercase; }
+.color-in input[aria-invalid="true"] { border-color: var(--fail); }
+select.sel { width: 100%; height: 36px; padding: 0 10px; border: 1px solid var(--rule-strong); border-radius: 8px; background: var(--panel); color: var(--ink); font: inherit; font-size: 14px; }
+.seg { display: inline-flex; border: 1px solid var(--rule-strong); border-radius: 9px; padding: 2px; gap: 2px; }
+.seg button { border: 0; background: transparent; color: var(--ink-2); font: inherit; font-size: 13.5px; padding: 5px 12px; border-radius: 7px; cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--ink); color: var(--paper); font-weight: 600; }
+.switch { display: inline-flex; align-items: center; gap: 8px; font-size: 13.5px; color: var(--ink-2); cursor: pointer; }
+.switch input { width: 18px; height: 18px; accent-color: var(--ink); }
+
+button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+
+.checks { width: 100%; border-collapse: collapse; font-size: 13px; }
+.checks td { padding: 7px 0; border-bottom: 1px solid var(--rule); vertical-align: middle; }
+.checks tr:last-child td { border-bottom: 0; }
+.checks td:nth-child(2) { font-family: var(--font-mono); text-align: right; font-variant-numeric: tabular-nums; padding-inline: 8px; color: var(--ink-2); white-space: nowrap; }
+.checks td:last-child { text-align: right; width: 1%; white-space: nowrap; }
+.pill { display: inline-block; font-size: 11.5px; font-weight: 600; padding: 2px 8px; border-radius: 999px; }
+.pill.ok { color: var(--pass); background: var(--pass-bg); }
+.pill.no { color: var(--fail); background: var(--fail-bg); }
+.sw-mini { display: inline-block; width: 12px; height: 12px; border-radius: 3px; vertical-align: -1px; margin-right: 6px; border: 1px solid var(--rule-strong); }
+.note { font-size: 12.5px; color: var(--ink-3); margin: 8px 0 0; }
+
+.export summary { cursor: pointer; font-size: 13.5px; font-weight: 600; color: var(--ink); }
+.export pre { margin: 10px 0 0; padding: 12px; background: var(--paper); border: 1px solid var(--rule); border-radius: 8px; font-family: var(--font-mono); font-size: 12px; line-height: 1.6; overflow-x: auto; max-height: 280px; }
+.btn-ui { display: inline-flex; align-items: center; gap: 6px; height: 34px; padding: 0 12px; border-radius: 8px; border: 1px solid var(--rule-strong); background: var(--panel); color: var(--ink); font: inherit; font-size: 13.5px; font-weight: 600; cursor: pointer; }
+.btn-ui:hover { border-color: var(--ink-2); }
+.export .actions { display: flex; gap: 8px; align-items: center; margin-top: 10px; flex-wrap: wrap; }
+.copied { font-size: 12.5px; color: var(--pass); }
+
+.stage { min-width: 0; display: grid; gap: 18px; }
+.stage-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 6px 16px; }
+.stage-head h2 { margin: 0; font-size: 19px; font-weight: 700; letter-spacing: -0.01em; }
+.stage-head p { margin: 0; color: var(--ink-2); font-size: 13.5px; }
+.phones { display: flex; flex-wrap: wrap; gap: 24px; justify-content: center; }
+.phone-col { display: grid; gap: 8px; justify-items: center; width: min(100%, 360px); }
+.phone-col .cap { font-size: 12.5px; color: var(--ink-3); font-family: var(--font-mono); }
+
+/* ------------------------------------------------------------------
+   폰 목업: --m-* 변수는 JS가 선택한 조합으로 채운다
+   ------------------------------------------------------------------ */
+.mock {
+  --m-bg: #fff; --m-subtle: #f7f7f5; --m-surface: #fff; --m-text: #181816; --m-text-2: #585852; --m-text-3: #6c6c65;
+  --m-border: #e2e2de; --m-border-strong: #8c8c85;
+  --m-brand: #226b45; --m-brand-hover: #1a5537; --m-on-brand: #fff; --m-brand-subtle: #eef6f1; --m-brand-text: #1a5537;
+  --m-accent: #226b45; --m-accent-subtle: #eef6f1; --m-accent-text: #1a5537;
+  --m-warn-bg: #fff5e0; --m-warn-fg: #8a5300; --m-danger-bg: #fdedec; --m-danger-fg: #a8241b; --m-muted-bg: #f7f7f5; --m-muted-fg: #6c6c65;
+  --m-scale: 1;
+  position: relative; width: 100%; max-width: 360px; aspect-ratio: 360 / 740; max-height: 760px;
+  border-radius: 34px; border: 8px solid #101112; background: var(--m-bg); color: var(--m-text);
+  font-family: var(--font-mock); overflow: hidden; display: flex; flex-direction: column;
+  box-shadow: 0 18px 40px rgb(0 0 0 / 0.14);
+  letter-spacing: -0.01em;
+  transition: background 260ms cubic-bezier(0.2,0,0,1), color 260ms cubic-bezier(0.2,0,0,1);
+}
+.mock * { transition: background-color 180ms cubic-bezier(0.2,0,0,1), border-color 180ms cubic-bezier(0.2,0,0,1), color 180ms cubic-bezier(0.2,0,0,1); }
+@media (prefers-reduced-motion: reduce) { .mock, .mock * { transition: none !important; } }
+.m-status { flex: none; height: 30px; display: flex; justify-content: space-between; align-items: center; padding: 0 22px; font-size: 12px; font-weight: 600; color: var(--m-text); }
+.m-body { flex: 1; overflow: auto; padding: 4px 16px 16px; display: flex; flex-direction: column; scrollbar-width: none; }
+.m-body::-webkit-scrollbar { display: none; }
+.m-foot { flex: none; padding: 10px 16px 18px; border-top: 1px solid var(--m-border); background: var(--m-surface); display: grid; gap: 8px; }
+
+.m-t-display { font-size: calc(28px * var(--m-scale)); line-height: 1.32; font-weight: 700; letter-spacing: -0.02em; }
+.m-t-title1 { font-size: calc(22px * var(--m-scale)); line-height: 1.36; font-weight: 700; letter-spacing: -0.02em; }
+.m-t-title2 { font-size: calc(19px * var(--m-scale)); line-height: 1.42; font-weight: 600; }
+.m-t-body1 { font-size: calc(17px * var(--m-scale)); line-height: 1.53; }
+.m-t-body2 { font-size: calc(15px * var(--m-scale)); line-height: 1.47; }
+.m-t-cap { font-size: calc(13px * var(--m-scale)); line-height: 1.38; font-weight: 600; }
+
+.m-btn { display: flex; align-items: center; justify-content: center; width: 100%; min-height: 56px; border-radius: 12px; border: 1px solid transparent; font: inherit; font-weight: 600; font-size: calc(17px * var(--m-scale)); cursor: pointer; }
+.m-btn.primary { background: var(--m-brand); color: var(--m-on-brand); }
+.m-btn.primary:hover { background: var(--m-brand-hover); }
+.m-btn.primary:active { transform: scale(0.98); }
+.m-btn.secondary { min-height: 48px; background: var(--m-surface); color: var(--m-text); border-color: var(--m-border-strong); }
+.m-link { color: var(--m-brand-text); font-weight: 600; text-decoration: none; font-size: calc(15px * var(--m-scale)); }
+
+.m-label { display: block; font-size: calc(15px * var(--m-scale)); font-weight: 600; color: var(--m-text-2); margin-bottom: 6px; }
+.m-input { display: flex; align-items: center; justify-content: space-between; gap: 8px; width: 100%; min-height: 48px; padding: 0 12px; border-radius: 8px; border: 1px solid var(--m-border-strong); background: var(--m-surface); color: var(--m-text); font-size: calc(17px * var(--m-scale)); }
+.m-input.focus { border-color: var(--m-brand); box-shadow: 0 0 0 3px var(--m-brand-subtle); }
+.m-input .ph { color: var(--m-text-3); }
+.m-input svg { width: 20px; height: 20px; flex: none; color: var(--m-text-3); }
+.m-help { margin-top: 6px; font-size: calc(13px * var(--m-scale)); color: var(--m-text-3); }
+
+.m-check { display: flex; align-items: center; gap: 8px; font-size: calc(15px * var(--m-scale)); color: var(--m-text-2); }
+.m-check i { width: 22px; height: 22px; border-radius: 6px; background: var(--m-brand); display: grid; place-items: center; flex: none; }
+.m-check i svg { width: 14px; height: 14px; color: var(--m-on-brand); }
+
+/* 로그인 */
+.login-hero { padding: 36px 0 28px; display: grid; gap: 12px; }
+.logo { display: flex; align-items: center; gap: 10px; }
+.logo-mark { width: 40px; height: 40px; border-radius: 12px; background: var(--m-brand-subtle); display: grid; place-items: center; }
+.logo-mark svg { width: 26px; height: 26px; }
+.logo-word { font-size: calc(20px * var(--m-scale)); font-weight: 700; letter-spacing: -0.03em; color: var(--m-text); }
+.login-form { display: grid; gap: 16px; }
+.row-between { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
+.divider { display: flex; align-items: center; gap: 10px; color: var(--m-text-3); font-size: calc(13px * var(--m-scale)); margin: 22px 0 14px; }
+.divider::before, .divider::after { content: ""; flex: 1; height: 1px; background: var(--m-border); }
+
+/* 예약 요청 */
+.m-appbar { display: flex; align-items: center; gap: 6px; height: 48px; margin: 0 -8px 6px; }
+.m-appbar button { width: 40px; height: 40px; border: 0; background: none; color: var(--m-text); display: grid; place-items: center; border-radius: 10px; cursor: pointer; }
+.m-appbar svg { width: 24px; height: 24px; }
+.m-section { display: grid; gap: 0; padding: 14px 0; }
+.m-section + .m-section { border-top: 1px solid var(--m-border); }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { min-height: 40px; padding: 0 14px; border-radius: 999px; border: 1px solid var(--m-border-strong); background: var(--m-surface); color: var(--m-text); font: inherit; font-size: calc(15px * var(--m-scale)); cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
+.chip[aria-pressed="true"] { background: var(--m-brand-subtle); border-color: var(--m-brand); color: var(--m-brand-text); font-weight: 600; }
+.chip .tag { font-size: calc(11px * var(--m-scale)); font-weight: 700; padding: 1px 6px; border-radius: 999px; background: var(--m-accent-subtle); color: var(--m-accent-text); }
+.stepper { display: flex; align-items: center; justify-content: space-between; min-height: 52px; border: 1px solid var(--m-border-strong); border-radius: 12px; padding: 0 6px; background: var(--m-surface); }
+.stepper button { width: 44px; height: 44px; border-radius: 10px; border: 0; background: var(--m-subtle); color: var(--m-text); font-size: 22px; line-height: 1; cursor: pointer; }
+.stepper output { font-size: calc(19px * var(--m-scale)); font-weight: 700; font-variant-numeric: tabular-nums; }
+.callout { display: flex; gap: 10px; align-items: flex-start; padding: 12px; border-radius: 12px; background: var(--m-accent-subtle); color: var(--m-text); font-size: calc(14px * var(--m-scale)); line-height: 1.5; }
+.callout svg { width: 20px; height: 20px; flex: none; color: var(--m-accent-text); margin-top: 1px; }
+.callout b { color: var(--m-accent-text); }
+.summary-line { font-size: calc(13px * var(--m-scale)); color: var(--m-text-2); font-variant-numeric: tabular-nums; text-align: center; }
+.textarea { min-height: 72px; align-items: flex-start; padding-top: 12px; font-size: calc(15px * var(--m-scale)); line-height: 1.5; }
+
+.badge-strip { background: var(--panel); border: 1px solid var(--rule); border-radius: 14px; padding: 14px 16px; display: grid; gap: 10px; }
+.badge-strip .row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.badge-strip .mockbg { padding: 12px; border-radius: 10px; display: flex; flex-wrap: wrap; gap: 8px; }
+.m-badge { display: inline-flex; align-items: center; height: 26px; padding: 0 10px; border-radius: 999px; font-family: var(--font-mock); font-size: 13px; font-weight: 600; }
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div>
+      <div class="eyebrow">월계더링 · 디자인 시스템 결정용</div>
+      <h1>컬러 실험실</h1>
+      <p>추천 조합을 고르거나 색을 직접 넣으면, 로그인 화면(A-02)과 예약 요청 화면(G-02)에 바로 적용됩니다. 글자 대비는 WCAG 기준으로 자동 검사합니다.</p>
+    </div>
+  </header>
+
+  <div class="layout">
+    <aside class="panel" aria-label="색 조합 설정">
+      <section>
+        <h2>추천 조합</h2>
+        <div class="presets" id="presets"></div>
+      </section>
+
+      <section>
+        <h2>직접 입력</h2>
+        <div class="field-row">
+          <label for="c1">포인트 1</label>
+          <div class="color-in"><input type="color" id="c1" aria-label="포인트 1 색 선택"><input type="text" id="c1t" maxlength="7" spellcheck="false" aria-label="포인트 1 HEX"></div>
+        </div>
+        <div class="field-row">
+          <span class="lab"><label class="switch" for="useC2"><input type="checkbox" id="useC2">포인트 2</label></span>
+          <div class="color-in"><input type="color" id="c2" aria-label="포인트 2 색 선택"><input type="text" id="c2t" maxlength="7" spellcheck="false" aria-label="포인트 2 HEX"></div>
+        </div>
+        <div class="field-row">
+          <label for="neutral">중립 색감</label>
+          <select class="sel" id="neutral">
+            <option value="warm">따뜻한 회색</option>
+            <option value="neutral">무채색</option>
+            <option value="cool">차가운 회색</option>
+            <option value="brand">포인트 1 따라가기</option>
+          </select>
+        </div>
+        <p class="note">포인트 2는 보조 강조(예산 칩의 태그, 안내 박스)에만 쓰입니다. 끄면 포인트 1이 대신합니다.</p>
+      </section>
+
+      <section>
+        <h2>보기</h2>
+        <div class="field-row">
+          <span class="lab">목업 테마</span>
+          <div class="seg" role="group" aria-label="목업 테마"><button type="button" id="mLight" aria-pressed="true">라이트</button><button type="button" id="mDark" aria-pressed="false">다크</button></div>
+        </div>
+        <div class="field-row">
+          <span class="lab">글자 크기</span>
+          <label class="switch" for="large"><input type="checkbox" id="large">큰 글씨 (×1.125)</label>
+        </div>
+      </section>
+
+      <section>
+        <h2>대비 검사 <span id="checkTheme" style="text-transform:none;letter-spacing:0">(라이트)</span></h2>
+        <table class="checks"><tbody id="checks"></tbody></table>
+        <p class="note">글자 4.5:1, 입력칸 테두리·버튼 면 3:1 기준. 버튼 글자색과 강조 텍스트색은 기준을 넘도록 자동으로 조정됩니다.</p>
+      </section>
+
+      <section class="export">
+        <details id="exportBox">
+          <summary>CSS 토큰으로 내보내기</summary>
+          <pre id="cssOut"></pre>
+          <div class="actions"><button type="button" class="btn-ui" id="copyBtn">복사</button><span class="copied" id="copied" role="status"></span></div>
+          <p class="note">docs/design/tokens.css 의 의미 토큰 이름과 같습니다. 라이트·다크 값이 함께 들어 있습니다.</p>
+        </details>
+      </section>
+    </aside>
+
+    <main class="stage">
+      <div class="stage-head">
+        <h2 id="stageTitle">월계수 그린</h2>
+        <p id="stageDesc"></p>
+      </div>
+
+      <div class="phones">
+        <div class="phone-col">
+          <div class="mock" id="mockLogin" aria-label="로그인 화면 미리보기">
+            <div class="m-status"><span>9:41</span><span>●●● ▮</span></div>
+            <div class="m-body">
+              <div class="login-hero">
+                <div class="logo">
+                  <span class="logo-mark" aria-hidden="true">
+                    <svg viewBox="0 0 32 32" fill="none"><path d="M16 27c-6-3-9-8-9-14" stroke="var(--m-brand)" stroke-width="2.2" stroke-linecap="round"/><path d="M16 27c6-3 9-8 9-14" stroke="var(--m-brand)" stroke-width="2.2" stroke-linecap="round"/><ellipse cx="8.6" cy="15" rx="2.2" ry="3.6" transform="rotate(-25 8.6 15)" fill="var(--m-brand)"/><ellipse cx="23.4" cy="15" rx="2.2" ry="3.6" transform="rotate(25 23.4 15)" fill="var(--m-brand)"/><ellipse cx="10.8" cy="21" rx="2.2" ry="3.6" transform="rotate(-45 10.8 21)" fill="var(--m-brand)"/><ellipse cx="21.2" cy="21" rx="2.2" ry="3.6" transform="rotate(45 21.2 21)" fill="var(--m-brand)"/><circle cx="16" cy="9" r="3" fill="var(--m-accent)"/></svg>
+                  </span>
+                  <span class="logo-word">월계더링</span>
+                </div>
+                <div class="m-t-title1">단체 모임, 동네 가게에서<br>쉽게 잡아요</div>
+                <div class="m-t-body2" style="color:var(--m-text-2)">날짜·인원·예산만 알려주면 가게가 먼저 수락해요</div>
+              </div>
+              <div class="login-form">
+                <div><span class="m-label">이메일</span><div class="m-input focus"><span>sw.council@kw.ac.kr</span></div></div>
+                <div><span class="m-label">비밀번호</span><div class="m-input"><span style="letter-spacing:3px">••••••••</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></div></div>
+                <div class="row-between">
+                  <span class="m-check"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg></i>로그인 상태 유지</span>
+                  <a class="m-link" href="#" onclick="return false">비밀번호 찾기</a>
+                </div>
+                <button type="button" class="m-btn primary">로그인</button>
+              </div>
+              <div class="divider">처음이신가요?</div>
+              <button type="button" class="m-btn secondary">회원가입</button>
+            </div>
+          </div>
+          <span class="cap">A-02 로그인</span>
+        </div>
+
+        <div class="phone-col">
+          <div class="mock" id="mockRequest" aria-label="예약 요청 화면 미리보기">
+            <div class="m-status"><span>9:41</span><span>●●● ▮</span></div>
+            <div class="m-body">
+              <div class="m-appbar">
+                <button type="button" aria-label="뒤로"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button>
+                <span class="m-t-title2">예약 요청</span>
+              </div>
+              <div class="m-section">
+                <span class="m-label">행사 종류</span>
+                <div class="chips" data-single>
+                  <button type="button" class="chip" aria-pressed="true">개강총회</button>
+                  <button type="button" class="chip" aria-pressed="false">간식행사</button>
+                  <button type="button" class="chip" aria-pressed="false">뒤풀이</button>
+                  <button type="button" class="chip" aria-pressed="false">종강총회</button>
+                  <button type="button" class="chip" aria-pressed="false">기타</button>
+                </div>
+              </div>
+              <div class="m-section">
+                <span class="m-label">희망 일시</span>
+                <div class="m-input"><span>10월 14일 (화) 오후 7:00</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M8 2v4M16 2v4M3 10h18"/></svg></div>
+              </div>
+              <div class="m-section">
+                <span class="m-label">예상 인원</span>
+                <div class="stepper"><button type="button" aria-label="인원 줄이기" data-step="-1">−</button><output id="hc">32명</output><button type="button" aria-label="인원 늘리기" data-step="1">+</button></div>
+              </div>
+              <div class="m-section">
+                <span class="m-label">1인 예산</span>
+                <div class="chips" data-single>
+                  <button type="button" class="chip" aria-pressed="false">1만 원</button>
+                  <button type="button" class="chip" aria-pressed="true">1.5만 원 <span class="tag">지난번</span></button>
+                  <button type="button" class="chip" aria-pressed="false">2만 원</button>
+                  <button type="button" class="chip" aria-pressed="false">직접 입력</button>
+                </div>
+              </div>
+              <div class="m-section">
+                <div class="callout"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span>요청을 보내면 조건에 맞는 가게들이 <b>약 12시간 안에</b> 응답해요. 가장 먼저 수락한 가게로 예약이 잡혀요.</span></div>
+              </div>
+              <div class="m-section">
+                <span class="m-label">요청 메모 <span style="font-weight:400;color:var(--m-text-3)">(선택)</span></span>
+                <div class="m-input textarea"><span>고기 위주로, 단체석 한 공간이면 좋겠어요</span></div>
+              </div>
+            </div>
+            <div class="m-foot">
+              <div class="summary-line" id="sumLine">개강총회 · 10/14(화) 19:00 · 32명 · 1인 1.5만 원</div>
+              <button type="button" class="m-btn primary">요청 보내기</button>
+            </div>
+          </div>
+          <span class="cap">G-02 예약 요청</span>
+        </div>
+      </div>
+
+      <div class="badge-strip">
+        <span class="eyebrow">상태 배지와 함께 볼 때</span>
+        <div class="mockbg" id="badgeBg">
+          <span class="m-badge" id="bNeutral">응답 대기</span>
+          <span class="m-badge" id="bWarn">결제 대기</span>
+          <span class="m-badge" id="bOk">확정</span>
+          <span class="m-badge" id="bDanger">노쇼</span>
+          <span class="m-badge" id="bMuted">취소됨</span>
+        </div>
+        <p class="note" style="margin:0">주의(앰버)·위험(레드)은 포인트 색과 별개로 고정입니다. 확정 배지는 포인트 1을 따릅니다. 포인트 1이 빨강·주황 계열이면 결제 대기·노쇼 배지와 헷갈리지 않는지 확인하세요.</p>
+      </div>
+    </main>
+  </div>
+</div>
+
+<script>
+(() => {
+  /* ---------------- 색 계산 (OKLCH) ---------------- */
+  const hexToRgb = h => { h = h.replace('#', ''); return [0, 2, 4].map(i => parseInt(h.slice(i, i + 2), 16) / 255); };
+  const toLin = c => c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+  const toGam = c => c <= 0.0031308 ? 12.92 * c : 1.055 * Math.pow(c, 1 / 2.4) - 0.055;
+  function rgbToOklch([r, g, b]) {
+    r = toLin(r); g = toLin(g); b = toLin(b);
+    const l = Math.cbrt(0.4122214708 * r + 0.5363325363 * g + 0.0514459929 * b);
+    const m = Math.cbrt(0.2119034982 * r + 0.6806995451 * g + 0.1073969566 * b);
+    const s = Math.cbrt(0.0883024619 * r + 0.2817188376 * g + 0.6299787005 * b);
+    const L = 0.2104542553 * l + 0.7936177850 * m - 0.0040720468 * s;
+    const A = 1.9779984951 * l - 2.4285922050 * m + 0.4505937099 * s;
+    const B = 0.0259040371 * l + 0.7827717662 * m - 0.8086757660 * s;
+    return { L, C: Math.hypot(A, B), H: (Math.atan2(B, A) * 180 / Math.PI + 360) % 360 };
+  }
+  function oklchToRgbRaw({ L, C, H }) {
+    const a = C * Math.cos(H * Math.PI / 180), b = C * Math.sin(H * Math.PI / 180);
+    const l = Math.pow(L + 0.3963377774 * a + 0.2158037573 * b, 3);
+    const m = Math.pow(L - 0.1055613458 * a - 0.0638541728 * b, 3);
+    const s = Math.pow(L - 0.0894841775 * a - 1.2914855480 * b, 3);
+    return [
+      4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s,
+      -1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s,
+      -0.0041960863 * l - 0.7034186147 * m + 1.7076147010 * s
+    ];
+  }
+  const inGamut = rgb => rgb.every(c => c >= -0.0005 && c <= 1.0005);
+  function oklchToHex(o) {
+    o = { L: Math.min(1, Math.max(0, o.L)), C: Math.max(0, o.C), H: o.H };
+    let lin = oklchToRgbRaw(o);
+    if (!inGamut(lin)) { // 색역 밖이면 채도를 줄인다
+      let lo = 0, hi = o.C;
+      for (let i = 0; i < 24; i++) { const mid = (lo + hi) / 2; if (inGamut(oklchToRgbRaw({ ...o, C: mid }))) lo = mid; else hi = mid; }
+      lin = oklchToRgbRaw({ ...o, C: lo });
+    }
+    return '#' + lin.map(c => Math.round(Math.min(1, Math.max(0, toGam(Math.min(1, Math.max(0, c))))) * 255).toString(16).padStart(2, '0')).join('').toUpperCase();
+  }
+  const lum = hex => { const [r, g, b] = hexToRgb(hex).map(toLin); return 0.2126 * r + 0.7152 * g + 0.0722 * b; };
+  const contrast = (a, b) => { const x = lum(a), y = lum(b); return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05); };
+  const okl = hex => rgbToOklch(hexToRgb(hex));
+  const withL = (hex, L, cMul = 1, cMax = 1) => { const o = okl(hex); return oklchToHex({ L, C: Math.min(o.C * cMul, cMax), H: o.H }); };
+  // bg 위에서 target 대비가 나올 때까지 밝기를 조정
+  function ensure(hex, bg, target) {
+    const o = okl(hex); const bgDark = lum(bg) < 0.18; let L = o.L; let out = hex;
+    for (let i = 0; i < 80 && contrast(out, bg) < target; i++) { L += bgDark ? 0.01 : -0.01; out = oklchToHex({ L, C: o.C, H: o.H }); }
+    return out;
+  }
+  const bestOn = (bg, light, dark) => contrast(light, bg) >= contrast(dark, bg) ? light : dark;
+
+  /* ---------------- 추천 조합 ---------------- */
+  const PRESETS = [
+    { name: '월계수 그린', desc: '현재 v0.1. 서비스명 월계(월계수)에서. 차분하고 신뢰감', c1: '#226B45', c2: null, n: 'warm' },
+    { name: '월계관', desc: '그린 + 월계관의 금빛. 축하·모임의 분위기를 더함', c1: '#2D6A4F', c2: '#B8860B', n: 'warm' },
+    { name: '중랑천 블루', desc: '월계동 옆 하천. 가장 무난하고 기능적인 파랑', c1: '#1D5FAF', c2: null, n: 'cool' },
+    { name: '저녁 모임', desc: '퇴근 후·수업 후 회식의 따뜻한 주황 + 밤 남색', c1: '#D9541E', c2: '#24324F', n: 'warm' },
+    { name: '숯불', desc: '거의 검정인 차콜 버튼 + 숯불 주황 포인트. 가장 미니멀', c1: '#2A2B2E', c2: '#E8641C', n: 'neutral' },
+    { name: '캠퍼스 버건디', desc: '대학가 느낌의 짙은 적포도색. 학생 단체에 친숙', c1: '#8C2340', c2: null, n: 'warm' },
+    { name: '은행잎', desc: '10월 학기의 노랑 + 짙은 청록. 흰 바탕에서 버튼 면 대비가 낮은 예시', c1: '#F2B41C', c2: '#1F4E5A', n: 'warm' },
+    { name: '새벽 인디고', desc: '또렷한 남보라 + 민트 보조. 젊고 디지털한 인상', c1: '#3949AB', c2: '#16A085', n: 'cool' },
+    { name: '골목 틸', desc: '청록 단색. 그린보다 도시적, 블루보다 부드러움', c1: '#0E7468', c2: null, n: 'brand' },
+    { name: '노포 간판', desc: '오래된 동네 가게 간판의 빨강 + 크림 대신 남색 보조', c1: '#C2362B', c2: '#2B3A55', n: 'warm' }
+  ];
+
+  const NEUTRAL = { warm: { H: 95, C: 0.006 }, neutral: { H: 0, C: 0 }, cool: { H: 250, C: 0.008 } };
+  const GRAY_L = [0.995, 0.975, 0.95, 0.91, 0.83, 0.645, 0.52, 0.43, 0.30, 0.215, 0.16];
+
+  function build(state) {
+    const n = state.neutral === 'brand' ? { H: okl(state.c1).H, C: 0.01 } : NEUTRAL[state.neutral];
+    const g = GRAY_L.map(L => oklchToHex({ L, C: n.C, H: n.H })); // 0,50,100,200,300,400,500,600,700,800,900
+    const c2 = state.useC2 && state.c2 ? state.c2 : null;
+    const out = {};
+    for (const mode of ['light', 'dark']) {
+      const t = {};
+      if (mode === 'light') {
+        Object.assign(t, { bg: '#FFFFFF', subtle: g[1], surface: '#FFFFFF', text: g[10], text2: g[7], text3: g[6], border: g[3], borderStrong: g[5] });
+        t.brand = state.c1;
+        t.brandHover = withL(state.c1, okl(state.c1).L - 0.06);
+        t.brandSubtle = withL(state.c1, 0.965, 0.22, 0.04);
+        t.brandText = ensure(state.c1, t.brandSubtle, 4.6); // 칩 배경(더 어두움)에서도 통과하면 흰 배경도 통과
+        const a = c2 || state.c1;
+        t.accent = a;
+        t.accentSubtle = withL(a, 0.962, 0.25, 0.045);
+        t.accentText = ensure(a, t.accentSubtle, 4.6);
+        Object.assign(t, { warnBg: '#FFF5E0', warnFg: '#8A5300', dangerBg: '#FDEDEC', dangerFg: '#A8241B', mutedBg: g[1], mutedFg: g[6] });
+      } else {
+        const d = (L) => oklchToHex({ L, C: n.C * 1.2, H: n.H });
+        Object.assign(t, { bg: d(0.17), subtle: d(0.205), surface: d(0.21), text: d(0.95), text2: d(0.79), text3: d(0.68), border: d(0.30), borderStrong: d(0.52) });
+        const o = okl(state.c1);
+        let brand = o.L < 0.62 ? oklchToHex({ L: 0.66, C: o.C, H: o.H }) : state.c1;
+        brand = ensure(brand, t.bg, 3);
+        t.brand = brand;
+        t.brandHover = withL(brand, okl(brand).L + 0.05);
+        t.brandSubtle = oklchToHex({ L: 0.27, C: Math.min(o.C * 0.4, 0.06), H: o.H });
+        t.brandText = ensure(oklchToHex({ L: 0.78, C: o.C, H: o.H }), t.brandSubtle, 4.6);
+        const a = c2 || state.c1; const ao = okl(a);
+        t.accent = ensure(oklchToHex({ L: Math.max(ao.L, 0.68), C: ao.C, H: ao.H }), t.bg, 3);
+        t.accentSubtle = oklchToHex({ L: 0.27, C: Math.min(ao.C * 0.45, 0.06), H: ao.H });
+        t.accentText = ensure(oklchToHex({ L: 0.8, C: ao.C, H: ao.H }), t.accentSubtle, 4.6);
+        Object.assign(t, { warnBg: '#3A2A0C', warnFg: '#F5C46B', dangerBg: '#3D1714', dangerFg: '#F59A92', mutedBg: d(0.22), mutedFg: d(0.66) });
+      }
+      t.onBrand = bestOn(t.brand, '#FFFFFF', mode === 'light' ? g[10] : t.bg);
+      // 버튼 글자 대비가 모자라면 버튼 면을 조정
+      if (contrast(t.onBrand, t.brand) < 4.5) t.brand = ensure(t.brand, t.onBrand, 4.5);
+      out[mode] = t;
+    }
+    return out;
+  }
+
+  /* ---------------- 상태 ---------------- */
+  const KEY = 'wolgye-palette-v1';
+  let state = { preset: 0, c1: PRESETS[0].c1, c2: '#B8860B', useC2: false, neutral: PRESETS[0].n, mock: 'light', large: false };
+  try { const s = JSON.parse(localStorage.getItem(KEY) || 'null'); if (s && /^#[0-9A-F]{6}$/i.test(s.c1)) state = { ...state, ...s }; } catch (e) {}
+  const save = () => { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} };
+
+  const $ = id => document.getElementById(id);
+  const presetsEl = $('presets');
+  PRESETS.forEach((p, i) => {
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = 'preset'; b.dataset.i = i;
+    const dots = [p.c1, p.c2].filter(Boolean).map(c => `<i style="background:${c}"></i>`).join('');
+    b.innerHTML = `<span class="dots">${dots}</span><span><b><span class="num">${String(i + 1).padStart(2, '0')}</span>${p.name}</b><small>${p.desc}</small></span>`;
+    b.addEventListener('click', () => {
+      state = { ...state, preset: i, c1: p.c1, useC2: !!p.c2, c2: p.c2 || state.c2, neutral: p.n };
+      render();
+    });
+    presetsEl.appendChild(b);
+  });
+
+  const HEX = /^#?[0-9A-Fa-f]{6}$/;
+  function bindColor(pick, text, key) {
+    pick.addEventListener('input', () => { state[key] = pick.value.toUpperCase(); state.preset = -1; if (key === 'c2') state.useC2 = true; render(); });
+    text.addEventListener('input', () => {
+      const v = text.value.trim(); const ok = HEX.test(v);
+      text.setAttribute('aria-invalid', ok ? 'false' : 'true');
+      if (ok) { state[key] = ('#' + v.replace('#', '')).toUpperCase(); state.preset = -1; if (key === 'c2') state.useC2 = true; render(text); }
+    });
+  }
+  bindColor($('c1'), $('c1t'), 'c1');
+  bindColor($('c2'), $('c2t'), 'c2');
+  $('useC2').addEventListener('change', e => { state.useC2 = e.target.checked; state.preset = -1; render(); });
+  $('neutral').addEventListener('change', e => { state.neutral = e.target.value; state.preset = -1; render(); });
+  $('mLight').addEventListener('click', () => { state.mock = 'light'; render(); });
+  $('mDark').addEventListener('click', () => { state.mock = 'dark'; render(); });
+  $('large').addEventListener('change', e => { state.large = e.target.checked; render(); });
+
+  // 목업 안의 칩·스테퍼는 실제로 눌러볼 수 있게
+  document.querySelectorAll('.chips[data-single]').forEach(group => {
+    group.addEventListener('click', e => {
+      const chip = e.target.closest('.chip'); if (!chip) return;
+      group.querySelectorAll('.chip').forEach(c => c.setAttribute('aria-pressed', c === chip ? 'true' : 'false'));
+      updateSummary();
+    });
+  });
+  let headcount = 32;
+  document.querySelectorAll('[data-step]').forEach(b => b.addEventListener('click', () => {
+    headcount = Math.min(200, Math.max(1, headcount + Number(b.dataset.step))); $('hc').textContent = headcount + '명'; updateSummary();
+  }));
+  function updateSummary() {
+    const groups = document.querySelectorAll('#mockRequest .chips');
+    const ev = groups[0].querySelector('[aria-pressed="true"]')?.firstChild.textContent.trim() || '';
+    const bd = groups[1].querySelector('[aria-pressed="true"]')?.firstChild.textContent.trim() || '';
+    $('sumLine').textContent = `${ev} · 10/14(화) 19:00 · ${headcount}명` + (bd && bd !== '직접 입력' ? ` · 1인 ${bd}` : '');
+  }
+
+  const VARMAP = { bg: 'bg', subtle: 'subtle', surface: 'surface', text: 'text', text2: 'text-2', text3: 'text-3', border: 'border', borderStrong: 'border-strong',
+    brand: 'brand', brandHover: 'brand-hover', onBrand: 'on-brand', brandSubtle: 'brand-subtle', brandText: 'brand-text',
+    accent: 'accent', accentSubtle: 'accent-subtle', accentText: 'accent-text',
+    warnBg: 'warn-bg', warnFg: 'warn-fg', dangerBg: 'danger-bg', dangerFg: 'danger-fg', mutedBg: 'muted-bg', mutedFg: 'muted-fg' };
+
+  function render(skipText) {
+    const pal = build(state);
+    const t = pal[state.mock];
+    for (const m of [$('mockLogin'), $('mockRequest')]) {
+      for (const [k, v] of Object.entries(VARMAP)) m.style.setProperty('--m-' + v, t[k]);
+      m.style.setProperty('--m-scale', state.large ? 1.125 : 1);
+    }
+    // 배지
+    const bb = $('badgeBg'); bb.style.background = t.bg; bb.style.border = `1px solid ${t.border}`;
+    const setB = (id, bg, fg) => { const e = $(id); e.style.background = bg; e.style.color = fg; };
+    setB('bNeutral', state.mock === 'light' ? oklchToHex({ ...okl(t.subtle), L: okl(t.subtle).L - 0.03 }) : t.mutedBg, t.text2);
+    setB('bWarn', t.warnBg, t.warnFg);
+    setB('bOk', t.brandSubtle, t.brandText);
+    setB('bDanger', t.dangerBg, t.dangerFg);
+    setB('bMuted', t.mutedBg, t.mutedFg);
+
+    // 입력칸 동기화
+    $('c1').value = state.c1; if (skipText !== $('c1t')) { $('c1t').value = state.c1; $('c1t').setAttribute('aria-invalid', 'false'); }
+    $('c2').value = state.c2 || '#B8860B'; if (skipText !== $('c2t')) { $('c2t').value = state.c2 || ''; $('c2t').setAttribute('aria-invalid', 'false'); }
+    $('useC2').checked = state.useC2;
+    $('c2').disabled = !state.useC2; $('c2t').disabled = !state.useC2;
+    $('neutral').value = state.neutral;
+    $('mLight').setAttribute('aria-pressed', state.mock === 'light'); $('mDark').setAttribute('aria-pressed', state.mock === 'dark');
+    $('large').checked = state.large;
+    presetsEl.querySelectorAll('.preset').forEach(b => b.setAttribute('aria-pressed', Number(b.dataset.i) === state.preset ? 'true' : 'false'));
+
+    const p = PRESETS[state.preset];
+    $('stageTitle').textContent = p ? p.name : '직접 입력한 조합';
+    $('stageDesc').textContent = p ? p.desc : `포인트 1 ${state.c1}` + (state.useC2 && state.c2 ? ` · 포인트 2 ${state.c2}` : '');
+
+    // 대비 검사
+    $('checkTheme').textContent = state.mock === 'light' ? '(라이트)' : '(다크)';
+    const rows = [
+      ['로그인 버튼 글자', t.onBrand, t.brand, 4.5],
+      ['버튼 면 / 배경', t.brand, t.bg, 3],
+      ['링크·강조 텍스트', t.brandText, t.bg, 4.5],
+      ['선택된 칩 글자', t.brandText, t.brandSubtle, 4.5],
+      ['보조 강조 태그', t.accentText, t.accentSubtle, 4.5],
+      ['본문 / 배경', t.text, t.bg, 4.5],
+      ['보조 텍스트', t.text2, t.bg, 4.5],
+      ['메타 텍스트', t.text3, t.subtle, 4.5],
+      ['입력칸 테두리', t.borderStrong, t.bg, 3]
+    ];
+    $('checks').innerHTML = rows.map(([label, fg, bg, min]) => {
+      const r = contrast(fg, bg); const ok = r >= min;
+      return `<tr><td><span class="sw-mini" style="background:${fg};outline:3px solid ${bg};outline-offset:-1px"></span>${label}</td><td>${r.toFixed(2)}</td><td><span class="pill ${ok ? 'ok' : 'no'}">${ok ? '통과' : min + ':1 미달'}</span></td></tr>`;
+    }).join('');
+
+    // 내보내기
+    const block = (m) => {
+      const x = pal[m];
+      return [
+        `  --color-brand: ${x.brand};`, `  --color-brand-hover: ${x.brandHover};`, `  --color-brand-subtle: ${x.brandSubtle};`,
+        `  --color-brand-text: ${x.brandText};`, `  --color-text-on-brand: ${x.onBrand};`,
+        `  --color-accent: ${x.accent};`, `  --color-accent-subtle: ${x.accentSubtle};`, `  --color-accent-text: ${x.accentText};`,
+        `  --color-bg: ${x.bg};`, `  --color-bg-subtle: ${x.subtle};`, `  --color-surface: ${x.surface};`,
+        `  --color-text-primary: ${x.text};`, `  --color-text-secondary: ${x.text2};`, `  --color-text-tertiary: ${x.text3};`,
+        `  --color-border: ${x.border};`, `  --color-border-strong: ${x.borderStrong};`,
+        `  --tone-success-bg: ${x.brandSubtle};`, `  --tone-success-fg: ${x.brandText};`
+      ].join('\n');
+    };
+    $('cssOut').textContent = `/* ${p ? p.name : '직접 입력'} · 포인트1 ${state.c1}${state.useC2 && state.c2 ? ' · 포인트2 ' + state.c2 : ''} · 중립 ${$('neutral').selectedOptions[0].text} */\n:root {\n${block('light')}\n}\n\n:root[data-theme="dark"] {\n${block('dark')}\n}`;
+    save();
+  }
+
+  $('copyBtn').addEventListener('click', () => {
+    const text = $('cssOut').textContent;
+    const done = msg => { $('copied').textContent = msg; setTimeout(() => $('copied').textContent = '', 2400); };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(() => done('복사했어요'), () => { selectPre(); done('선택해 두었어요. Ctrl+C로 복사하세요'); });
+    } else { selectPre(); done('선택해 두었어요. Ctrl+C로 복사하세요'); }
+  });
+  function selectPre() { const r = document.createRange(); r.selectNodeContents($('cssOut')); const s = getSelection(); s.removeAllRanges(); s.addRange(r); }
+
+  render();
+  updateSummary();
+})();
+</script>
