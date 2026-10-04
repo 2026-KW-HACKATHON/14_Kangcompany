@@ -157,8 +157,13 @@ button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-v
 /* 로그인 */
 .login-hero { padding: 36px 0 28px; display: grid; gap: 12px; }
 .logo { display: flex; align-items: center; gap: 10px; }
-.logo-mark { width: 40px; height: 40px; border-radius: 12px; background: var(--m-brand-subtle); display: grid; place-items: center; }
-.logo-mark svg { width: 26px; height: 26px; }
+.logo-icon { width: 44px; height: 44px; flex: none; }
+
+/* 앱 아이콘: 두 사람이 마주 앉아 손을 건네는 모양 (시안 이미지 우측 하단 기준) */
+.icon-strip { display: flex; flex-wrap: wrap; gap: 16px; align-items: end; }
+.icon-tile { display: grid; gap: 6px; justify-items: center; font-size: 12px; color: var(--ink-3); }
+.icon-tile .home { padding: 14px; border-radius: 16px; display: grid; place-items: center; }
+.icon-tile svg { display: block; }
 .logo-word { font-size: calc(20px * var(--m-scale)); font-weight: 700; letter-spacing: -0.03em; color: var(--m-text); }
 .login-form { display: grid; gap: 16px; }
 .row-between { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
@@ -269,9 +274,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-v
             <div class="m-body">
               <div class="login-hero">
                 <div class="logo">
-                  <span class="logo-mark" aria-hidden="true">
-                    <svg viewBox="0 0 32 32" fill="none"><path d="M16 27c-6-3-9-8-9-14" stroke="var(--m-brand)" stroke-width="2.2" stroke-linecap="round"/><path d="M16 27c6-3 9-8 9-14" stroke="var(--m-brand)" stroke-width="2.2" stroke-linecap="round"/><ellipse cx="8.6" cy="15" rx="2.2" ry="3.6" transform="rotate(-25 8.6 15)" fill="var(--m-brand)"/><ellipse cx="23.4" cy="15" rx="2.2" ry="3.6" transform="rotate(25 23.4 15)" fill="var(--m-brand)"/><ellipse cx="10.8" cy="21" rx="2.2" ry="3.6" transform="rotate(-45 10.8 21)" fill="var(--m-brand)"/><ellipse cx="21.2" cy="21" rx="2.2" ry="3.6" transform="rotate(45 21.2 21)" fill="var(--m-brand)"/><circle cx="16" cy="9" r="3" fill="var(--m-accent)"/></svg>
-                  </span>
+                  <svg class="logo-icon" viewBox="0 0 100 100" aria-hidden="true"><use href="#appIcon"/></svg>
                   <span class="logo-word">월계더링</span>
                 </div>
                 <div class="m-t-title1">단체 모임, 동네 가게에서<br>쉽게 잡아요</div>
@@ -343,6 +346,28 @@ button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-v
           </div>
           <span class="cap">G-02 예약 요청</span>
         </div>
+      </div>
+
+      <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+        <symbol id="appIcon" viewBox="0 0 100 100">
+          <rect width="100" height="100" rx="23" fill="var(--icon-bg)"/>
+          <circle cx="67" cy="31" r="10.5" fill="var(--icon-b)"/>
+          <path d="M70 47c10 4 14 13 11 22-2.6 7.6-10 11-18 11" fill="none" stroke="var(--icon-b)" stroke-width="13" stroke-linecap="round"/>
+          <path d="M45 58l24-7" fill="none" stroke="var(--icon-b)" stroke-width="11" stroke-linecap="round"/>
+          <circle cx="32" cy="40" r="10.5" fill="var(--icon-a)"/>
+          <path d="M24 58c0 13 9 20 24 20" fill="none" stroke="var(--icon-a)" stroke-width="13" stroke-linecap="round"/>
+        </symbol>
+      </svg>
+
+      <div class="badge-strip" id="iconStrip">
+        <span class="eyebrow">앱 아이콘 (현재 조합 색)</span>
+        <div class="icon-strip">
+          <div class="icon-tile"><div class="home" id="homeLight"><svg width="64" height="64" viewBox="0 0 100 100"><use href="#appIcon"/></svg></div>밝은 홈 화면</div>
+          <div class="icon-tile"><div class="home" id="homeDark"><svg width="64" height="64" viewBox="0 0 100 100"><use href="#appIcon"/></svg></div>어두운 홈 화면</div>
+          <div class="icon-tile"><div class="home" style="padding:0"><svg width="32" height="32" viewBox="0 0 100 100"><use href="#appIcon"/></svg></div>32px</div>
+          <div class="icon-tile"><div class="home" style="padding:0"><svg width="20" height="20" viewBox="0 0 100 100"><use href="#appIcon"/></svg></div>20px (탭 아이콘)</div>
+        </div>
+        <p class="note" style="margin:0">앞사람 = 포인트 2(없으면 포인트 1), 뒷사람 = 포인트 1, 바탕 = 아이콘 배경. 앱 아이콘은 테마와 관계없이 같은 색으로 둡니다.</p>
       </div>
 
       <div class="badge-strip">
@@ -432,7 +457,14 @@ button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-v
     { name: '밤 남색', desc: '짙은 남색 버튼 + 가로등 노랑 포인트. 대비가 강하고 또렷함', c1: '#1E3A5F', c2: '#E9B949', n: 'cool',
       over: { bg: '#F5F6F8', surface: '#FFFFFF', text: '#161B22' } },
     { name: '포도 동아리', desc: '보라 + 살구 보조. 학생 단체 중심의 발랄한 인상', c1: '#5A4796', c2: '#F0A07A', n: 'cool',
-      over: { bg: '#F7F6FA', surface: '#FFFFFF', text: '#1D1B24' } }
+      over: { bg: '#F7F6FA', surface: '#FFFFFF', text: '#1D1B24' } },
+    // 16~18: 앱 아이콘 시안(두 사람 · 숲색 + 파랑 + 얼음빛 바탕) 기준
+    { name: '아이콘 · 숲', desc: '앱 아이콘 기준. 숲색 버튼, 아이콘의 파랑은 보조 강조, 얼음빛 배경', c1: '#1E4136', c2: '#3D6AE0', n: 'cool',
+      over: { hover: '#132C24', bg: '#F3F7F8', surface: '#FFFFFF', text: '#17201D', iconBg: '#DBEAF0' } },
+    { name: '아이콘 · 블루', desc: '같은 아이콘, 파랑이 버튼을 맡음. 숲색은 보조. 더 젊고 디지털한 인상', c1: '#3A63D8', c2: '#1E4136', n: 'cool',
+      over: { hover: '#2C4FB8', bg: '#F4F7FB', surface: '#FFFFFF', text: '#161C2B', iconBg: '#DBEAF0' } },
+    { name: '아이콘 · 얼음빛', desc: '아이콘 바탕색을 화면 배경으로. 흰 입력칸·카드가 또렷하게 떠 보임', c1: '#1E4136', c2: '#3D6AE0', n: 'cool',
+      over: { hover: '#132C24', bg: '#E3EEF2', surface: '#FFFFFF', text: '#14201C', iconBg: '#FFFFFF' } }
   ];
 
   const NEUTRAL = { warm: { H: 95, C: 0.006 }, neutral: { H: 0, C: 0 }, cool: { H: 250, C: 0.008 } };
@@ -453,6 +485,10 @@ button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-v
           if (over.bg) { t.bg = over.bg; const b = okl(over.bg); t.subtle = oklchToHex({ L: b.L - 0.025, C: b.C, H: b.H }); }
           if (over.surface) t.surface = over.surface;
           if (over.text) t.text = over.text;
+          // 배경이 진해져도 보조 글자·입력칸 테두리가 기준을 넘도록 보정
+          t.text2 = ensure(t.text2, t.subtle, 4.6);
+          t.text3 = ensure(t.text3, t.subtle, 4.6);
+          t.borderStrong = ensure(t.borderStrong, t.bg, 3.05);
         }
         t.brand = state.c1;
         t.brandHover = over && over.hover ? over.hover : withL(state.c1, okl(state.c1).L - 0.06);
@@ -555,6 +591,16 @@ button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-v
       for (const [k, v] of Object.entries(VARMAP)) m.style.setProperty('--m-' + v, t[k]);
       m.style.setProperty('--m-scale', state.large ? 1.125 : 1);
     }
+    // 앱 아이콘: 테마와 무관하게 라이트 값(원래 색) 사용
+    const pr = PRESETS[state.preset];
+    const iconOver = pr && pr.over && pr.c1 === state.c1 ? pr.over : null;
+    const rootStyle = document.documentElement.style;
+    rootStyle.setProperty('--icon-bg', (iconOver && iconOver.iconBg) || pal.light.brandSubtle);
+    rootStyle.setProperty('--icon-a', state.useC2 && state.c2 ? state.c2 : state.c1);
+    rootStyle.setProperty('--icon-b', state.c1);
+    $('homeLight').style.background = '#E9ECEF';
+    $('homeDark').style.background = '#1A1C1F';
+
     // 배지
     const bb = $('badgeBg'); bb.style.background = t.bg; bb.style.border = `1px solid ${t.border}`;
     const setB = (id, bg, fg) => { const e = $(id); e.style.background = bg; e.style.color = fg; };
