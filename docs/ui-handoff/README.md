@@ -102,6 +102,6 @@ docs/ui-handoff/drafts/
 | 조건 수정 요청 주체 | [#3](https://github.com/2026-KW-HACKATHON/14_Kangcompany/issues/3) | G-06에 버튼 자리만 |
 | 취소·환불 규정 문구 | [#10](https://github.com/2026-KW-HACKATHON/14_Kangcompany/issues/10) B-08 | "취소 규정 보기" 링크 자리만 |
 | 가게 전화번호 데이터 | #10 B-02 | 예시 번호 사용 (필수 항목으로 결정됨) |
-| 큰 글씨 모드 배율 | — | 지금은 ×1.125. 페르소나 제안(20~22px)과 비교 예정 |
+| 큰 글씨 모드 배율 | #13 | ×1.125 유지. 휴리스틱 평가 때 ×1.25와 비교해 정함 |
 
 지금까지 확정된 결정은 [#13](https://github.com/2026-KW-HACKATHON/14_Kangcompany/issues/13)에 모여 있어요.
