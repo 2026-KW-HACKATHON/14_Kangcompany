@@ -11,21 +11,29 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)  // URL·anon key
 (예약·결제·영수증 품목은 테이블에 직접 쓰면 권한 오류가 난다.)
 
 에러는 `{ data, error }` 의 `error.message` 에 한글 사유가 담겨 온다. 그대로 사용자에게 보여줘도 된다.
+권한이 없으면 `error.code === '42501'` (테이블 직접 쓰기 금지 위반도 `permission denied` 로 온다).
+
+> **기준: 마이그레이션 001~008** (2026-10-05 갱신)
+> - 007: 선착순 확정 — 가게가 수락하면 그 즉시 예약 생성(결제 대기). `choose_response*` 삭제
+> - 008: 응답 기한·남은 자리, 요청 철회, 가게 수, 행동 플래그, 연락처, 가게 정보·좌표, 수락 알림 1건 통합, 행사 전 완료 처리 금지, 테이블 직접 쓰기 권한 축소
 
 ---
 
 ## 1. 회원가입 / 로그인
 
 ```js
-// 가입: role 은 'group'(단체 대표) 또는 'owner'(사장님)
+// 가입: role 은 'group'(단체 대표) 또는 'owner'(사장님). phone 은 예약 상대방에게 공개될 연락처 (선택이지만 권장)
 await supabase.auth.signUp({
   email, password,
-  options: { data: { role: 'owner', display_name: '홍길동' } }
+  options: { data: { role: 'owner', display_name: '홍길동', phone: '010-1234-5678' } }
 })
 await supabase.auth.signInWithPassword({ email, password })
 
 // 내 정보
 const { data: me } = await supabase.from('profiles').select('*').single()
+
+// 내 정보 수정: 이름·전화번호만 가능 (role 은 바꿀 수 없음)
+await supabase.from('profiles').update({ display_name, phone }).eq('id', me.id)
 ```
 
 ---
@@ -35,10 +43,13 @@ const { data: me } = await supabase.from('profiles').select('*').single()
 | 누가 | 동작 | 코드 |
 |---|---|---|
 | 단체 | 단체 만들기 | `supabase.from('groups').insert({ leader_id: me.id, name, group_type })` |
-| 사장님 | 가게 등록 | `supabase.from('stores').insert({ owner_id: me.id, name, address, max_capacity })` |
-| 사장님 | 메뉴 등록 | 메뉴판 사진 인식 또는 직접 입력 → `rpc('save_menus')` (아래 2-1 참고) |
+| 사장님 | 가게 등록 | `supabase.from('stores').insert({ owner_id: me.id, name, address, max_capacity, phone, intro, lat, lng })` (사진은 아래 2-1) |
+| 사장님 | 가게 정보 수정 | `supabase.from('stores').update({ phone, intro, photo_url, lat, lng }).eq('id', store_id)` |
+| 사장님 | 메뉴 등록 | 메뉴판 사진 인식 또는 직접 입력 → `rpc('save_menus')` (아래 2-2 참고) |
 | 사장님 | 빈 날짜 열기 | `supabase.from('slots').insert({ store_id, start_at, end_at, capacity, deposit_amount })` |
-| 단체 | 요청 보내기 | `supabase.from('requests').insert({ group_id, event_type, desired_at, flexible_days, headcount, budget_per_person, note })` |
+| 사장님 | 빈 날짜 닫기 / 다시 열기 | `supabase.from('slots').update({ status: 'closed' }).eq('id', slot_id)` (`'open'` 으로 다시 열기). **예약된(`booked`) 날짜는 수정 불가** |
+| 단체 | 요청 보내기 | `supabase.from('requests').insert({ group_id, event_type, desired_at, flexible_days, headcount, budget_per_person, note }).select().single()` |
+| 단체 | 요청 메모 수정 | `supabase.from('requests').update({ note }).eq('id', request_id)` (메모 외 컬럼·삭제는 불가 → 철회는 `cancel_request`) |
 
 **코드값**
 - `group_type`: `student_council` 학생회, `club` 동아리, `residents` 주민모임, `hobby` 동호회, `etc` 기타
@@ -46,9 +57,46 @@ const { data: me } = await supabase.from('profiles').select('*').single()
 - `event_type`: `opening_party` 개강총회, `snack_event` 간식행사, `after_party` 뒤풀이, `closing_party` 종강총회, `etc` 기타
 - 시간은 ISO 문자열로 (`'2026-10-14T19:00:00+09:00'`)
 
+**가게 정보 (008)**
+- `phone` 가게 전화번호 (숫자·`-`·`+`·괄호·공백 7~20자), `intro` 한 줄 소개 (60자 이하), `photo_url` 대표 사진 공개 URL
+- `lat`, `lng` 지도 좌표. 주소→좌표 변환 위치와 지도 서비스는 #8 결정 후 확정 (지금은 값을 받아 저장만)
+- 전화번호·대표 사진은 기획상 **필수**(D-05)지만 DB 는 null 허용 → 가게 등록 화면에서 필수로 받기
+
+**요청 생성 시 서버가 정하는 값**
+- `response_deadline` 가게 응답 기한: 행사까지 7일 초과면 생성 후 24시간, 그 외 12시간 (행사 시작보다 늦지 않게 보정). 숫자는 #6 결정에 따라 바뀔 수 있음
+- 행사 24시간 이내 요청은 같은 시간대에 진행 중인 다른 요청·예약이 있으면 거절
+- `flexible_days` 는 저장되지만 선착순 수락 시 쓰이지 않음 (예약은 `desired_at` 그대로 생성, 처리 방침은 B-06 결정 대기)
+
+### 2-0. 요청 전후 도우미 (단체)
+
+```js
+// 이 인원을 받을 수 있는 가게 수 (B-05)
+const { data } = await supabase.rpc('request_reach', { p_headcount: 24, p_desired_at: '2026-10-14T18:30:00+09:00' })
+// data = { notified: 3, available: 2 }
+//   notified : 요청 알림이 가는 가게 수 (최대 인원 >= 인원)          → 제출 후 "3곳에 전달됐어요"
+//   available: 그중 그 시간대에 자리가 남은 가게 수 (p_desired_at 줄 때) → 0 이면 제출 전 안내
+// p_desired_at 을 생략하면 available = notified
+
+// 응답 대기 중 요청 철회 (B-04). 알림을 받았던 가게들에 request_closed 알림
+await supabase.rpc('cancel_request', { p_request_id })
+```
+
+- 요청 자동 만료(`expired`)는 사장님 쪽 목록 조회 때 처리된다. 단체 화면에서는 `status = 'open'` 이어도 `response_deadline < 지금` 이면 **만료로 표시**할 것 (또는 대시보드에서 pg_cron 활성화, 003 맨 끝 참고)
+
 ---
 
-### 2-1. 메뉴판 사진으로 메뉴 등록 (사장님)
+### 2-1. 가게 대표 사진 업로드 (사장님)
+
+Storage 버킷 `store-photos` (공개 읽기). 경로 첫 폴더는 **가게 id** 여야 본인만 업로드 가능.
+
+```js
+const path = `${store_id}/main-${Date.now()}.jpg`
+const { error } = await supabase.storage.from('store-photos').upload(path, file, { upsert: true, contentType: 'image/jpeg' })
+const { data: { publicUrl } } = supabase.storage.from('store-photos').getPublicUrl(path)
+await supabase.from('stores').update({ photo_url: publicUrl }).eq('id', store_id)
+```
+
+### 2-2. 메뉴판 사진으로 메뉴 등록 (사장님)
 
 ```js
 // 1) 인식: DB 에 저장되지 않음. 결과를 편집 화면에 채우기
@@ -81,33 +129,48 @@ await supabase.rpc('save_menus', {
 
 ## 3. 예약 흐름 (rpc)
 
-### ① 단체가 먼저 요청하는 경우
+### ① 단체가 먼저 요청하는 경우 (선착순 확정)
 
 ```
-단체: requests insert → 사장님: respond_to_request → 단체: choose_response → pay_deposit_test → 확정
+단체: requests insert → 사장님: respond_to_request(수락) ─┬→ 예약 생성(결제 대기) + 요청 confirmed
+                                                         └→ 다른 가게들: request_closed 알림 (이후 수락 불가)
+단체: (선택) set_preorder → prepare_deposit_payment → 토스 → 확정
+기한 안에 아무도 수락 안 하면 → 요청 expired
 ```
+
+단체가 수락한 가게 중에서 **고르는 단계는 없다**. 가장 먼저 수락한 가게 1곳으로 바로 결제 대기 예약이 생긴다.
 
 ```js
-// [사장님] 내 가게가 받을 수 있는 열린 요청 (인원 조건 충족, 내 응답 상태 포함, 지난 요청 자동 만료)
-supabase.rpc('open_requests_for_store', { p_store_id })
+// [사장님] 내 가게가 받을 수 있는 열린 요청 (응답 기한 임박순, 지난 요청 자동 만료)
+const { data } = await supabase.rpc('open_requests_for_store', { p_store_id })
+// 행: { request_id, group_name, group_type, event_type, desired_at, flexible_days, headcount,
+//       budget_per_person, note, my_response, my_deposit, created_at,
+//       response_deadline,     // 응답 기한 → 카운트다운 (3시간 이하 warning)
+//       committed_headcount,   // 같은 시간대에 이미 잡힌 인원 (결제 대기+확정)
+//       remaining_capacity,    // 같은 시간대 남은 자리
+//       can_accept }           // 기한 전이고 남은 자리 >= 인원이면 true → false 면 수락 버튼 비활성
+// my_response: null(새 요청) | 'declined'(거절함). 'accepted' 는 수락 즉시 목록에서 빠지므로 보통 안 보임
 
-// [사장님] 수락(예약금 5만원) / 거절
+// [사장님] 수락 = 즉시 확정(결제 대기). 예약금 5만원 / 거절
 supabase.rpc('respond_to_request', { p_request_id, p_store_id, p_accept: true, p_deposit_amount: 50000 })
 supabase.rpc('respond_to_request', { p_request_id, p_store_id, p_accept: false })
+// 늦게 수락하면 error.message = '이미 마감되었거나 없는 요청입니다' → 토스트 + 목록 새로고침
 
-// [단체] 내 요청에 온 응답 보기
-supabase.from('request_responses').select('*, stores(name, address)').eq('request_id', id)
-
-// [단체] 수락한 가게 중 하나 선택 + 그 가게 메뉴 사전 주문 → 예약 생성 (결제 대기)
-supabase.rpc('choose_response_with_menu', { p_response_id, p_items: [{ menu_id: 12, qty: 20 }, { menu_id: 15, qty: 30 }] })
-// 메뉴 없이 예약만: supabase.rpc('choose_response', { p_response_id })
+// [단체] 요청 상태와 확정된 예약
+supabase.from('requests').select('*').eq('id', request_id).single()          // status: open | confirmed | expired | cancelled
+supabase.from('reservations').select('*, stores(name, address, phone, photo_url, lat, lng)').eq('request_id', request_id).maybeSingle()
+// [단체] 거절한 가게 수
+supabase.from('request_responses').select('id', { count: 'exact', head: true }).eq('request_id', request_id).eq('status', 'declined')
 ```
+
+- `request_responses.status` 의 `pending`, `modify_requested` 는 선착순 이후 쓰이지 않는다 (R-04, 무시)
+- 사장님은 `request_responses` 에 직접 쓸 수 없다. 응답은 `respond_to_request` 로만
 
 ### ② 가게가 먼저 연 날짜를 고르는 경우
 
 ```js
 // [단체] 열린 날짜 목록
-supabase.from('slots').select('*, stores(name, address)').eq('status', 'open').gte('start_at', new Date().toISOString())
+supabase.from('slots').select('*, stores(name, address, phone, photo_url, intro, lat, lng)').eq('status', 'open').gte('start_at', new Date().toISOString())
 
 // [단체] 날짜 선택 + 메뉴 사전 주문 → 예약 생성 (결제 대기)
 supabase.rpc('book_slot_with_menu', {
@@ -147,7 +210,7 @@ const { data, error } = await supabase.functions.invoke('toss-payment', {
 
 - **예약금 0원 예약**(간식행사 등): 결제 없이 `supabase.rpc('confirm_zero_deposit', { p_reservation_id })`
 - 결제창을 다시 열면 `prepare_deposit_payment` 를 다시 호출 (이전 주문번호는 자동 무효)
-- 시연용 가짜 결제 `pay_deposit_test` 도 그대로 사용 가능 (토스 연동 전 화면 개발용)
+- 시연용 가짜 결제 `pay_deposit_test` 도 그대로 사용 가능 (토스 연동 전 화면 개발용). **결제 없이 확정되는 함수라 실서비스 전에는 막아야 함**
 
 ### 공통: 취소 · 완료
 
@@ -157,13 +220,39 @@ supabase.functions.invoke('toss-payment', { body: { action: 'cancel', reservatio
 // 결제 전이거나 테스트 결제 예약은 rpc 로도 가능
 supabase.rpc('cancel_reservation', { p_reservation_id })
 
-// [사장님] 행사 끝 → completed / 노쇼 → no_show
+// [사장님] 행사 끝 → completed / 노쇼 → no_show. 행사 시작 시각 이후에만 가능 (008, R-03)
 supabase.rpc('finish_reservation', { p_reservation_id })
 supabase.rpc('finish_reservation', { p_reservation_id, p_no_show: true })
 
 // 내 예약 목록 (단체·사장님 모두 자기 것만 보임)
-supabase.from('reservations').select('*, groups(name), stores(name)').order('start_at')
+supabase.from('reservations').select('*, groups(name), stores(name, phone, photo_url)').order('start_at')
 ```
+
+### 예약 상세: 가능한 행동 · 연락처 (008)
+
+```js
+// 버튼 표시 기준 (B-09). 상태 정의도 2-1 행동 매트릭스와 같은 규칙을 서버가 계산
+const { data: act } = await supabase.rpc('reservation_actions', { p_reservation_id })
+// {
+//   role: 'group' | 'owner', status,
+//   can_pay, pay_method: 'toss' | 'zero',       // zero 면 confirm_zero_deposit
+//   can_cancel, cancel_via: 'toss' | 'rpc',     // toss 면 toss-payment(cancel), rpc 면 cancel_reservation
+//   can_modify,                                  // 조건 수정 요청 (결제 전·1회·행사 24시간 전까지, #3 결정 대기)
+//   can_respond_modify,                          // 사장님: 조건 수정 요청 응답
+//   can_edit_preorder, preorder_deadline,        // 확정 후엔 행사 24시간 전까지 (preorder_deadline)
+//   can_rsvp, rsvp_open,                         // 참석 조사 만들기/열기, 지금 응답 받는 중인지
+//   can_finish,                                  // 사장님: 확정 + 행사 시작 이후
+//   can_upload_receipt,                          // 사장님: 확정·완료
+//   can_view_contacts                            // 결제 대기·확정·완료·노쇼
+// }
+
+// 상대방 연락처 (B-01, D-06). 결제 대기 이상 예약의 당사자만
+const { data: c } = await supabase.rpc('reservation_contacts', { p_reservation_id })
+// { store: { name, phone, address, owner_name, owner_phone }, group: { name, leader_name, leader_phone } }
+```
+
+- 상태가 바뀌는 동작 직후에는 `reservation_actions` 를 다시 불러 버튼을 갱신
+- 플래그는 화면 표시용. 실제 허용 여부는 각 함수가 다시 검사하므로, 플래그와 무관하게 `error.message` 처리는 필요
 
 ### 사전 주문 (예약 시 메뉴 선택)
 
@@ -189,7 +278,8 @@ await supabase.rpc('set_preorder', { p_reservation_id, p_items: [{ menu_id: 12, 
 ### 조건 수정 요청 (결제 전 1회)
 
 ```js
-// [단체] 인원·날짜 변경 요청 (슬롯 예약은 인원만). 응답 전까지 결제 불가
+// [단체] 인원·날짜 변경 요청 (슬롯 예약은 인원만, 행사 24시간 전까지, 1회). 응답 전까지 결제 불가
+// 조건 수정 주체(단체 요청형 유지 여부)는 #3 결정 대기
 supabase.rpc('request_modification', { p_reservation_id, p_headcount: 38, p_note: '인원 늘었어요' })
 // [사장님] 수락 → 예약에 반영 / 거절
 supabase.rpc('respond_modification', { p_reservation_id, p_accept: true })
@@ -282,7 +372,7 @@ supabase.rpc('close_rsvp', { p_reservation_id })
 
 ## 5. 알림
 
-요청 도착, 수락, 예약 생성·확정·취소·완료, 조건 수정, 영수증 확인 필요 시 자동 생성된다.
+요청 도착·수락·마감, 예약 생성·확정·취소·완료, 조건 수정, 영수증 확인 필요 시 자동 생성된다.
 
 ```js
 // 목록
@@ -296,9 +386,22 @@ supabase.channel('my-notifications')
   .subscribe()
 ```
 
-`type`: `request_new`, `request_accepted`, `reservation_new`, `reservation_confirmed`, `reservation_cancelled`,
-`reservation_completed`, `reservation_no_show`, `modify_requested`, `modify_accepted`, `modify_rejected`, `receipt_review`, `preorder_changed`, `rsvp_closed`
-관련 화면으로 이동할 때 `request_id` / `reservation_id` / `receipt_id` 사용.
+| `type` | 받는 사람 | 언제 | 함께 오는 id |
+|---|---|---|---|
+| `request_new` | 사장님 (최대 인원 >= 요청 인원인 가게 전부) | 새 요청 | `request_id` |
+| `request_closed` | 사장님 | 다른 가게가 먼저 수락했거나, 단체가 요청을 철회함 (제목으로 구분) | `request_id` |
+| `request_accepted` | 단체 | 가게가 수락 → 결제 대기 예약 생성. 제목 "OO이(가) 수락했어요", 본문 "예약금 N원을 결제하면 확정돼요" | `request_id`, `reservation_id` |
+| `reservation_new` | 사장님 | 단체가 빈 날짜를 예약 (요청 수락으로 생긴 예약은 본인 알림 없음) | `reservation_id` |
+| `reservation_confirmed` | 사장님 | 예약금 결제·0원 확정 | `reservation_id` |
+| `reservation_cancelled` | 양쪽 | 취소 | `reservation_id` |
+| `reservation_completed`, `reservation_no_show` | 단체 | 사장님이 완료·노쇼 처리 | `reservation_id` |
+| `modify_requested` | 사장님 | 조건 수정 요청 | `reservation_id` |
+| `modify_accepted`, `modify_rejected` | 단체 | 조건 수정 응답 | `reservation_id` |
+| `preorder_changed` | 사장님 | 확정 후 사전 주문 변경 | `reservation_id` |
+| `rsvp_closed` | 사장님 | 참석 조사 마감 (최종 인원) | `reservation_id` |
+| `receipt_review` | 사장님 | 영수증 확인 필요 | `reservation_id`, `receipt_id` |
+
+008 변경: 가게 수락 시 단체가 받던 알림 2건(`request_accepted` + `reservation_new`)을 `request_accepted` 1건으로 합침 (R-01).
 
 ## 6. 사장님 통계
 
@@ -324,6 +427,7 @@ const { data } = await supabase.rpc('store_stats', { p_store_id, p_from: '2026-0
 supabase.rpc('unmet_demand_stats')   // 기본: 최근 180일
 ```
 반환: `total_unmet`, `no_store_accepted`, `accepted_but_not_chosen`, `by_event`(행사별 건수·평균 인원·평균 예산), `by_size`(규모별), `by_week`(주별)
+(`accepted_but_not_chosen` 은 선택 단계가 있던 007 이전 데이터용. 선착순 이후에는 항상 0 → 화면에 표시하지 않아도 됨)
 
 ### 상세 행 단위 조회
 

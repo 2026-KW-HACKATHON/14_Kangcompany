@@ -11,6 +11,9 @@ supabase/
     004_toss.sql          토스페이먼츠 예약금 결제 (주문 준비, 승인 확정, 환불 취소 보호)
     005_menus_preorder.sql 메뉴 분류·일괄 저장, 예약 시 메뉴 사전 주문
     006_rsvp.sql          참석 조사 (로그인 없는 응답, 예약 인원 자동 반영)
+    007_first_accept.sql  선착순 확정, 가게 응답 기한, 같은 시간대 수용 인원 제한
+    008_fe_requests.sql   FE 요청 반영(#10): 응답 기한·남은 자리, 요청 철회, 가게 수, 행동 플래그,
+                          연락처, 가게 정보·좌표·사진 저장소, 수락 알림 통합, 테이블 직접 쓰기 권한 축소
   functions/
     extract-menu/         메뉴판 사진 → LLM 메뉴 후보 + 기존 메뉴 비교 (저장 안 함)
       index.ts, menu.ts
@@ -40,7 +43,12 @@ tests/                    로컬 테스트 (Supabase 에는 올리지 않음)
 4. `004_toss.sql` 실행
 5. `005_menus_preorder.sql` 실행
 6. `006_rsvp.sql` 실행
-7. 확인: `scripts/check_migrations.sql` 실행 → ok 열이 모두 true
+7. `007_first_accept.sql` 실행
+8. `008_fe_requests.sql` 실행
+9. 확인: `scripts/check_migrations.sql` 실행 → ok 열이 모두 true (7번 Realtime 은 Supabase 에서만 true)
+
+> 이미 운영 중인 DB 에 008 을 적용하면 `open_requests_for_store` 반환 형식이 바뀐다 (컬럼 추가만, 기존 컬럼 유지).
+> 008 은 앱이 `requests`·`request_responses`·`profiles.role` 에 직접 쓰는 권한을 회수한다 → API.md 방식만 쓰면 영향 없음.
 
 ### 2. 로그인 설정 (대시보드 → Authentication)
 
@@ -66,7 +74,7 @@ npx supabase functions deploy toss-payment --project-ref 프로젝트ID
 
 ### 4. 프런트에 전달할 것
 
-- Project URL, anon key (대시보드 → Project Settings → API)
+- Project URL, anon key (대시보드 → Project Settings → API. 새 키 체계면 publishable key)
 - `docs/API.md`
 - **service_role key 는 절대 앱에 넣지 말 것** (모든 권한을 우회함)
 
@@ -99,15 +107,18 @@ node --experimental-strip-types --test tests/receipt.test.ts
 psql -d 테스트DB -f tests/stub_supabase.sql -f supabase/migrations/001_schema.sql \
      -f supabase/migrations/002_rpc.sql -f supabase/migrations/003_features.sql \
      -f supabase/migrations/004_toss.sql -f supabase/migrations/005_menus_preorder.sql \
-     -f supabase/migrations/006_rsvp.sql -f tests/test_flow.sql
+     -f supabase/migrations/006_rsvp.sql -f supabase/migrations/007_first_accept.sql \
+     -f supabase/migrations/008_fe_requests.sql -f tests/test_flow.sql
 # 003 기능은 tests/test_features.sql, 004 결제는 tests/test_toss.sql, 005 메뉴·사전 주문은 tests/test_preorder.sql, 006 참석 조사는 tests/test_rsvp.sql
+# 007 선착순은 tests/test_first_accept.sql, 008 FE 요청 반영은 tests/test_fe_requests.sql
 # 토스·메뉴판 모듈: node --experimental-strip-types --test tests/toss.test.ts tests/menu.test.ts
 # 데모 데이터는 tests/demo_users.sql 다음에 scripts/seed_demo.sql
 ```
 
 ## 아직 구현하지 않은 것
 
-- 실제 결제 연동 (현재 `pay_deposit_test` 로 대체)
-- 푸시 알림 (앱 형태 결정 후, `notifications` 테이블 기반으로 연결)
+- 푸시 알림: 채널(앱 내 / 웹 푸시 / 알림톡)은 #6 결정 대기. 지금은 `notifications` + Realtime 앱 내 알림
 - 토스 라이브(실결제) 전환: 사업자 계약 필요. 해커톤은 테스트 키로 충분
-- 앱 화면 전체
+- `pay_deposit_test`(결제 없이 확정) 차단: 시연 후 실서비스 전에 권한 회수 필요
+- 팀 결정 대기라 반영하지 않은 것: 취소 시간 제한·위약(R-02), 환불 규정 문구(B-08), `flexible_days`(B-06), 마감 알림 대상(#2), 조건 수정 주체(#3), 응답 기한 숫자(#6)
+- 주소→좌표 자동 변환 (지도 서비스 #8 결정 후)
