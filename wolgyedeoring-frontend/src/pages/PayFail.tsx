@@ -1,3 +1,4 @@
+import { paths } from '../app/paths'
 import { Link, useSearchParams } from 'react-router-dom'
 
 // 토스 결제창 실패·취소 후 돌아오는 페이지 (토스가 code, message 를 붙여 줌)
@@ -9,7 +10,7 @@ export default function PayFail() {
     <main style={{ padding: 24, fontSize: 17 }}>
       <p role="alert">{message}</p>
       <p>예약은 그대로 결제 대기 상태예요. 예약 상세에서 다시 결제할 수 있어요.</p>
-      <p><Link to={reservationId ? `/group/reservations/${reservationId}` : '/'}>예약 상세로 가기</Link></p>
+      <p><Link to={reservationId ? paths.groupReservation(reservationId) : paths.groupHome}>예약 상세로 가기</Link></p>
     </main>
   )
 }

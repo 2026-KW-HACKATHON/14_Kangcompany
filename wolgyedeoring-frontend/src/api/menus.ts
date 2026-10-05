@@ -23,3 +23,13 @@ export async function saveMenus(storeId: number, items: MenuInput[], deactivateM
     p_store_id: storeId, p_items: items, p_deactivate_missing: deactivateMissing,
   })) as { inserted: number; updated: number; deactivated: number }
 }
+
+/** 판매 중지 / 다시 판매 (삭제하지 않음: 과거 기록 보존) */
+export async function setMenuActive(id: number, active: boolean): Promise<Menu> {
+  return unwrap(await supabase.from('menus').update({ is_active: active }).eq('id', id).select().single())
+}
+
+/** 가격·분류 수정 (이름 변경은 save_menus 가 이름 기준이라 여기서만) */
+export async function updateMenu(id: number, patch: { name?: string; price?: number | null; category?: MenuCategory }): Promise<Menu> {
+  return unwrap(await supabase.from('menus').update(patch).eq('id', id).select().single())
+}

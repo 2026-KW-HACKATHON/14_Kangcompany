@@ -2,6 +2,7 @@
 import { supabase } from '../lib/supabase'
 import { unwrap } from '../lib/errors'
 import type { AppNotification, Role } from '../types/db'
+import { paths } from '../app/paths'
 
 export async function listNotifications(limit = 50): Promise<AppNotification[]> {
   return unwrap(await supabase.from('notifications').select('*').order('created_at', { ascending: false }).limit(limit))
@@ -27,17 +28,14 @@ export function subscribeNotifications(userId: string, onInsert: (n: AppNotifica
   return () => { void supabase.removeChannel(ch) }
 }
 
-/**
- * 알림 → 이동할 화면 경로 (content-inventory C-01 표).
- * 실제 라우트 경로는 화면 작업 때 정해지면 여기만 고치면 된다
- */
+/** 알림 → 이동할 화면 경로 (content-inventory C-01 표). 경로 자체는 app/paths.ts */
 export function notificationTarget(n: AppNotification, role: Role): string | null {
   switch (n.type) {
-    case 'request_new': return n.request_id ? `/owner/requests/${n.request_id}` : null // S-03
-    case 'request_closed': return '/owner/requests' // S-02
-    case 'receipt_review': return n.receipt_id ? `/owner/receipts/${n.receipt_id}` : null // S-11
+    case 'request_new': return n.request_id ? paths.ownerRequest(n.request_id) : null // S-03
+    case 'request_closed': return paths.ownerInbox // S-02
+    case 'receipt_review': return n.receipt_id ? paths.ownerReceipt(n.receipt_id) : null // S-11
     default:
       if (!n.reservation_id) return null
-      return role === 'owner' ? `/owner/reservations/${n.reservation_id}` : `/group/reservations/${n.reservation_id}` // S-05 / G-06
+      return role === 'owner' ? paths.ownerReservation(n.reservation_id) : paths.groupReservation(n.reservation_id) // S-05 / G-06
   }
 }

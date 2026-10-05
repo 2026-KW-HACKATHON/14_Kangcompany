@@ -44,3 +44,10 @@ export async function resizeImageToBase64(file: File, maxSide = 1500, quality = 
   canvas.getContext('2d')!.drawImage(bitmap, 0, 0, canvas.width, canvas.height)
   return canvas.toDataURL('image/jpeg', quality).split(',')[1]
 }
+
+/** [사장님] 확인이 필요한 영수증 (S-01 홈 요약) */
+export async function listReceiptsNeedingReview(): Promise<(Receipt & { reservations: { id: number; start_at: string; groups: { name: string } } })[]> {
+  return unwrap(await supabase.from('receipts')
+    .select('*, reservations(id, start_at, groups(name))')
+    .eq('status', 'needs_review').order('created_at', { ascending: false })) as never
+}

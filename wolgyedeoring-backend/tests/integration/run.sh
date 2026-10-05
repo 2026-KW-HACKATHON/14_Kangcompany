@@ -29,4 +29,4 @@ trap 'kill $P1 $P2 2>/dev/null' EXIT
 sleep 2
 ANON=$(grep -m1 '^ANON_KEY=' /tmp/wgd-gateway.log | cut -d= -f2)
 cd "$FE"
-VITE_SUPABASE_URL=http://localhost:54321 VITE_SUPABASE_ANON_KEY="$ANON" npx vitest run tests/
+VITE_SUPABASE_URL=http://localhost:54321 VITE_SUPABASE_ANON_KEY="$ANON" npm run test:integration

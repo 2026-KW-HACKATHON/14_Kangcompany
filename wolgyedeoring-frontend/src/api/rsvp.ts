@@ -49,3 +49,12 @@ export async function respondRsvp(token: string, name: string, attending: boolea
   localStorage.setItem(editKeyStorage(token), res.edit_key)
   return res
 }
+
+/** 응답 실시간 반영 (대표 화면). 반환값을 호출하면 구독 해제 */
+export function subscribeRsvpResponses(rsvpId: number, onChange: () => void): () => void {
+  const ch = supabase
+    .channel(`rsvp:${rsvpId}`)
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'rsvp_responses', filter: `rsvp_id=eq.${rsvpId}` }, () => onChange())
+    .subscribe()
+  return () => { void supabase.removeChannel(ch) }
+}

@@ -1,6 +1,6 @@
 # 월계더링 프런트엔드 (React + Vite + TypeScript)
 
-지금 들어 있는 것은 **데이터 계층과 연결 확인 페이지뿐**이다. 화면(UI)은 선택된 초안 방향으로 이 위에 만든다.
+지금 들어 있는 것: **데이터 계층 + 화면 골격**(IA의 모든 화면에 라우트·가드·데이터 연결·기본 동작). 디자인은 골격용 최소 스타일뿐이라, 선택된 초안 방향으로 `components/ui.tsx`·`styles/app.css`·각 화면 마크업을 다듬으면 된다.
 BE 기준: `wolgyedeoring-backend` 마이그레이션 001~008, 호출 방법 원본은 `wolgyedeoring-backend/docs/API.md`.
 
 ## 실행
@@ -15,10 +15,27 @@ npm run build                # 타입 검사 + 빌드
 
 `.env.local` 은 커밋하지 않는다. service_role 키·토스 시크릿 키는 절대 넣지 않는다.
 
+## 화면 ↔ 경로 (IA 4장, 하단 탭은 IA 3장 제안안 · #8 확정 시 탭 이름만 조정)
+
+| 역할 | 하단 탭 | 그 밖의 화면 |
+|---|---|---|
+| 단체 `/group` | 홈 `/group` (G-01) · 예약 `/group/reservations` (G-11) · 가게 찾기 `/group/slots` (G-04) · 내 정보 `/group/me` (G-14) | 요청 작성 G-02 `/group/requests/new` · 요청 상태 G-03 `/group/requests/:id` · 날짜 예약 G-05 `/group/slots/:id/book` · 예약 상세 G-06 `/group/reservations/:id` (+ `/preorder` G-07, `/modify` G-08, `/pay` G-09, `/rsvp` G-12, `/rsvp/responses` G-13) |
+| 사장님 `/owner` | 홈 `/owner` (S-01) · 요청·예약 `/owner/inbox` (S-02, `?view=reservations` S-04) · 메뉴 `/owner/menus` (S-07) · 분석 `/owner/stats` (S-12) | 요청 상세 S-03 `/owner/requests/:id` · 예약 상세 S-05 `/owner/reservations/:id` · 영수증 등록 S-10 `…/:id/receipt` · 보정 S-11 `/owner/receipts/:id` · 빈 날짜 S-06 `/owner/slots` · 메뉴판 인식 S-08 `/owner/menus/scan` · 미충족 수요 S-13 `/owner/stats/unmet` · 가게 정보 S-14 `/owner/store` (상단 ⚙) |
+| 공통 | — | 시작 A-01 `/start` · 로그인 A-02 · 가입 A-03 · 단체/가게 등록 A-04/A-05 `/onboarding/*` · 알림 C-01 `/notifications` · 결제 결과 G-10 `/pay/success`, `/pay/fail` · 참석 응답 P-01 `/r/:token` (로그인 없음) |
+
+- 경로는 `src/app/paths.ts` 한 곳에서 관리 (알림 → 화면 이동도 여기 사용)
+- 가드: 로그인 안 함 → `/start`, 역할이 다르면 → 내 홈, 단체/가게 미등록 → 등록 화면
+- 보류 화면: S-09 추천 메뉴(#1), 운영자 화면(#4), 좌석 배치도(#5)
+- 지도 자리: G-04 지도 탭, G-06·P-01 위치 (#8 지도 서비스 결정 후 연결)
+
 ## 구조
 
 ```
 src/
+  app/            paths(경로), session(로그인·내 단체/가게), guards(접근 제어)
+  components/     ui(버튼·입력·배지·카드 등 골격 부품), layout(헤더·하단 탭), cards, Bars
+  pages/          auth/ group/ owner/ common/ (파일마다 화면 ID 주석)
+  styles/app.css  골격 스타일 (의미 토큰만 사용. 토큰 원본 docs/ui-handoff/design/tokens.css 를 직접 import)
   api/            BE 호출 함수. 화면은 supabase 를 직접 부르지 말고 여기만 쓴다
     auth groups stores menus slots requests reservations
     payments preorder receipts rsvp notifications stats
@@ -29,7 +46,7 @@ src/
     status.ts     상태 코드 → 라벨·배지 톤 (docs/ui-handoff/ia/state-definitions.md 와 1:1)
     format.ts     KST 날짜 "10/13(월) 19:00", 금액, 남은 시간
   hooks/          useSession(로그인 프로필), useNotifications(목록 + 실시간)
-  pages/          DevCheck(/dev), PaySuccess(/pay/success), PayFail(/pay/fail)
+  pages/DevCheck  /dev 연결 확인 페이지
 ```
 
 ## 화면에서 쓰는 법 (예)
@@ -59,8 +76,14 @@ try {
 - 참석 조사 링크는 `rsvp.rsvpLink(token)` → `/r/:token`
 - 라벨을 바꾸려면 상태 정의도를 먼저 고치고 `lib/status.ts` 를 맞춘다
 
+## 테스트
+
+`npm run test:integration` — 시드 직후 실제 Supabase(또는 로컬 하네스 `wolgyedeoring-backend/tests/integration/`)에 대해
+- `tests/flow.integration.test.ts` (11개): api 모듈로 시연 흐름 전체
+- `tests/screens.integration.test.tsx` (10개): 실제 라우터·가드·화면 렌더 → 데이터 표시, 요청 작성 제출까지
+
 ## 아직 없는 것
 
-- 모든 화면, 디자인 토큰 연결 (`docs/ui-handoff/design/tokens.css`)
+- 디자인 (선택된 초안 반영), 아이콘 (지금은 글자 기호)
 - 지도 SDK (#8 결정 후), 웹 푸시 (#6 결정 후)
 - DB 타입 자동 생성: `npx supabase gen types typescript --project-id <ID> > src/types/supabase.gen.ts`

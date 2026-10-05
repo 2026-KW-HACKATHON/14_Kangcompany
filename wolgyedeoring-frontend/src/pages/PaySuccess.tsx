@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { paths } from '../app/paths'
 import { Link, useSearchParams } from 'react-router-dom'
 import { payments } from '../api'
 import { toApiError } from '../lib/errors'
@@ -23,7 +24,7 @@ export default function PaySuccess() {
     <main style={{ padding: 24, fontSize: 17 }}>
       <p role="status">{message}</p>
       {state !== 'working' && (
-        <p><Link to={reservationId ? `/group/reservations/${reservationId}` : '/'}>예약 상세로 가기</Link></p>
+        <p><Link to={reservationId ? paths.groupReservation(reservationId) : paths.groupHome}>예약 상세로 가기</Link></p>
       )}
     </main>
   )
