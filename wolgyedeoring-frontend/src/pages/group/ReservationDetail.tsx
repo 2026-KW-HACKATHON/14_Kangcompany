@@ -7,6 +7,8 @@ import { Page } from '../../components/layout'
 import { Badge, BottomAction, Button, ErrorBox, Loading, Rows, Section } from '../../components/ui'
 import { EVENT_LABEL, RESERVATION_STATUS, paymentView, reservationNextStep } from '../../lib/status'
 import { formatDateTime, formatWon } from '../../lib/format'
+import { StoreMap } from '../../components/map/StoreMap'
+import { directionsUrl } from '../../components/map/kakao'
 
 export default function GroupReservationDetail() {
   const id = Number(useParams().id)
@@ -45,7 +47,10 @@ export default function GroupReservationDetail() {
           ['전화', contacts?.store.phone ? <a href={`tel:${contacts.store.phone}`}>{contacts.store.phone}</a> : '-'],
           ...(contacts?.store.owner_phone ? [['사장님', <a href={`tel:${contacts.store.owner_phone}`}>{contacts.store.owner_name} {contacts.store.owner_phone}</a>] as [string, React.ReactNode]] : []),
         ]} />
-        {/* 작은 위치 지도 + 길찾기 링크 자리 (#8) */}
+        {r.stores.lat != null && r.stores.lng != null && <StoreMap height={180} markers={[{ id: r.stores.id, lat: r.stores.lat, lng: r.stores.lng, title: r.stores.name }]} />}
+        {directionsUrl(r.stores.name, r.stores.lat, r.stores.lng, r.stores.address) && (
+          <a className="btn btn-text" href={directionsUrl(r.stores.name, r.stores.lat, r.stores.lng, r.stores.address)!} target="_blank" rel="noreferrer">길찾기</a>
+        )}
       </Section>
 
       <Section title="사전 주문" action={act.can_edit_preorder && <Button variant="text" onClick={() => nav(paths.groupPreorder(id))}>{pre.items.length ? '수정' : '메뉴 고르기'}</Button>}>

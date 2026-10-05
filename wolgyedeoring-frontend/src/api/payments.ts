@@ -1,5 +1,4 @@
 // 예약금 결제 (토스페이먼츠, API.md 3장 "공통: 예약금 결제")
-import { loadTossPayments } from '@tosspayments/tosspayments-sdk'
 import { supabase } from '../lib/supabase'
 import { unwrap, unwrapFunction, ApiError } from '../lib/errors'
 import type { Reservation } from '../types/db'
@@ -18,6 +17,7 @@ export async function startDepositPayment(reservationId: number, customerKey: st
     order_id: string; amount: number; order_name: string
   }
   // 2) 토스 결제창 (SDK v2)
+  const { loadTossPayments } = await import('@tosspayments/tosspayments-sdk') // 결제할 때만 불러옴
   const toss = await loadTossPayments(TOSS_CLIENT_KEY)
   await toss.payment({ customerKey }).requestPayment({
     method: 'CARD',

@@ -6,6 +6,7 @@ import { useAction, useAsync } from '../../hooks/useAsync'
 import { BottomAction, Badge, Button, ErrorBox, Field, Input, Loading, Rows, Segmented } from '../../components/ui'
 import { formatDateTime } from '../../lib/format'
 import { rsvpView } from '../../lib/status'
+import { directionsUrl } from '../../components/map/kakao'
 import type { RsvpRespondResult } from '../../types/db'
 
 export default function RsvpPublic() {
@@ -41,7 +42,7 @@ export default function RsvpPublic() {
           ['응답 마감', formatDateTime(p.deadline)],
           ['참석', `${p.attending}명${p.full ? ' (정원 마감)' : ''}`],
         ]} />
-        {/* 위치 지도 + 길찾기 링크 자리 (#8 지도 서비스 결정 후) */}
+        {p.store_address && <a className="btn btn-text" href={directionsUrl(p.store_name, null, null, `${p.store_address} ${p.store_name}`)!} target="_blank" rel="noreferrer">길찾기</a>}
 
         {p.cancelled ? <p>취소된 행사예요.</p> : !p.is_open ? <p>응답이 마감되었어요. 최종 {p.attending}명</p> :
           result ? (

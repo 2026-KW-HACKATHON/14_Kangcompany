@@ -1,50 +1,55 @@
 // 라우트 구성 (IA 3장 하단 탭 제안안 기준, #8 확정 시 탭 이름만 조정)
+import { lazy, Suspense } from 'react'
 import { Navigate, Route, Routes } from 'react-router-dom'
 import { paths } from './app/paths'
 import { RedirectIfLoggedIn, RequireLogin, RequireRole } from './app/guards'
 import { TabLayout } from './components/layout'
+import { Loading } from './components/ui'
 
 import Start from './pages/auth/Start'
 import Login from './pages/auth/Login'
-import Signup from './pages/auth/Signup'
-import OnboardingGroup from './pages/auth/OnboardingGroup'
-import OnboardingStore from './pages/auth/OnboardingStore'
-import Notifications from './pages/common/Notifications'
 import RsvpPublic from './pages/common/RsvpPublic'
-import PaySuccess from './pages/PaySuccess'
-import PayFail from './pages/PayFail'
-import DevCheck from './pages/DevCheck'
 
-import GroupHome from './pages/group/Home'
-import RequestNew from './pages/group/RequestNew'
-import GroupRequestDetail from './pages/group/RequestDetail'
-import Slots from './pages/group/Slots'
-import SlotBook from './pages/group/SlotBook'
-import GroupReservationDetail from './pages/group/ReservationDetail'
-import Preorder from './pages/group/Preorder'
-import Modify from './pages/group/Modify'
-import Pay from './pages/group/Pay'
-import GroupReservations from './pages/group/Reservations'
-import Rsvp from './pages/group/Rsvp'
-import RsvpResponses from './pages/group/RsvpResponses'
-import GroupMe from './pages/group/Me'
 
-import OwnerHome from './pages/owner/Home'
-import OwnerInbox from './pages/owner/Inbox'
-import OwnerRequestDetail from './pages/owner/RequestDetail'
-import OwnerReservationDetail from './pages/owner/ReservationDetail'
-import OwnerSlots from './pages/owner/Slots'
-import OwnerMenus from './pages/owner/Menus'
-import MenuScan from './pages/owner/MenuScan'
-import ReceiptUpload from './pages/owner/ReceiptUpload'
-import OwnerReceipt from './pages/owner/Receipt'
-import OwnerStats from './pages/owner/Stats'
-import OwnerUnmet from './pages/owner/Unmet'
-import OwnerStore from './pages/owner/Store'
 
+
+// 화면별 코드 분할 (첫 로딩을 가볍게)
+const Signup = lazy(() => import('./pages/auth/Signup'))
+const OnboardingGroup = lazy(() => import('./pages/auth/OnboardingGroup'))
+const OnboardingStore = lazy(() => import('./pages/auth/OnboardingStore'))
+const Notifications = lazy(() => import('./pages/common/Notifications'))
+const PaySuccess = lazy(() => import('./pages/PaySuccess'))
+const PayFail = lazy(() => import('./pages/PayFail'))
+const DevCheck = lazy(() => import('./pages/DevCheck'))
+const GroupHome = lazy(() => import('./pages/group/Home'))
+const RequestNew = lazy(() => import('./pages/group/RequestNew'))
+const GroupRequestDetail = lazy(() => import('./pages/group/RequestDetail'))
+const Slots = lazy(() => import('./pages/group/Slots'))
+const SlotBook = lazy(() => import('./pages/group/SlotBook'))
+const GroupReservationDetail = lazy(() => import('./pages/group/ReservationDetail'))
+const Preorder = lazy(() => import('./pages/group/Preorder'))
+const Modify = lazy(() => import('./pages/group/Modify'))
+const Pay = lazy(() => import('./pages/group/Pay'))
+const GroupReservations = lazy(() => import('./pages/group/Reservations'))
+const Rsvp = lazy(() => import('./pages/group/Rsvp'))
+const RsvpResponses = lazy(() => import('./pages/group/RsvpResponses'))
+const GroupMe = lazy(() => import('./pages/group/Me'))
+const OwnerHome = lazy(() => import('./pages/owner/Home'))
+const OwnerInbox = lazy(() => import('./pages/owner/Inbox'))
+const OwnerRequestDetail = lazy(() => import('./pages/owner/RequestDetail'))
+const OwnerReservationDetail = lazy(() => import('./pages/owner/ReservationDetail'))
+const OwnerSlots = lazy(() => import('./pages/owner/Slots'))
+const OwnerMenus = lazy(() => import('./pages/owner/Menus'))
+const MenuScan = lazy(() => import('./pages/owner/MenuScan'))
+const ReceiptUpload = lazy(() => import('./pages/owner/ReceiptUpload'))
+const OwnerReceipt = lazy(() => import('./pages/owner/Receipt'))
+const OwnerStats = lazy(() => import('./pages/owner/Stats'))
+const OwnerUnmet = lazy(() => import('./pages/owner/Unmet'))
+const OwnerStore = lazy(() => import('./pages/owner/Store'))
 
 export default function App() {
   return (
+    <Suspense fallback={<Loading />}>
     <Routes>
       {/* 로그인 없이 */}
       <Route path="/r/:token" element={<RsvpPublic />} />
@@ -103,6 +108,7 @@ export default function App() {
       <Route path="/" element={<Navigate to={paths.start} replace />} />
       <Route path="*" element={<Navigate to={paths.start} replace />} />
     </Routes>
+    </Suspense>
   )
 }
 
