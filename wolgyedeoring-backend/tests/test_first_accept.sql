@@ -35,7 +35,7 @@ select '요청 상태', status from requests where id = :r8_id;
 select '예약 생성', count(*), store_id = :sa as is_store_a from reservations where request_id = :r8_id group by store_id;
 set role authenticated;
 set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000c';
-select '단체 알림', title, body from notifications where type='reservation_new' order by id desc limit 1;
+select '단체 알림 (008: 1건으로 통합)', type, title, body, reservation_id is not null as has_res from notifications where user_id = auth.uid() and type in ('request_accepted','reservation_new') order by id;
 
 -- [인원 초과] 작은가게(10명)에는 20명 요청 수락 불가
 set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000e';

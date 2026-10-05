@@ -58,6 +58,7 @@ set role authenticated;
 
 -- 사장A: 완료 처리
 set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000a';
+set role postgres; update reservations set start_at = now() - interval '3 hour' where id = :res1; set role authenticated;  -- 008(R-03)
 select 'finish', id, status from finish_reservation(:res1);
 
 -- Edge Function 이 저장했다고 가정한 영수증 (service_role 대신 postgres 로 삽입)
