@@ -94,6 +94,20 @@ describe.sequential('화면 골격 (라우터 → 화면 → api → DB)', () =>
     expect(screen.getByText('컵떡볶이 × 30')).toBeTruthy()
   })
 
+  it('단체 예약 상세(G-06): 완료 예약의 실제 소비 기록 (확정 영수증)', async () => {
+    await as('sw@wolgye.demo')
+    const list = await api.reservations.listMyReservations()
+    let target: number | null = null
+    for (const r of list.filter((x) => x.status === 'completed')) {
+      const rcs = await api.receipts.listReceiptsForReservation(r.id)
+      if (rcs.some((rc) => rc.status === 'done')) { target = r.id; break }
+    }
+    expect(target).not.toBeNull()
+    open(`/group/reservations/${target}`)
+    expect(await screen.findByText('실제 소비 기록', {}, T)).toBeTruthy()
+    expect(screen.getByText('영수증 총액')).toBeTruthy()
+  })
+
   it('참석 응답(P-01): 로그인 없이 시드 조사 열기', async () => {
     await api.auth.signOut()
     await as('fc@wolgye.demo')

@@ -1,6 +1,6 @@
 // G-06 예약 상세 (허브): 상태별로 보이는 행동이 다름 → reservation_actions 플래그로 결정
 import { useNavigate, useParams } from 'react-router-dom'
-import { preorder, reservations, rsvp } from '../../api'
+import { preorder, receipts, reservations, rsvp } from '../../api'
 import { paths } from '../../app/paths'
 import { useAction, useAsync } from '../../hooks/useAsync'
 import { Page } from '../../components/layout'
@@ -19,13 +19,16 @@ export default function GroupReservationDetail() {
       reservations.getLatestPayment(id), rsvp.getRsvpForReservation(id),
     ])
     const contacts = act.can_view_contacts ? await reservations.getContacts(id) : null
-    return { r, act, pre, pay, rv, contacts }
+    // 실제 소비 기록: 사장님이 확정한 영수증만 (확정 전 인식 결과는 보여주지 않음)
+    const done = (await receipts.listReceiptsForReservation(id)).filter((rc) => rc.status === 'done')
+    const spent = await Promise.all(done.map((rc) => receipts.getReceipt(rc.id)))
+    return { r, act, pre, pay, rv, contacts, spent }
   }, [id])
   const cancel = useAction()
 
   if (q.loading) return <Page title="예약" back><Loading /></Page>
   if (q.error || !q.data) return <Page title="예약" back><ErrorBox message={q.error?.message ?? '예약을 찾을 수 없어요'} onRetry={q.reload} /></Page>
-  const { r, act, pre, pay, rv, contacts } = q.data
+  const { r, act, pre, pay, rv, contacts, spent } = q.data
   const st = RESERVATION_STATUS[r.status]
   const next = reservationNextStep(r.status, 'group', { hasRsvp: Boolean(rv) })
 
@@ -63,6 +66,25 @@ export default function GroupReservationDetail() {
         ) : <p className="muted">고른 메뉴가 없어요</p>}
         {act.preorder_deadline && <p className="muted">{formatDateTime(act.preorder_deadline)}까지 수정할 수 있어요</p>}
       </Section>
+
+      {spent.length > 0 && (
+        <Section title="실제 소비 기록">
+          {spent.map((rc) => (
+            <div key={rc.id} className="card">
+              <Rows rows={[
+                ['결제 일시', rc.receipt_at ? formatDateTime(rc.receipt_at) : '-'],
+                ['영수증 총액', formatWon(rc.total_amount)],
+                ...(r.deposit_amount > 0 ? [['예약금 (앱에서 결제, 별도)', formatWon(r.deposit_amount)] as [string, string]] : []),
+                ['1인당', rc.total_amount ? formatWon(Math.round(rc.total_amount / r.headcount)) : '-'],
+              ]} />
+              <ul className="list">{rc.receipt_items.map((it) => (
+                <li key={it.id} className="row"><span>{it.menus?.name ?? it.raw_name} × {it.qty ?? '-'}</span><span>{formatWon(it.amount)}</span></li>
+              ))}</ul>
+            </div>
+          ))}
+          <p className="muted">가게가 확인한 영수증 기록이에요. 회계 증빙은 영수증 원본으로 따로 챙겨 주세요.</p>
+        </Section>
+      )}
 
       {(act.can_rsvp || rv) && (
         <Section title="참석 조사" action={<Button variant="text" onClick={() => nav(rv ? paths.groupRsvpResponses(id) : paths.groupRsvp(id))}>{rv ? '현황 보기' : '만들기'}</Button>}>
