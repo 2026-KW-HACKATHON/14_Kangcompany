@@ -46,6 +46,7 @@ const OwnerReceipt = lazy(() => import('./pages/owner/Receipt'))
 const OwnerStats = lazy(() => import('./pages/owner/Stats'))
 const OwnerUnmet = lazy(() => import('./pages/owner/Unmet'))
 const OwnerStore = lazy(() => import('./pages/owner/Store'))
+const OwnerLayout = lazy(() => import('./pages/owner/Layout'))
 
 export default function App() {
   return (
@@ -103,6 +104,7 @@ export default function App() {
         <Route path="receipts/:id" element={<OwnerReceipt />} />
         <Route path="stats/unmet" element={<OwnerUnmet />} />
         <Route path="store" element={<OwnerStore />} />
+        <Route path="layout" element={<OwnerLayout />} />
       </Route>
 
       <Route path="/" element={<Navigate to={paths.start} replace />} />

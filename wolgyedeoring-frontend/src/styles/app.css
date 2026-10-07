@@ -129,3 +129,7 @@ textarea.input { padding: var(--space-3); min-height: 96px; }
 .store-photo { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; border-radius: var(--radius-lg); background: var(--color-bg-subtle); }
 .qty { display: inline-flex; align-items: center; gap: var(--space-2); }
 .qty button { min-width: var(--touch-target-min); min-height: var(--touch-target-min); }
+
+/* 좌석 배치도 (S-15, G-05, G-06) */
+.seat-canvas { width: 100%; overflow: auto; border-radius: var(--radius-lg); background: var(--color-bg-subtle); padding: var(--space-2); }
+.seat-canvas g:focus-visible > :first-child { stroke: var(--color-focus-ring) !important; stroke-width: 1 !important; }

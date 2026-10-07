@@ -70,7 +70,10 @@ export default function OwnerHome() {
           <Section title="이번 주 예약">
             {q.data!.thisWeek.length ? <ul className="list">{q.data!.thisWeek.map((r) => <ReservationCard key={r.id} r={r} role="owner" />)}</ul> : <p className="muted">이번 주 예약이 없어요</p>}
           </Section>
-          <Button variant="secondary" onClick={() => nav(paths.ownerSlots)}>빈 날짜 관리</Button>
+          <div className="btn-row">
+            <Button variant="secondary" onClick={() => nav(paths.ownerSlots)}>빈 날짜 관리</Button>
+            <Button variant="secondary" onClick={() => nav(paths.ownerLayout)}>좌석 배치도</Button>
+          </div>
         </>
       )}
     </Page>

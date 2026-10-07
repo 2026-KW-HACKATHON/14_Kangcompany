@@ -11,6 +11,7 @@ import { Page } from '../../components/layout'
 import { BottomAction, Button, ErrorBox, Field, Input, Loading, Rows, Section, Select } from '../../components/ui'
 import { EVENT_LABEL } from '../../lib/status'
 import { formatDateTime, formatWon } from '../../lib/format'
+import { StoreLayoutView } from '../../components/seat/StoreLayoutView'
 import { MenuPicker, preorderTotal, toItems, type Qty } from './MenuPicker'
 import type { EventType } from '../../types/db'
 import type { SlotWithStore } from '../../api/slots'
@@ -45,6 +46,7 @@ export default function SlotBook() {
   return (
     <Page title={slot.stores.name} back>
       <Rows rows={[['일시', formatDateTime(slot.start_at)], ['최대 인원', `${slot.capacity}명`], ['예약금', slot.deposit_amount > 0 ? formatWon(slot.deposit_amount) : '없음']]} />
+      <StoreLayoutView storeId={slot.store_id} headcount={hc > 0 ? hc : undefined} />
       <form className="form" onSubmit={(e) => { e.preventDefault(); void submit() }}>
         <Field label="행사 종류"><Select value={f.event_type} onChange={(e) => setF({ ...f, event_type: e.target.value as EventType })} options={Object.entries(EVENT_LABEL).map(([value, label]) => ({ value, label }))} /></Field>
         <Field label="인원" error={f.headcount && !valid ? `최대 ${slot.capacity}명까지 가능해요` : null}>

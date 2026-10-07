@@ -9,6 +9,7 @@ import { EVENT_LABEL, RESERVATION_STATUS, paymentView, reservationNextStep } fro
 import { formatDateTime, formatWon } from '../../lib/format'
 import { StoreMap } from '../../components/map/StoreMap'
 import { directionsUrl } from '../../components/map/kakao'
+import { StoreLayoutView } from '../../components/seat/StoreLayoutView'
 
 export default function GroupReservationDetail() {
   const id = Number(useParams().id)
@@ -55,6 +56,8 @@ export default function GroupReservationDetail() {
           <a className="btn btn-text" href={directionsUrl(r.stores.name, r.stores.lat, r.stores.lng, r.stores.address)!} target="_blank" rel="noreferrer">길찾기</a>
         )}
       </Section>
+
+      <StoreLayoutView storeId={r.stores.id} headcount={r.headcount} />
 
       <Section title="사전 주문" action={act.can_edit_preorder && <Button variant="text" onClick={() => nav(paths.groupPreorder(id))}>{pre.items.length ? '수정' : '메뉴 고르기'}</Button>}>
         {pre.items.length ? (

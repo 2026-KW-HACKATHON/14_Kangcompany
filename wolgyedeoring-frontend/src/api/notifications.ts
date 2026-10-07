@@ -34,6 +34,8 @@ export function notificationTarget(n: AppNotification, role: Role): string | nul
     case 'request_new': return n.request_id ? paths.ownerRequest(n.request_id) : null // S-03
     case 'request_closed': return paths.ownerInbox // S-02
     case 'receipt_review': return n.receipt_id ? paths.ownerReceipt(n.receipt_id) : null // S-11
+    case 'layout_suggested': return paths.ownerLayout // S-15
+    case 'layout_suggestion_answered': return null // 알림만
     default:
       if (!n.reservation_id) return null
       return role === 'owner' ? paths.ownerReservation(n.reservation_id) : paths.groupReservation(n.reservation_id) // S-05 / G-06

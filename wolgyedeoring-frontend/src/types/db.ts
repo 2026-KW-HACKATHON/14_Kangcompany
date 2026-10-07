@@ -177,6 +177,8 @@ export type NotificationType =
   | 'preorder_changed'
   | 'rsvp_closed'
   | 'receipt_review'
+  | 'layout_suggested' // 009: 손님이 배치도 수정 제안 → 사장님
+  | 'layout_suggestion_answered' // 009: 사장님 답변 → 제안한 사람
 
 export interface AppNotification {
   id: number
@@ -346,4 +348,46 @@ export interface ProcessReceiptResult {
     validation_error: string | null
   }[]
   error?: string
+}
+
+// ---------------------------------------------------------------------
+// 좌석 배치도 (009)
+// ---------------------------------------------------------------------
+import type { Layout, LayoutSummary } from '../lib/layout'
+export type { Layout, LayoutTable, LayoutFixture, FixtureKind, Shape } from '../lib/layout'
+
+export interface StoreLayoutVersion {
+  layout: Layout
+  table_count: number
+  total_seats: number
+  source: 'photo' | 'manual'
+  published_at?: Timestamp
+  updated_at?: Timestamp
+  unpublished_changes?: boolean
+}
+
+/** get_store_layout / save_store_layout 반환 */
+export interface StoreLayoutInfo {
+  store_id: number
+  is_owner: boolean
+  published: StoreLayoutVersion | null
+  draft: StoreLayoutVersion | null // 사장님만
+  pending_suggestions: number | null // 사장님만
+}
+
+/** extract-layout Edge Function */
+export interface ExtractLayoutResult {
+  layout: Layout
+  summary: LayoutSummary
+  source_type: 'floor_plan' | 'sketch' | 'photo' | 'other' | string
+  note: string | null
+}
+
+export interface LayoutSuggestion {
+  id: number
+  note: string
+  status: 'pending' | 'accepted' | 'rejected'
+  created_at: Timestamp
+  responded_at: Timestamp | null
+  suggester_name: string
 }

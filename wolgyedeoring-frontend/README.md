@@ -20,12 +20,13 @@ npm run build                # 타입 검사 + 빌드
 | 역할 | 하단 탭 | 그 밖의 화면 |
 |---|---|---|
 | 단체 `/group` | 홈 `/group` (G-01) · 예약 `/group/reservations` (G-11) · 가게 찾기 `/group/slots` (G-04) · 내 정보 `/group/me` (G-14) | 요청 작성 G-02 `/group/requests/new` · 요청 상태 G-03 `/group/requests/:id` · 날짜 예약 G-05 `/group/slots/:id/book` · 예약 상세 G-06 `/group/reservations/:id` (+ `/preorder` G-07, `/modify` G-08, `/pay` G-09, `/rsvp` G-12, `/rsvp/responses` G-13) |
-| 사장님 `/owner` | 홈 `/owner` (S-01) · 요청·예약 `/owner/inbox` (S-02, `?view=reservations` S-04) · 메뉴 `/owner/menus` (S-07) · 분석 `/owner/stats` (S-12) | 요청 상세 S-03 `/owner/requests/:id` · 예약 상세 S-05 `/owner/reservations/:id` · 영수증 등록 S-10 `…/:id/receipt` · 보정 S-11 `/owner/receipts/:id` · 빈 날짜 S-06 `/owner/slots` · 메뉴판 인식 S-08 `/owner/menus/scan` · 미충족 수요 S-13 `/owner/stats/unmet` · 가게 정보 S-14 `/owner/store` (상단 ⚙) |
+| 사장님 `/owner` | 홈 `/owner` (S-01) · 요청·예약 `/owner/inbox` (S-02, `?view=reservations` S-04) · 메뉴 `/owner/menus` (S-07) · 분석 `/owner/stats` (S-12) | 요청 상세 S-03 `/owner/requests/:id` · 예약 상세 S-05 `/owner/reservations/:id` · 영수증 등록 S-10 `…/:id/receipt` · 보정 S-11 `/owner/receipts/:id` · 빈 날짜 S-06 `/owner/slots` · 메뉴판 인식 S-08 `/owner/menus/scan` · 미충족 수요 S-13 `/owner/stats/unmet` · 가게 정보 S-14 `/owner/store` (상단 ⚙) · 좌석 배치도 S-15 `/owner/layout` |
 | 공통 | — | 시작 A-01 `/start` · 로그인 A-02 · 가입 A-03 · 단체/가게 등록 A-04/A-05 `/onboarding/*` · 알림 C-01 `/notifications` · 결제 결과 G-10 `/pay/success`, `/pay/fail` · 참석 응답 P-01 `/r/:token` (로그인 없음) |
 
 - 경로는 `src/app/paths.ts` 한 곳에서 관리 (알림 → 화면 이동도 여기 사용)
 - 가드: 로그인 안 함 → `/start`, 역할이 다르면 → 내 홈, 단체/가게 미등록 → 등록 화면
-- 보류 화면: S-09 추천 메뉴(#1), 운영자 화면(#4), 좌석 배치도(#5)
+- 보류 화면: S-09 추천 메뉴(#1), 운영자 화면(#4)
+- 좌석 배치도: 정리·검사 규칙은 `src/lib/layout.ts` 가 백엔드 `extract-layout/layout.ts` 를 그대로 가져다 씀 (Vercel 에서 Root Directory 바깥 파일 포함 옵션 필요 — tokens.css 와 같음)
 - 지도: `.env.local` 에 `VITE_KAKAO_MAP_KEY` 가 있으면 G-04 지도 탭·G-06 위치 지도·가게 주소 → 좌표 자동 변환이 켜지고, 없으면 자리 표시. 다른 지도 서비스로 정해지면 `components/map/` 두 파일만 교체 (#8)
 
 ## 구조
@@ -80,7 +81,7 @@ try {
 
 `npm run test:integration` — 시드 직후 실제 Supabase(또는 로컬 하네스 `wolgyedeoring-backend/tests/integration/`)에 대해
 - `tests/flow.integration.test.ts` (11개): api 모듈로 시연 흐름 전체
-- `tests/screens.integration.test.tsx` (10개): 실제 라우터·가드·화면 렌더 → 데이터 표시, 요청 작성 제출까지
+- `tests/screens.integration.test.tsx` (13개): 실제 라우터·가드·화면 렌더 → 데이터 표시, 요청 작성 제출까지
 
 ## 아직 없는 것
 

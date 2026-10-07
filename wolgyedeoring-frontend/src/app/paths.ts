@@ -42,6 +42,7 @@ export const paths = {
   ownerStats: '/owner/stats', // S-12
   ownerUnmet: '/owner/stats/unmet', // S-13
   ownerStore: '/owner/store', // S-14
+  ownerLayout: '/owner/layout', // S-15 좌석 배치도 (명세 7, #5)
 } as const
 
 export const homeFor = (role: 'group' | 'owner') => (role === 'owner' ? paths.ownerHome : paths.groupHome)
