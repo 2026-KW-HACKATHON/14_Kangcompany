@@ -1,0 +1,64 @@
+/* A2 4.7: quiet primary actions and flat status pills. */
+:is(.phone,.roles) button.primary {
+  border:0;
+  border-radius:var(--radius-cta);
+  background:var(--color-brand);
+  color:var(--color-text-on-brand);
+  font-weight:var(--font-weight-bold);
+  box-shadow:var(--shadow-action-glow);
+  transition:box-shadow 140ms ease,background 140ms ease;
+}
+:is(.phone,.roles) button.primary:hover {
+  background:var(--color-brand-hover);
+  transform:none;
+  box-shadow:var(--shadow-action-glow);
+}
+:is(.phone,.roles) button.primary:active {
+  background:var(--color-brand-pressed);
+  transform:none;
+  box-shadow:none;
+}
+:is(.phone,.roles) button.primary:disabled {
+  background:var(--color-bg-subtle);color:var(--color-text-disabled);
+  border-color:var(--color-border);box-shadow:none;transform:none;opacity:1;cursor:default;
+}
+.phone .sheet.danger,.phone .phone-overlay[data-sheet-kind=danger] {
+  --color-brand:var(--tone-danger-fg);--color-brand-hover:#922019;
+  --color-brand-pressed:#801B15;--color-brand-depth:#6D1A16;
+  --shadow-action-glow:0 2px 6px rgb(168 36 27 / .08);
+}
+.phone .sheet.danger .primary,.phone .phone-overlay[data-sheet-kind=danger] [data-sheet-confirm] {
+  background:var(--color-brand);
+}
+.phone .sheet.danger .primary:active,.phone .phone-overlay[data-sheet-kind=danger] [data-sheet-confirm]:active {
+  background:var(--color-brand-pressed);
+}
+:is(.phone,.roles,.token-card) .badge {
+  display:inline-flex;align-items:center;justify-content:center;gap:6px;
+  min-height:34px;padding:6px 12px;
+  border:var(--status-border-width) solid var(--tone-neutral-border);
+  border-radius:var(--status-radius);font-size:var(--text-body2-size);
+  font-weight:var(--font-weight-semibold);line-height:1.3;white-space:nowrap;
+  box-shadow:none;
+}
+:is(.phone,.roles,.token-card) .badge.warning {
+  background:var(--tone-warning-bg);color:var(--tone-warning-fg);
+  border-color:var(--tone-warning-border);font-weight:var(--font-weight-bold);
+  min-height:38px;padding:7px 14px;font-size:var(--text-status-size);
+  box-shadow:none;
+}
+:is(.phone,.roles,.token-card) .badge.success {
+  border-color:var(--tone-success-border);font-weight:var(--font-weight-bold);
+  min-height:38px;padding:7px 14px;font-size:var(--text-status-size);
+}
+:is(.phone,.roles,.token-card) .badge.danger {
+  border-color:var(--tone-danger-border);font-weight:var(--font-weight-bold);
+  min-height:38px;padding:7px 14px;font-size:var(--text-status-size);
+}
+:is(.phone,.roles,.token-card) .badge.muted {
+  border-color:var(--tone-muted-border);box-shadow:none;
+}
+@media(prefers-reduced-motion:reduce) {
+  :is(.phone,.roles) button.primary {transition:none;}
+  :is(.phone,.roles) button.primary:hover,:is(.phone,.roles) button.primary:active {transform:none;}
+}

@@ -1,0 +1,840 @@
+{
+  "version": "4.12.1",
+  "checks": [
+    {
+      "name": "Screen 1 fits",
+      "pass": true
+    },
+    {
+      "name": "Action rows 1 rounded and padded",
+      "pass": true,
+      "detail": []
+    },
+    {
+      "name": "Screen 2 fits",
+      "pass": true
+    },
+    {
+      "name": "Action rows 2 rounded and padded",
+      "pass": true,
+      "detail": []
+    },
+    {
+      "name": "Screen 3 fits",
+      "pass": true
+    },
+    {
+      "name": "Action rows 3 rounded and padded",
+      "pass": true,
+      "detail": []
+    },
+    {
+      "name": "Screen 4 fits",
+      "pass": true
+    },
+    {
+      "name": "Action rows 4 rounded and padded",
+      "pass": true,
+      "detail": []
+    },
+    {
+      "name": "Screen 5 fits",
+      "pass": true
+    },
+    {
+      "name": "Action rows 5 rounded and padded",
+      "pass": true,
+      "detail": []
+    },
+    {
+      "name": "Screen 6 fits",
+      "pass": true
+    },
+    {
+      "name": "Action rows 6 rounded and padded",
+      "pass": true,
+      "detail": [
+        {
+          "text": "날짜에 맞는 가게 찾기공개된 빈자리를 캘린더에서 확인해",
+          "radius": 20,
+          "height": 84.5,
+          "padding": 16,
+          "border": 0
+        }
+      ]
+    },
+    {
+      "name": "Screen 7 fits",
+      "pass": true
+    },
+    {
+      "name": "Action rows 7 rounded and padded",
+      "pass": true,
+      "detail": []
+    },
+    {
+      "name": "Screen 8 fits",
+      "pass": true
+    },
+    {
+      "name": "Action rows 8 rounded and padded",
+      "pass": true,
+      "detail": []
+    },
+    {
+      "name": "Screen 9 fits",
+      "pass": true
+    },
+    {
+      "name": "Action rows 9 rounded and padded",
+      "pass": true,
+      "detail": [
+        {
+          "text": "모임 종류회식",
+          "radius": 20,
+          "height": 80,
+          "padding": 16,
+          "border": 0
+        },
+        {
+          "text": "날짜와 시간 정하기",
+          "radius": 20,
+          "height": 80,
+          "padding": 16,
+          "border": 0
+        },
+        {
+          "text": "날짜와 시간10월 14일(수) · 오후 6:30",
+          "radius": 20,
+          "height": 84.5,
+          "padding": 16,
+          "border": 0
+        },
+        {
+          "text": "인원과 예산 정하기",
+          "radius": 20,
+          "height": 80,
+          "padding": 16,
+          "border": 0
+        },
+        {
+          "text": "인원과 예산24명 · 1인 25,000원",
+          "radius": 20,
+          "height": 84.5,
+          "padding": 16,
+          "border": 0
+        },
+        {
+          "text": "요청 메모 확인하기",
+          "radius": 20,
+          "height": 80,
+          "padding": 16,
+          "border": 0
+        },
+        {
+          "text": "요청 메모고기 위주로, 단체석 한 공간이면 좋겠어요.",
+          "radius": 20,
+          "height": 110,
+          "padding": 16,
+          "border": 0
+        }
+      ]
+    },
+    {
+      "name": "Screen 10 fits",
+      "pass": true
+    },
+    {
+      "name": "Action rows 10 rounded and padded",
+      "pass": true,
+      "detail": []
+    },
+    {
+      "name": "Screen 11 fits",
+      "pass": true
+    },
+    {
+      "name": "Action rows 11 rounded and padded",
+      "pass": true,
+      "detail": [
+        {
+          "text": "사전 주문 480,000원1인 20,000원",
+          "radius": 20,
+          "height": 84.5,
+          "padding": 16,
+          "border": 0
+        },
+        {
+          "text": "18명 참석 · 24명 중불참 2명 · 미응답 4명",
+          "radius": 20,
+          "height": 84.5,
+          "padding": 16,
+          "border": 0
+        }
+      ]
+    },
+    {
+      "name": "Screen 12 fits",
+      "pass": true
+    },
+    {
+      "name": "Action rows 12 rounded and padded",
+      "pass": true,
+      "detail": []
+    },
+    {
+      "name": "Screen 13 fits",
+      "pass": true
+    },
+    {
+      "name": "Action rows 13 rounded and padded",
+      "pass": true,
+      "detail": []
+    },
+    {
+      "name": "Screen 14 fits",
+      "pass": true
+    },
+    {
+      "name": "Action rows 14 rounded and padded",
+      "pass": true,
+      "detail": []
+    },
+    {
+      "name": "Screen 15 fits",
+      "pass": true
+    },
+    {
+      "name": "Action rows 15 rounded and padded",
+      "pass": true,
+      "detail": []
+    },
+    {
+      "name": "Screen 16 fits",
+      "pass": true
+    },
+    {
+      "name": "Action rows 16 rounded and padded",
+      "pass": true,
+      "detail": []
+    },
+    {
+      "name": "Screen 17 fits",
+      "pass": true
+    },
+    {
+      "name": "Action rows 17 rounded and padded",
+      "pass": true,
+      "detail": []
+    },
+    {
+      "name": "Screen 18 fits",
+      "pass": true
+    },
+    {
+      "name": "Action rows 18 rounded and padded",
+      "pass": true,
+      "detail": []
+    },
+    {
+      "name": "Screen 19 fits",
+      "pass": true
+    },
+    {
+      "name": "Action rows 19 rounded and padded",
+      "pass": true,
+      "detail": []
+    },
+    {
+      "name": "Screen 20 fits",
+      "pass": true
+    },
+    {
+      "name": "Action rows 20 rounded and padded",
+      "pass": true,
+      "detail": []
+    },
+    {
+      "name": "Screen 21 fits",
+      "pass": true
+    },
+    {
+      "name": "Action rows 21 rounded and padded",
+      "pass": true,
+      "detail": [
+        {
+          "text": "좌석 배치도 관리가게의 테이블과 시설 배치를 게시해요",
+          "radius": 20,
+          "height": 104.796875,
+          "padding": 16,
+          "border": 0
+        },
+        {
+          "text": "메뉴와 준비 수량 확인단체 손님의 사전 주문을 준비해요",
+          "radius": 20,
+          "height": 104.796875,
+          "padding": 16,
+          "border": 0
+        },
+        {
+          "text": "영수증 확인 필요확인한 기록만 분석에 반영돼요",
+          "radius": 20,
+          "height": 82.296875,
+          "padding": 16,
+          "border": 0
+        }
+      ]
+    },
+    {
+      "name": "Screen 22 fits",
+      "pass": true
+    },
+    {
+      "name": "Action rows 22 rounded and padded",
+      "pass": true,
+      "detail": []
+    },
+    {
+      "name": "Screen 23 fits",
+      "pass": true
+    },
+    {
+      "name": "Action rows 23 rounded and padded",
+      "pass": true,
+      "detail": []
+    },
+    {
+      "name": "Screen 24 fits",
+      "pass": true
+    },
+    {
+      "name": "Action rows 24 rounded and padded",
+      "pass": true,
+      "detail": []
+    },
+    {
+      "name": "Screen 25 fits",
+      "pass": true
+    },
+    {
+      "name": "Action rows 25 rounded and padded",
+      "pass": true,
+      "detail": []
+    },
+    {
+      "name": "Screen 26 fits",
+      "pass": true
+    },
+    {
+      "name": "Action rows 26 rounded and padded",
+      "pass": true,
+      "detail": []
+    },
+    {
+      "name": "Screen 27 fits",
+      "pass": true
+    },
+    {
+      "name": "Action rows 27 rounded and padded",
+      "pass": true,
+      "detail": []
+    },
+    {
+      "name": "Screen 28 fits",
+      "pass": true
+    },
+    {
+      "name": "Action rows 28 rounded and padded",
+      "pass": true,
+      "detail": []
+    },
+    {
+      "name": "Screen 29 fits",
+      "pass": true
+    },
+    {
+      "name": "Action rows 29 rounded and padded",
+      "pass": true,
+      "detail": []
+    },
+    {
+      "name": "Screen 30 fits",
+      "pass": true
+    },
+    {
+      "name": "Action rows 30 rounded and padded",
+      "pass": true,
+      "detail": [
+        {
+          "text": "아직 연결되지 못한 수요익명 조건으로 동네 수요를 확인",
+          "radius": 20,
+          "height": 104.796875,
+          "padding": 16,
+          "border": 0
+        }
+      ]
+    },
+    {
+      "name": "Screen 31 fits",
+      "pass": true
+    },
+    {
+      "name": "Action rows 31 rounded and padded",
+      "pass": true,
+      "detail": []
+    },
+    {
+      "name": "Screen 32 fits",
+      "pass": true
+    },
+    {
+      "name": "Action rows 32 rounded and padded",
+      "pass": true,
+      "detail": []
+    },
+    {
+      "name": "Screen 33 fits",
+      "pass": true
+    },
+    {
+      "name": "Action rows 33 rounded and padded",
+      "pass": true,
+      "detail": [
+        {
+          "text": "가게가 요청을 수락했어요고기굽는집에서 모임 조건을 확인",
+          "radius": 20,
+          "height": 146,
+          "padding": 16,
+          "border": 0
+        },
+        {
+          "text": "10월 18일 빈자리가 열렸어요고기굽는집이 오후 6시부",
+          "radius": 20,
+          "height": 168.5,
+          "padding": 16,
+          "border": 0
+        },
+        {
+          "text": "지난 모임의 방문이 완료됐어요9월 25일 월계 한식집에",
+          "radius": 20,
+          "height": 146,
+          "padding": 16,
+          "border": 0
+        }
+      ]
+    },
+    {
+      "name": "Screen 34 fits",
+      "pass": true
+    },
+    {
+      "name": "Action rows 34 rounded and padded",
+      "pass": true,
+      "detail": [
+        {
+          "text": "10월 14일 새 단체 요청이 있어요월계동에서 24명이",
+          "radius": 20,
+          "height": 168.5,
+          "padding": 16,
+          "border": 0
+        },
+        {
+          "text": "공개한 빈자리를 확인해 주세요10월 18일 오후 6시부",
+          "radius": 20,
+          "height": 168.5,
+          "padding": 16,
+          "border": 0
+        },
+        {
+          "text": "메뉴 준비 수량을 확인해 주세요단체 손님이 미리 고른 ",
+          "radius": 20,
+          "height": 168.5,
+          "padding": 16,
+          "border": 0
+        }
+      ]
+    },
+    {
+      "name": "Screen 35 fits",
+      "pass": true
+    },
+    {
+      "name": "Action rows 35 rounded and padded",
+      "pass": true,
+      "detail": []
+    },
+    {
+      "name": "Screen 36 fits",
+      "pass": true
+    },
+    {
+      "name": "Action rows 36 rounded and padded",
+      "pass": true,
+      "detail": []
+    },
+    {
+      "name": "Screen 37 fits",
+      "pass": true
+    },
+    {
+      "name": "Action rows 37 rounded and padded",
+      "pass": true,
+      "detail": []
+    },
+    {
+      "name": "Screen 38 fits",
+      "pass": true
+    },
+    {
+      "name": "Action rows 38 rounded and padded",
+      "pass": true,
+      "detail": []
+    },
+    {
+      "name": "Screen 39 fits",
+      "pass": true
+    },
+    {
+      "name": "Action rows 39 rounded and padded",
+      "pass": true,
+      "detail": []
+    },
+    {
+      "name": "Responsive 9/320/false",
+      "pass": true
+    },
+    {
+      "name": "Responsive 11/320/false",
+      "pass": true
+    },
+    {
+      "name": "Responsive 21/320/false",
+      "pass": true
+    },
+    {
+      "name": "Responsive 33/320/false",
+      "pass": true
+    },
+    {
+      "name": "Responsive 34/320/false",
+      "pass": true
+    },
+    {
+      "name": "Responsive 37/320/false",
+      "pass": true
+    },
+    {
+      "name": "Responsive 38/320/false",
+      "pass": true
+    },
+    {
+      "name": "Responsive 39/320/false",
+      "pass": true
+    },
+    {
+      "name": "Responsive 9/320/true",
+      "pass": true
+    },
+    {
+      "name": "Responsive 11/320/true",
+      "pass": true
+    },
+    {
+      "name": "Responsive 21/320/true",
+      "pass": true
+    },
+    {
+      "name": "Responsive 33/320/true",
+      "pass": true
+    },
+    {
+      "name": "Responsive 34/320/true",
+      "pass": true
+    },
+    {
+      "name": "Responsive 37/320/true",
+      "pass": true
+    },
+    {
+      "name": "Responsive 38/320/true",
+      "pass": true
+    },
+    {
+      "name": "Responsive 39/320/true",
+      "pass": true
+    },
+    {
+      "name": "Responsive 9/375/false",
+      "pass": true
+    },
+    {
+      "name": "Responsive 11/375/false",
+      "pass": true
+    },
+    {
+      "name": "Responsive 21/375/false",
+      "pass": true
+    },
+    {
+      "name": "Responsive 33/375/false",
+      "pass": true
+    },
+    {
+      "name": "Responsive 34/375/false",
+      "pass": true
+    },
+    {
+      "name": "Responsive 37/375/false",
+      "pass": true
+    },
+    {
+      "name": "Responsive 38/375/false",
+      "pass": true
+    },
+    {
+      "name": "Responsive 39/375/false",
+      "pass": true
+    },
+    {
+      "name": "Responsive 9/375/true",
+      "pass": true
+    },
+    {
+      "name": "Responsive 11/375/true",
+      "pass": true
+    },
+    {
+      "name": "Responsive 21/375/true",
+      "pass": true
+    },
+    {
+      "name": "Responsive 33/375/true",
+      "pass": true
+    },
+    {
+      "name": "Responsive 34/375/true",
+      "pass": true
+    },
+    {
+      "name": "Responsive 37/375/true",
+      "pass": true
+    },
+    {
+      "name": "Responsive 38/375/true",
+      "pass": true
+    },
+    {
+      "name": "Responsive 39/375/true",
+      "pass": true
+    },
+    {
+      "name": "Owner pressed green rounded",
+      "pass": true
+    },
+    {
+      "name": "Accordion pressed pale and rounded",
+      "pass": true
+    },
+    {
+      "name": "Actual pointer drag moves bounded table",
+      "pass": true,
+      "detail": {
+        "before": {
+          "id": "tdemo1",
+          "label": "T1",
+          "shape": "rect",
+          "seats": 4,
+          "x": 2,
+          "y": 2,
+          "w": 14,
+          "h": 10
+        },
+        "after": {
+          "id": "tdemo1",
+          "label": "T1",
+          "shape": "rect",
+          "seats": 4,
+          "x": 10.4,
+          "y": 6.2,
+          "w": 14,
+          "h": 10
+        },
+        "matrix": {
+          "scale": 2.85
+        }
+      }
+    },
+    {
+      "name": "Local photo preview shown",
+      "pass": true
+    },
+    {
+      "name": "Photo modal close preserves publication",
+      "pass": true
+    },
+    {
+      "name": "No script errors",
+      "pass": true,
+      "detail": []
+    }
+  ],
+  "errors": [],
+  "square": [
+    {
+      "n": 1,
+      "buttons": []
+    },
+    {
+      "n": 2,
+      "buttons": []
+    },
+    {
+      "n": 3,
+      "buttons": []
+    },
+    {
+      "n": 4,
+      "buttons": []
+    },
+    {
+      "n": 5,
+      "buttons": []
+    },
+    {
+      "n": 6,
+      "buttons": []
+    },
+    {
+      "n": 7,
+      "buttons": []
+    },
+    {
+      "n": 8,
+      "buttons": []
+    },
+    {
+      "n": 9,
+      "buttons": []
+    },
+    {
+      "n": 10,
+      "buttons": []
+    },
+    {
+      "n": 11,
+      "buttons": []
+    },
+    {
+      "n": 12,
+      "buttons": []
+    },
+    {
+      "n": 13,
+      "buttons": []
+    },
+    {
+      "n": 14,
+      "buttons": []
+    },
+    {
+      "n": 15,
+      "buttons": []
+    },
+    {
+      "n": 16,
+      "buttons": []
+    },
+    {
+      "n": 17,
+      "buttons": []
+    },
+    {
+      "n": 18,
+      "buttons": []
+    },
+    {
+      "n": 19,
+      "buttons": []
+    },
+    {
+      "n": 20,
+      "buttons": []
+    },
+    {
+      "n": 21,
+      "buttons": []
+    },
+    {
+      "n": 22,
+      "buttons": []
+    },
+    {
+      "n": 23,
+      "buttons": []
+    },
+    {
+      "n": 24,
+      "buttons": []
+    },
+    {
+      "n": 25,
+      "buttons": []
+    },
+    {
+      "n": 26,
+      "buttons": []
+    },
+    {
+      "n": 27,
+      "buttons": []
+    },
+    {
+      "n": 28,
+      "buttons": []
+    },
+    {
+      "n": 29,
+      "buttons": []
+    },
+    {
+      "n": 30,
+      "buttons": []
+    },
+    {
+      "n": 31,
+      "buttons": []
+    },
+    {
+      "n": 32,
+      "buttons": []
+    },
+    {
+      "n": 33,
+      "buttons": []
+    },
+    {
+      "n": 34,
+      "buttons": []
+    },
+    {
+      "n": 35,
+      "buttons": []
+    },
+    {
+      "n": 36,
+      "buttons": []
+    },
+    {
+      "n": 37,
+      "buttons": []
+    },
+    {
+      "n": 38,
+      "buttons": []
+    },
+    {
+      "n": 39,
+      "buttons": []
+    }
+  ]
+}

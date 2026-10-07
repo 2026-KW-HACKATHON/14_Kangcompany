@@ -1,0 +1,324 @@
+{
+  "checked": "2026-10-06",
+  "source": "https://manyfast.io/share/mzlFqcfQh8-A4wao3NV98GKU9sA054vqIfron3MM6pjfg-nfAfpgO7OSh5SBfHbR",
+  "screens": [
+    {
+      "n": 1,
+      "id": "A-01",
+      "sourceName": "온보딩/시작 화면",
+      "name": "온보딩/시작 화면",
+      "section": "인증 및 계정 등록",
+      "role": "group",
+      "approvedReuse": null
+    },
+    {
+      "n": 2,
+      "id": "A-02",
+      "sourceName": "로그인 화면",
+      "name": "로그인 화면",
+      "section": "인증 및 계정 등록",
+      "role": "selected",
+      "approvedReuse": null
+    },
+    {
+      "n": 3,
+      "id": "A-03",
+      "sourceName": "회원가입 화면",
+      "name": "회원가입 화면",
+      "section": "인증 및 계정 등록",
+      "role": "selected",
+      "approvedReuse": null
+    },
+    {
+      "n": 4,
+      "id": "A-04",
+      "sourceName": "단체 정보 등록 화면",
+      "name": "단체 정보 등록 화면",
+      "section": "인증 및 계정 등록",
+      "role": "group",
+      "approvedReuse": null
+    },
+    {
+      "n": 5,
+      "id": "A-05",
+      "sourceName": "가게 기본 정보 등록",
+      "name": "가게 기본 정보 등록",
+      "section": "인증 및 계정 등록",
+      "role": "merchant",
+      "approvedReuse": null
+    },
+    {
+      "n": 6,
+      "id": "G-01",
+      "sourceName": "단체 담당자 홈",
+      "name": "단체 담당자 홈",
+      "section": "단체 담당자 홈",
+      "role": "group",
+      "approvedReuse": null
+    },
+    {
+      "n": 7,
+      "id": "C-02",
+      "sourceName": "알림 상세 화면",
+      "name": "알림 상세 화면",
+      "section": "단체 담당자 홈",
+      "role": "group",
+      "approvedReuse": null
+    },
+    {
+      "n": 8,
+      "id": "G-14",
+      "sourceName": "단체 정보 수정 화면",
+      "name": "단체 정보 수정 화면",
+      "section": "단체 담당자 홈",
+      "role": "group",
+      "approvedReuse": null
+    },
+    {
+      "n": 9,
+      "id": "G-02",
+      "sourceName": "예약 요청 작성 화면",
+      "name": "예약 요청 작성 화면",
+      "section": "예약 요청·확정·사전 주문",
+      "role": "group",
+      "approvedReuse": "request"
+    },
+    {
+      "n": 10,
+      "id": "G-03",
+      "sourceName": "수락 가게 목록 화면",
+      "name": "요청 진행 / 수락 결과",
+      "section": "예약 요청·확정·사전 주문",
+      "role": "group",
+      "approvedReuse": null
+    },
+    {
+      "n": 11,
+      "id": "G-06",
+      "sourceName": "예약 상세/조건 확인",
+      "name": "예약 상세/조건 확인",
+      "section": "예약 요청·확정·사전 주문",
+      "role": "group",
+      "approvedReuse": "detail"
+    },
+    {
+      "n": 12,
+      "id": "G-08",
+      "sourceName": "조건 수정 제안 화면",
+      "name": "조건 수정 요청",
+      "section": "예약 요청·확정·사전 주문",
+      "role": "group",
+      "approvedReuse": null
+    },
+    {
+      "n": 13,
+      "id": "G-07",
+      "sourceName": "사전 주문 구성 화면",
+      "name": "사전 주문 구성 화면",
+      "section": "예약 요청·확정·사전 주문",
+      "role": "group",
+      "approvedReuse": null
+    },
+    {
+      "n": 14,
+      "id": "G-09",
+      "sourceName": "예약금 결제 화면",
+      "name": "예약금 결제 화면",
+      "section": "예약 요청·확정·사전 주문",
+      "role": "group",
+      "approvedReuse": null
+    },
+    {
+      "n": 15,
+      "id": "G-10",
+      "sourceName": "예약 확정 완료 화면",
+      "name": "예약 확정 완료 화면",
+      "section": "예약 요청·확정·사전 주문",
+      "role": "group",
+      "approvedReuse": null
+    },
+    {
+      "n": 16,
+      "id": "G-11",
+      "sourceName": "내 예약 목록 화면",
+      "name": "내 예약 목록 화면",
+      "section": "예약 요청·확정·사전 주문",
+      "role": "group",
+      "approvedReuse": null
+    },
+    {
+      "n": 17,
+      "id": "G-04",
+      "sourceName": "가게 제안 목록 화면",
+      "name": "예약·빈자리 캘린더",
+      "section": "예약 요청·확정·사전 주문",
+      "role": "group",
+      "approvedReuse": null
+    },
+    {
+      "n": 18,
+      "id": "G-12",
+      "sourceName": "참석 링크 생성 화면",
+      "name": "참석 링크 생성 화면",
+      "section": "참석 인원 관리",
+      "role": "group",
+      "approvedReuse": null
+    },
+    {
+      "n": 19,
+      "id": "P-01",
+      "sourceName": "참석 여부 제출 화면",
+      "name": "참석 여부 제출 화면",
+      "section": "참석 인원 관리",
+      "role": "group",
+      "approvedReuse": null
+    },
+    {
+      "n": 20,
+      "id": "G-13",
+      "sourceName": "참석 인원 현황 화면",
+      "name": "참석 인원 현황 화면",
+      "section": "참석 인원 관리",
+      "role": "group",
+      "approvedReuse": null
+    },
+    {
+      "n": 21,
+      "id": "S-01",
+      "sourceName": "가게 사장님 홈",
+      "name": "가게 사장님 홈",
+      "section": "가게 사장님 운영",
+      "role": "merchant",
+      "approvedReuse": null
+    },
+    {
+      "n": 22,
+      "id": "S-03",
+      "sourceName": "예약 요청 상세 화면",
+      "name": "예약 요청 상세 화면",
+      "section": "가게 사장님 운영",
+      "role": "merchant",
+      "approvedReuse": "owner"
+    },
+    {
+      "n": 23,
+      "id": "S-06",
+      "sourceName": "빈날짜 제안 등록 화면",
+      "name": "빈날짜 제안 등록 화면",
+      "section": "가게 사장님 운영",
+      "role": "merchant",
+      "approvedReuse": null
+    },
+    {
+      "n": 24,
+      "id": "S-07",
+      "sourceName": "메뉴 관리 화면",
+      "name": "메뉴 관리 화면",
+      "section": "가게 사장님 운영",
+      "role": "merchant",
+      "approvedReuse": null
+    },
+    {
+      "n": 25,
+      "id": "S-08",
+      "sourceName": "메뉴판 사진 인식 화면",
+      "name": "메뉴판 사진 인식 화면",
+      "section": "가게 사장님 운영",
+      "role": "merchant",
+      "approvedReuse": null
+    },
+    {
+      "n": 26,
+      "id": "S-09",
+      "sourceName": "추천 메뉴 등록 화면",
+      "name": "추천 메뉴 등록 화면",
+      "section": "가게 사장님 운영",
+      "role": "merchant",
+      "approvedReuse": null
+    },
+    {
+      "n": 27,
+      "id": "S-14",
+      "sourceName": "가게 정보 수정 화면",
+      "name": "가게 정보 수정 화면",
+      "section": "가게 사장님 운영",
+      "role": "merchant",
+      "approvedReuse": null
+    },
+    {
+      "n": 28,
+      "id": "S-11",
+      "sourceName": "영수증 인식 화면",
+      "name": "영수증 인식 화면",
+      "section": "영수증 인식·소비 분석",
+      "role": "merchant",
+      "approvedReuse": null
+    },
+    {
+      "n": 29,
+      "id": "S-11-DONE",
+      "sourceName": "소비 기록 확정 완료",
+      "name": "소비 기록 확정 완료",
+      "section": "영수증 인식·소비 분석",
+      "role": "merchant",
+      "approvedReuse": null
+    },
+    {
+      "n": 30,
+      "id": "S-12",
+      "sourceName": "가게 분석 대시보드",
+      "name": "가게 분석 대시보드",
+      "section": "영수증 인식·소비 분석",
+      "role": "merchant",
+      "approvedReuse": null
+    },
+    {
+      "n": 31,
+      "id": "O-01",
+      "sourceName": "운영자 홈",
+      "name": "운영자 홈",
+      "section": "운영자 관리",
+      "role": "admin",
+      "approvedReuse": null
+    },
+    {
+      "n": 32,
+      "id": "O-02 / S-13",
+      "sourceName": "미충족 수요 조회 화면",
+      "name": "미충족 수요 조회 화면",
+      "section": "운영자 관리",
+      "role": "admin",
+      "approvedReuse": null
+    }
+  ],
+  "updated": "2026-10-07",
+  "version": "4.10",
+  "sourceScreenCount": 32,
+  "totalScreenCount": 36,
+  "extensions": [
+    {
+      "n": 33,
+      "id": "C-03-G",
+      "name": "단체 알림 목록",
+      "role": "group"
+    },
+    {
+      "n": 34,
+      "id": "C-03-S",
+      "name": "사장님 알림 목록",
+      "role": "merchant"
+    },
+    {
+      "n": 35,
+      "id": "C-02-S",
+      "name": "사장님 알림 상세",
+      "role": "merchant"
+    },
+    {
+      "n": 36,
+      "id": "S-02-N",
+      "name": "동네 익명 요청 목록",
+      "role": "merchant"
+    }
+  ]
+}

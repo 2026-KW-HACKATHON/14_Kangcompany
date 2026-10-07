@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>월계더링 토큰 미리보기</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css">
+<link rel="stylesheet" href="tokens-v0.2.css">
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; font-family: var(--font-family);
+    font-size: var(--text-body1-size); line-height: var(--text-body1-lh);
+    letter-spacing: var(--letter-spacing-normal);
+    color: var(--color-text-primary); background: var(--color-bg-subtle);
+    transition: background var(--duration-base) var(--ease-standard), color var(--duration-base) var(--ease-standard);
+  }
+  .page { max-width: var(--content-max-width); margin: 0 auto; padding: var(--space-6) var(--page-gutter) calc(var(--bottom-nav-height) + var(--space-10)); }
+  h1 { font-size: var(--text-title1-size); line-height: var(--text-title1-lh); font-weight: 700; letter-spacing: var(--letter-spacing-tight); margin: 0 0 var(--space-2); }
+  h2 { font-size: var(--text-title2-size); line-height: var(--text-title2-lh); font-weight: 600; margin: var(--space-10) 0 var(--space-3); }
+  .sub { color: var(--color-text-secondary); font-size: var(--text-body2-size); line-height: var(--text-body2-lh); margin: 0; }
+  .meta { color: var(--color-text-tertiary); font-size: var(--text-caption-size); line-height: var(--text-caption-lh); }
+
+  .toolbar { display: flex; gap: var(--space-2); flex-wrap: wrap; margin-top: var(--space-4); }
+  .chip-toggle { min-height: 40px; padding: 0 var(--space-4); border-radius: var(--radius-full); border: 1px solid var(--color-border-strong); background: var(--color-surface); color: var(--color-text-primary); font: inherit; font-size: var(--text-body2-size); cursor: pointer; }
+  .chip-toggle[aria-pressed="true"] { background: var(--color-brand-subtle); border-color: var(--color-brand); color: var(--color-brand-text); font-weight: 600; }
+
+  .card { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: var(--space-4); }
+  .stack > * + * { margin-top: var(--space-3); }
+
+  .swatches { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: var(--space-2); }
+  .sw { border-radius: var(--radius-sm); overflow: hidden; border: 1px solid var(--color-border); background: var(--color-surface); }
+  .sw i { display: block; height: 48px; }
+  .sw span { display: block; padding: var(--space-1) var(--space-2); font-size: 12px; line-height: 1.4; color: var(--color-text-secondary); }
+
+  .type-row { display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-3); padding: var(--space-3) 0; border-bottom: 1px solid var(--color-border); }
+  .type-row:last-child { border-bottom: 0; }
+  .t-display { font-size: var(--text-display-size); line-height: var(--text-display-lh); font-weight: 700; letter-spacing: var(--letter-spacing-tight); }
+  .t-title1 { font-size: var(--text-title1-size); line-height: var(--text-title1-lh); font-weight: 700; letter-spacing: var(--letter-spacing-tight); }
+  .t-title2 { font-size: var(--text-title2-size); line-height: var(--text-title2-lh); font-weight: 600; }
+  .t-body1 { font-size: var(--text-body1-size); line-height: var(--text-body1-lh); }
+  .t-body2 { font-size: var(--text-body2-size); line-height: var(--text-body2-lh); }
+  .t-caption { font-size: var(--text-caption-size); line-height: var(--text-caption-lh); font-weight: 600; }
+  .num { font-variant-numeric: tabular-nums; }
+
+  .badge { display: inline-flex; align-items: center; height: 24px; padding: 0 var(--space-2); border-radius: var(--radius-full); font-size: var(--text-caption-size); font-weight: 600; white-space: nowrap; }
+  .b-neutral { background: var(--tone-neutral-bg); color: var(--tone-neutral-fg); }
+  .b-warning { background: var(--tone-warning-bg); color: var(--tone-warning-fg); }
+  .b-success { background: var(--tone-success-bg); color: var(--tone-success-fg); }
+  .b-danger  { background: var(--tone-danger-bg);  color: var(--tone-danger-fg); }
+  .b-muted   { background: var(--tone-muted-bg);   color: var(--tone-muted-fg); }
+  .badges { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+
+  .btn { display: inline-flex; align-items: center; justify-content: center; width: 100%; min-height: var(--control-height-md); padding: 0 var(--space-4); border-radius: var(--radius-md); font: inherit; font-weight: 600; cursor: pointer; border: 1px solid transparent;
+         transition: transform var(--duration-instant) var(--ease-standard), background var(--duration-fast) var(--ease-standard); }
+  .btn:active { transform: scale(var(--press-scale)); }
+  .btn:focus-visible, .chip-toggle:focus-visible, input:focus-visible { outline: 3px solid var(--color-focus-ring); outline-offset: 2px; }
+  .btn-primary { min-height: var(--control-height-lg); background: var(--color-brand); color: var(--color-text-on-brand); }
+  .btn-primary:hover { background: var(--color-brand-hover); }
+  .btn-secondary { background: var(--color-surface); color: var(--color-text-primary); border-color: var(--color-border-strong); }
+  .btn-text-danger { background: none; color: var(--tone-danger-fg); }
+  .btn-row { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-2); }
+
+  label.field { display: block; }
+  label.field b { display: block; font-size: var(--text-body2-size); font-weight: 600; color: var(--color-text-secondary); margin-bottom: var(--space-1); }
+  input.input { width: 100%; min-height: var(--control-height-md); padding: 0 var(--space-3); border: 1px solid var(--color-border-strong); border-radius: var(--radius-sm); background: var(--color-surface); color: var(--color-text-primary); font: inherit; }
+  .help { margin-top: var(--space-1); }
+
+  .res-head { display: flex; justify-content: space-between; align-items: center; }
+  .res-title { font-size: var(--text-title2-size); line-height: var(--text-title2-lh); font-weight: 600; margin: var(--space-2) 0 var(--space-1); }
+
+  .nav { position: fixed; left: 0; right: 0; bottom: 0; height: var(--bottom-nav-height); background: var(--color-surface); border-top: 1px solid var(--color-border); }
+  .nav ul { display: grid; grid-template-columns: repeat(4, 1fr); max-width: var(--content-max-width); margin: 0 auto; padding: 0; list-style: none; height: 100%; }
+  .nav li { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; font-size: var(--text-caption-size); color: var(--color-text-tertiary); }
+  .nav li[aria-current] { color: var(--color-brand-text); font-weight: 600; }
+  .nav svg { width: 24px; height: 24px; }
+
+  .toast { position: fixed; left: 50%; bottom: calc(var(--bottom-nav-height) + var(--space-4)); transform: translate(-50%, 12px); opacity: 0;
+           max-width: calc(100% - 2 * var(--page-gutter)); padding: var(--space-3) var(--space-4); border-radius: var(--radius-md);
+           background: var(--color-inverse-bg); color: var(--color-inverse-fg); box-shadow: var(--shadow-raised); font-size: var(--text-body2-size); pointer-events: none;
+           transition: opacity var(--duration-fast) var(--ease-decelerate), transform var(--duration-fast) var(--ease-decelerate); }
+  .toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+  .done { text-align: center; padding: var(--space-6) var(--space-4); }
+  .check { width: 64px; height: 64px; }
+  .check circle { fill: var(--color-brand-subtle); }
+  .check path { fill: none; stroke: var(--color-brand); stroke-width: 4; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 40; stroke-dashoffset: 40; }
+  .check.play path { animation: draw var(--duration-slow) var(--ease-decelerate) forwards; }
+  @keyframes draw { to { stroke-dashoffset: 0; } }
+</style>
+</head>
+<body>
+<main class="page">
+  <h1>월계더링 디자인 토큰</h1>
+  <p class="sub">v0.2 · 미니멀 · 포인트 컬러 블루 + 보조 포레스트 · 본문 17px · WCAG AA</p>
+  <div class="toolbar" role="group" aria-label="미리보기 설정">
+    <button class="chip-toggle" id="tgTheme" aria-pressed="false">다크 모드</button>
+    <button class="chip-toggle" id="tgLarge" aria-pressed="false">큰 글씨 (×1.125)</button>
+  </div>
+
+  <h2>컬러</h2>
+  <div class="card stack">
+    <div class="meta">포인트 1 · 스카이 블루 (앱 아이콘 앞사람)</div>
+    <div class="swatches">
+      <div class="sw"><i style="background:var(--sky-50)"></i><span>sky-50<br>선택 배경</span></div>
+      <div class="sw"><i style="background:var(--sky-400)"></i><span>sky-400<br>다크 버튼</span></div>
+      <div class="sw"><i style="background:var(--sky-500)"></i><span>sky-500<br>주요 버튼</span></div>
+      <div class="sw"><i style="background:var(--sky-600)"></i><span>sky-600<br>링크·확정</span></div>
+    </div>
+    <div class="meta">포인트 2 · 포레스트 (앱 아이콘 뒷사람, 보조 강조만)</div>
+    <div class="swatches">
+      <div class="sw"><i style="background:var(--forest-50)"></i><span>forest-50<br>안내 박스</span></div>
+      <div class="sw"><i style="background:var(--forest-700)"></i><span>forest-700<br>태그·강조</span></div>
+    </div>
+    <div class="meta">중립 · 차가운 회색</div>
+    <div class="swatches">
+      <div class="sw"><i style="background:var(--gray-50)"></i><span>gray-50 화면</span></div>
+      <div class="sw"><i style="background:var(--gray-200)"></i><span>gray-200 선</span></div>
+      <div class="sw"><i style="background:var(--gray-400)"></i><span>gray-400 입력선</span></div>
+      <div class="sw"><i style="background:var(--gray-600)"></i><span>gray-600 보조</span></div>
+      <div class="sw"><i style="background:var(--gray-900)"></i><span>gray-900 본문</span></div>
+    </div>
+  </div>
+
+  <h2>상태 톤 (배지 전용)</h2>
+  <div class="card stack">
+    <div class="badges">
+      <span class="badge b-neutral">응답 대기</span>
+      <span class="badge b-warning">결제 대기</span>
+      <span class="badge b-warning">확인 필요</span>
+      <span class="badge b-success">확정</span>
+      <span class="badge b-success">완료</span>
+      <span class="badge b-danger">노쇼</span>
+      <span class="badge b-danger">인식 실패</span>
+      <span class="badge b-muted">취소됨</span>
+      <span class="badge b-muted">만료</span>
+    </div>
+    <div class="meta">neutral · warning(행동 필요) · success(=브랜드) · danger · muted</div>
+  </div>
+
+  <h2>타이포그래피 · Pretendard</h2>
+  <div class="card">
+    <div class="type-row"><span class="t-display num">412,000원</span><span class="meta">display 28</span></div>
+    <div class="type-row"><span class="t-title1">예약 상세</span><span class="meta">title1 22</span></div>
+    <div class="type-row"><span class="t-title2">사전 주문</span><span class="meta">title2 19</span></div>
+    <div class="type-row"><span class="t-body1">10/14(화) 19:00 · 32명</span><span class="meta">body1 17</span></div>
+    <div class="type-row"><span class="t-body2" style="color:var(--color-text-secondary)">1인 12,875원 · 예산 15,000원</span><span class="meta">body2 15</span></div>
+    <div class="type-row"><span class="t-caption" style="color:var(--color-text-tertiary)">3시간 전 수락</span><span class="meta">caption 13</span></div>
+  </div>
+
+  <h2>정보 위계 예시 · 예약 카드</h2>
+  <div class="card">
+    <div class="res-head"><span class="badge b-warning">결제 대기</span><span class="meta">3시간 전 수락</span></div>
+    <div class="res-title">고기굽는집</div>
+    <div class="t-body1 num">10/14(화) 19:00 · 32명</div>
+    <div class="t-body2 num" style="color:var(--color-text-secondary)">사전 주문 412,000원 · 1인 12,875원</div>
+    <div style="margin-top:var(--space-4)"><button class="btn btn-primary" id="payBtn">예약금 50,000원 결제하기</button></div>
+    <div class="btn-row" style="margin-top:var(--space-2)">
+      <button class="btn btn-secondary">사전 주문 수정</button>
+      <button class="btn btn-text-danger">예약 취소</button>
+    </div>
+  </div>
+
+  <h2>입력칸</h2>
+  <div class="card stack">
+    <label class="field"><b>예상 인원</b><input class="input num" inputmode="numeric" value="32"></label>
+    <label class="field"><b>1인 예산</b><input class="input num" inputmode="numeric" placeholder="예: 15,000"><div class="help meta">메뉴 추천 기준이 아니라 가게가 수락 여부를 판단하는 기준이에요</div></label>
+  </div>
+
+  <h2>모션 · 핵심 순간</h2>
+  <div class="card done">
+    <svg class="check" id="check" viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="32"/><path d="M20 33 l8 8 l16 -18"/></svg>
+    <div class="t-title2" style="margin-top:var(--space-3)">예약이 확정됐어요</div>
+    <p class="sub">결제하기 버튼을 누르면 체크(400ms)와 토스트(180ms)가 재생됩니다</p>
+  </div>
+</main>
+
+<nav class="nav" aria-label="단체 하단 탭 (제안)">
+  <ul>
+    <li aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/></svg>홈</li>
+    <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M8 2v4M16 2v4M3 10h18"/></svg>예약</li>
+    <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-6.1-7-11a7 7 0 0 1 14 0c0 4.9-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>가게 찾기</li>
+    <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>내 정보</li>
+  </ul>
+</nav>
+<div class="toast" id="toast" role="status">고기굽는집 예약이 확정됐어요</div>
+
+<script>
+  const root = document.documentElement;
+  const tgTheme = document.getElementById('tgTheme');
+  const tgLarge = document.getElementById('tgLarge');
+  if (window.matchMedia('(prefers-color-scheme: dark)').matches) tgTheme.setAttribute('aria-pressed', 'true');
+  tgTheme.addEventListener('click', () => {
+    const on = tgTheme.getAttribute('aria-pressed') !== 'true';
+    tgTheme.setAttribute('aria-pressed', on);
+    root.setAttribute('data-theme', on ? 'dark' : 'light');
+  });
+  tgLarge.addEventListener('click', () => {
+    const on = tgLarge.getAttribute('aria-pressed') !== 'true';
+    tgLarge.setAttribute('aria-pressed', on);
+    on ? root.setAttribute('data-font-size', 'large') : root.removeAttribute('data-font-size');
+  });
+  document.getElementById('payBtn').addEventListener('click', () => {
+    const check = document.getElementById('check');
+    const toast = document.getElementById('toast');
+    check.classList.remove('play'); void check.getBoundingClientRect(); check.classList.add('play');
+    toast.classList.add('show');
+    clearTimeout(window.__t); window.__t = setTimeout(() => toast.classList.remove('show'), 2200);
+  });
+</script>
+</body>
+</html>
