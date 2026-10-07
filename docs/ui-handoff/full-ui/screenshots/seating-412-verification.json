@@ -1,0 +1,344 @@
+{
+  "version": "4.12",
+  "head": "f757627bccbee3b8923537f440107ea50781d6d5",
+  "checks": [
+    {
+      "name": "Published layout lookup contract",
+      "pass": true
+    },
+    {
+      "name": "Only published stores in selector",
+      "pass": true
+    },
+    {
+      "name": "Published store search",
+      "pass": true
+    },
+    {
+      "name": "Store changes diagram and closes chooser",
+      "pass": true
+    },
+    {
+      "name": "Read-only keyboard table detail",
+      "pass": true
+    },
+    {
+      "name": "Read-only arrows never change layout",
+      "pass": true
+    },
+    {
+      "name": "Search empty state",
+      "pass": true
+    },
+    {
+      "name": "Direct missing layout is honest",
+      "pass": true
+    },
+    {
+      "name": "No tables means publish disabled",
+      "pass": true
+    },
+    {
+      "name": "Manual table defaults match API",
+      "pass": true
+    },
+    {
+      "name": "Table label seats shape edited",
+      "pass": true
+    },
+    {
+      "name": "Size editable and fits canvas",
+      "pass": true
+    },
+    {
+      "name": "Swap size serializes geometry without rotation",
+      "pass": true
+    },
+    {
+      "name": "Shift arrow moves five units",
+      "pass": true
+    },
+    {
+      "name": "Seats outside 1-30 disables publish",
+      "pass": true
+    },
+    {
+      "name": "Another valid field cannot hide invalid seats",
+      "pass": true
+    },
+    {
+      "name": "Maximum supported seats accepted",
+      "pass": true
+    },
+    {
+      "name": "Seats plus remains capped",
+      "pass": true
+    },
+    {
+      "name": "Fixture entrance",
+      "pass": true
+    },
+    {
+      "name": "Fixture counter",
+      "pass": true
+    },
+    {
+      "name": "Fixture kitchen",
+      "pass": true
+    },
+    {
+      "name": "Fixture restroom",
+      "pass": true
+    },
+    {
+      "name": "Fixture window",
+      "pass": true
+    },
+    {
+      "name": "Fixture other",
+      "pass": true
+    },
+    {
+      "name": "Fixture kind picker updates model",
+      "pass": true
+    },
+    {
+      "name": "Fixture label edited",
+      "pass": true
+    },
+    {
+      "name": "Published layout unchanged while editing",
+      "pass": true
+    },
+    {
+      "name": "Manual publish source",
+      "pass": true
+    },
+    {
+      "name": "Exact publish keys",
+      "pass": true
+    },
+    {
+      "name": "No old items note rotation or image fields",
+      "pass": true
+    },
+    {
+      "name": "Published counts derived from tables",
+      "pass": true
+    },
+    {
+      "name": "Group sees newly published content",
+      "pass": true
+    },
+    {
+      "name": "Group sees renamed table",
+      "pass": true
+    },
+    {
+      "name": "Photo loading state success",
+      "pass": true
+    },
+    {
+      "name": "Photo candidate warnings",
+      "pass": true
+    },
+    {
+      "name": "Photo only changes editor before publish",
+      "pass": true
+    },
+    {
+      "name": "Edited candidate clears confidence",
+      "pass": true
+    },
+    {
+      "name": "Photo publish source and confidence strip",
+      "pass": true
+    },
+    {
+      "name": "Photo loading state failure",
+      "pass": true
+    },
+    {
+      "name": "Photo error or empty stays unpublished failure",
+      "pass": true
+    },
+    {
+      "name": "Photo loading state empty",
+      "pass": true
+    },
+    {
+      "name": "Photo error or empty stays unpublished empty",
+      "pass": true
+    },
+    {
+      "name": "No-change publish disabled",
+      "pass": true
+    },
+    {
+      "name": "Overlap warning reflects BE helper",
+      "pass": true
+    },
+    {
+      "name": "Overlap confirmation appears",
+      "pass": true
+    },
+    {
+      "name": "Overlap cancel preserves existing publication",
+      "pass": true
+    },
+    {
+      "name": "Duplicate label disables publish",
+      "pass": true
+    },
+    {
+      "name": "Confirmed overlap can publish as BE allows",
+      "pass": true
+    },
+    {
+      "name": "Table limit 100",
+      "pass": true
+    },
+    {
+      "name": "Fixture limit 50",
+      "pass": true
+    },
+    {
+      "name": "Calendar entry opens layout viewer",
+      "pass": true
+    },
+    {
+      "name": "Owner operations entry opens manager",
+      "pass": true
+    },
+    {
+      "name": "Booking detail opens correct store",
+      "pass": true
+    },
+    {
+      "name": "Layout 17/1440/false",
+      "pass": true
+    },
+    {
+      "name": "Layout 21/1440/false",
+      "pass": true
+    },
+    {
+      "name": "Layout 37/1440/false",
+      "pass": true
+    },
+    {
+      "name": "Layout 38/1440/false",
+      "pass": true
+    },
+    {
+      "name": "Layout 39/1440/false",
+      "pass": true
+    },
+    {
+      "name": "Layout 17/1440/true",
+      "pass": true
+    },
+    {
+      "name": "Layout 21/1440/true",
+      "pass": true
+    },
+    {
+      "name": "Layout 37/1440/true",
+      "pass": true
+    },
+    {
+      "name": "Layout 38/1440/true",
+      "pass": true
+    },
+    {
+      "name": "Layout 39/1440/true",
+      "pass": true
+    },
+    {
+      "name": "Layout 17/375/false",
+      "pass": true
+    },
+    {
+      "name": "Layout 21/375/false",
+      "pass": true
+    },
+    {
+      "name": "Layout 37/375/false",
+      "pass": true
+    },
+    {
+      "name": "Layout 38/375/false",
+      "pass": true
+    },
+    {
+      "name": "Layout 39/375/false",
+      "pass": true
+    },
+    {
+      "name": "Layout 17/375/true",
+      "pass": true
+    },
+    {
+      "name": "Layout 21/375/true",
+      "pass": true
+    },
+    {
+      "name": "Layout 37/375/true",
+      "pass": true
+    },
+    {
+      "name": "Layout 38/375/true",
+      "pass": true
+    },
+    {
+      "name": "Layout 39/375/true",
+      "pass": true
+    },
+    {
+      "name": "Layout 17/320/false",
+      "pass": true
+    },
+    {
+      "name": "Layout 21/320/false",
+      "pass": true
+    },
+    {
+      "name": "Layout 37/320/false",
+      "pass": true
+    },
+    {
+      "name": "Layout 38/320/false",
+      "pass": true
+    },
+    {
+      "name": "Layout 39/320/false",
+      "pass": true
+    },
+    {
+      "name": "Layout 17/320/true",
+      "pass": true
+    },
+    {
+      "name": "Layout 21/320/true",
+      "pass": true
+    },
+    {
+      "name": "Layout 37/320/true",
+      "pass": true
+    },
+    {
+      "name": "Layout 38/320/true",
+      "pass": true
+    },
+    {
+      "name": "Layout 39/320/true",
+      "pass": true
+    },
+    {
+      "name": "No browser script errors",
+      "pass": true,
+      "detail": []
+    }
+  ],
+  "errors": []
+}

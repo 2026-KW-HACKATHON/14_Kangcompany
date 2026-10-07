@@ -1,0 +1,50 @@
+{
+  "screens": [
+    6,
+    9,
+    11,
+    21,
+    30,
+    33,
+    34,
+    17,
+    37,
+    38,
+    39
+  ],
+  "checks": [
+    {
+      "name": "tokens-preview.html/320",
+      "pass": true
+    },
+    {
+      "name": "Pressed tokens-preview.html/320",
+      "pass": true
+    },
+    {
+      "name": "tokens-preview.html/375",
+      "pass": true
+    },
+    {
+      "name": "Pressed tokens-preview.html/375",
+      "pass": true
+    },
+    {
+      "name": "tokens-approved-preview.html/320",
+      "pass": true
+    },
+    {
+      "name": "Pressed tokens-approved-preview.html/320",
+      "pass": true
+    },
+    {
+      "name": "tokens-approved-preview.html/375",
+      "pass": true
+    },
+    {
+      "name": "Pressed tokens-approved-preview.html/375",
+      "pass": true
+    }
+  ],
+  "errors": []
+}

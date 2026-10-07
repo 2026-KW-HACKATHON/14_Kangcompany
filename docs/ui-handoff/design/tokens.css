@@ -1,293 +1,178 @@
-/* =====================================================================
-   월계더링 디자인 토큰 v0.2
-   - 원칙과 사용 규칙: docs/design/design-tokens.md
-   - 미리보기: docs/design/tokens-preview.html, 컬러 실험실: palette-playground.html (17번)
-   - 레이어: 1) 원시값(primitive) → 2) 의미(semantic) → 컴포넌트는 의미 토큰만 쓴다
-   ===================================================================== */
-
+/* A2 Soft Booking 4.7, based on approved 4.1. */
+@import url("tokens-v0.2.css");
 :root {
-  /* -------------------------------------------------------------------
-     1. 원시 컬러 (직접 쓰지 말 것 — 의미 토큰을 거쳐서 사용)
-     ------------------------------------------------------------------- */
+  --color-calendar-requests: #5669E3;
+  --color-calendar-requests-text: #485AC8;
+  --color-calendar-requests-subtle: #EEF1FF;
+  --color-calendar-requests-bg: #F3F5FF;
+  --color-calendar-slots: #267253;
+  --color-calendar-slots-text: #226347;
+  --color-calendar-slots-subtle: #EAF4EE;
+  --color-calendar-slots-bg: #F0F7F3;
+  --color-attendance-track: #E2E6F3;
+  --color-attendance-surface: #F6F7FB;
+  --radius-calendar-panel: 26px;
+  --color-filter-requests-selected: #E4E9FF;
+  --color-filter-slots-selected: #DFEEE5;
+  --radius-progress-step: 14px;
+  --shadow-progress-step: 0 2px 6px rgb(72 90 200 / .07);
+  --color-calendar-switch-bg: #F3F4F7;
+  --shadow-calendar-switch: 0 1px 4px rgb(17 24 39 / .06);
+  --color-meeting-action-bg: #F0F2FC;
+  --color-meeting-action-hover: #E9EDFC;
+  --color-meeting-action-pressed: #E1E6FC;
+  --shadow-meeting-action: 0 1px 4px rgb(72 90 200 / .06);
+  --color-bg: #F8F9FC;
+  --color-bg-subtle: #F4F6FA;
+  --color-surface: #FFFFFF;
+  --color-surface-raised: #FFFFFF;
+  --color-text-primary: #111827;
+  --color-text-secondary: #606978;
+  --color-text-tertiary: #606978;
+  --color-text-disabled: #9CA3AF;
+  --color-border: #E8EAF0;
+  --color-border-strong: #858D9C;
+  --color-brand: #5669E3;
+  --color-brand-hover: #4E61D5;
+  --color-brand-pressed: #4558C7;
+  --color-brand-subtle: #EEF1FF;
+  --color-brand-text: #485AC8;
+  --color-brand-depth: #3D4DB1;
+  --shadow-action-glow: 0 2px 6px rgb(72 90 200 / .08);
+  --icon-main-top:#8B9AFF;--icon-main-bottom:#4B60D2;
+  --icon-back-top:#C0C9FF;--icon-back-bottom:#8998DC;
+  --color-focus-ring: var(--color-brand);
+  --color-accent: #7785D2;
+  --color-accent-subtle: var(--color-brand-subtle);
+  --color-accent-text: var(--color-brand-text);
+  --tone-success-bg: var(--color-brand-subtle);
+  --tone-success-fg: var(--color-brand-text);
+  --tone-neutral-bg: var(--color-bg-subtle);
+  --tone-neutral-fg: var(--color-text-secondary);
+  --text-display-size: calc(28px * var(--font-scale));
+  --text-title1-size: calc(26px * var(--font-scale));
+  --text-title2-size: calc(19px * var(--font-scale));
+  --text-body1-size: calc(17px * var(--font-scale));
+  --text-body2-size: calc(15px * var(--font-scale));
+  --text-caption-size: calc(14px * var(--font-scale));
+  --font-weight-regular: 500;
+  --font-weight-medium: 550;
+  --font-weight-semibold: 650;
+  --font-weight-bold: 750;
+  --letter-spacing-normal: -0.018em;
+  --letter-spacing-tight: -0.035em;
+  --radius-choice-menu: 22px;
+  --choice-row-height: 56px;
+  --shadow-choice-menu: 0 18px 46px rgb(25 38 65 / .15), 0 4px 12px rgb(25 38 65 / .07);
+  --text-body1-lh: 1.5;
+  --text-body2-lh: 1.5;
+  --sb-radius-card: var(--radius-card);
+  --sb-radius-control: var(--radius-control);
+  --sb-radius-cta: var(--radius-cta);
+  --sb-section-gap: var(--section-gap);
+  --sb-gutter: var(--page-gutter);
+  --sb-shadow-card: 0 1px 2px rgb(15 23 42 / .03), 0 8px 24px rgb(15 23 42 / .04);
+  --sb-shadow-selected: 0 2px 4px rgb(72 90 200 / .03), 0 8px 16px rgb(72 90 200 / .07);
+  --duration-base: 220ms;
+}
+[data-kind=owner] {
+  --color-brand: #267253;
+  --color-brand-hover: #1F6348;
+  --color-brand-pressed: #19563D;
+  --color-brand-subtle: #EAF4EE;
+  --color-brand-text: #226347;
+  --color-brand-depth: #185139;
+  --shadow-action-glow: 0 2px 6px rgb(31 99 72 / .08);
+  --icon-main-top:#69B492;--icon-main-bottom:#236A4C;
+  --icon-back-top:#B2DCC8;--icon-back-bottom:#79AD94;
+  --color-focus-ring: #267253;
+  --color-accent: #679B80;
+  --color-accent-subtle: #EAF4EE;
+  --color-accent-text: #226347;
+}
+:root {
+ --radius-card:20px; --radius-control:16px; --radius-cta:999px; --radius-sheet:24px;
+ --tone-warning-bg:#FFF5DE; --tone-warning-fg:#895719; --tone-warning-border:#D8B570;
+ --tone-success-border:#B3BDEF; --tone-neutral-border:#CDD3E2; --tone-danger-border:#DCA7A2;
+ --tone-muted-border:#D4D9E3; --status-border-width:0px; --status-radius:999px;
+ --text-status-size:calc(16px * var(--font-scale));
+ --icon-muted-top:#F6F8FE;--icon-muted-bottom:#D5DFF0;
+ --color-icon-surface:#EFF3FA;--color-icon-border:#DCE3F0;--color-icon-depth:#D6DEED;--radius-icon:28%;
+ --color-navigation-active:#485AC8;--color-navigation-surface:#EEF1FF;--color-navigation-border:#D2DAF8;
+ --page-gutter:24px; --section-gap:32px;
+ --color-art-muted:#E4E8F3; --color-art-shadow:#BCC5E1;
+ --color-art-main-idle:#7D879C; --color-art-back-idle:#A4ADC0;
+ --color-art-gradient-end:#E8ECF4; --color-art-selected-end:#DCE2FF;
+ --color-art-success-start:#F8FAFF; --color-art-success-end:#E8ECFF;
+ --duration-selection-hold:220ms; --duration-panel-open:360ms; --duration-panel-close:260ms; --duration-guided-scroll:520ms;
+ --picker-row-height:48px; --picker-padding:72px; --picker-height:192px;
+ --shadow-soft:0 4px 24px rgb(15 23 42 / .025);
+}
+[data-role=merchant] {
+ --color-brand:#267253; --color-brand-hover:#1F6348; --color-brand-pressed:#19563D;
+ --color-brand-subtle:#EAF4EE; --color-brand-text:#226347; --color-focus-ring:#267253;
+ --color-brand-depth:#185139; --shadow-action-glow:0 2px 6px rgb(31 99 72 / .08);
+ --icon-main-top:#69B492;--icon-main-bottom:#236A4C;--icon-back-top:#B2DCC8;--icon-back-bottom:#79AD94;
+ --color-accent:#679B80; --color-accent-subtle:#EAF4EE; --color-accent-text:#226347;
+}
+@media (prefers-reduced-motion:reduce) { :root { --duration-selection-hold:0ms; --duration-panel-open:0ms; --duration-panel-close:0ms; --duration-guided-scroll:0ms; } }
+[data-role=merchant], [data-kind=owner] { --tone-success-bg:#EAF4EE; --tone-success-fg:#226347; --tone-success-border:#A9C9B7; }
 
-  /* 포인트 1: 스카이 블루 — 앱 아이콘 앞사람 색 (Claude Design wolgye-icons, 실험실 17번) */
-  --sky-50:  #EEF4FF;  /* 선택된 항목 배경 */
-  --sky-200: #94B6FF;  /* 다크: 강조 텍스트 */
-  --sky-300: #729EFF;  /* 다크: hover */
-  --sky-400: #5A8BFF;  /* 다크: 버튼 */
-  --sky-500: #3F6FE8;  /* 라이트: 버튼 (아이콘 앞사람 머리) */
-  --sky-600: #3765DE;  /* 라이트: 링크·강조 텍스트 */
-  --sky-700: #3560D6;  /* 라이트: hover */
-  --sky-800: #2C50B8;  /* 라이트: 눌림 */
-  --sky-900: #182544;  /* 다크: 선택된 항목 배경 */
+/* 4.8 roles, provider colors and dense calendar controls. */
+:root { --color-notification-text:#4A5363; --color-login-kakao:#FEE500; --color-login-naver:#03A94D; --size-navigation-action:48px; --height-calendar-day:44px; --opacity-notification-unread:.83; --opacity-notification-read:1; }
+[data-role=merchant], [data-kind=owner] { --color-navigation-active:#226347; --color-navigation-surface:#EAF4EE; --color-navigation-border:#267253; }
 
-  /* 포인트 2: 포레스트 — 앱 아이콘 뒷사람 색. 보조 강조(태그·안내 박스)에만 */
-  --forest-50:  #EAF6F0;
-  --forest-200: #9BCAB6;  /* 다크: 보조 강조 텍스트 */
-  --forest-400: #77A491;  /* 다크: 보조 강조 */
-  --forest-700: #1E4A3A;  /* 라이트: 보조 강조 (아이콘 뒷사람) */
-  --forest-800: #14342A;
-  --forest-900: #1A2B24;  /* 다크: 보조 강조 배경 */
+/* 4.9: shared authentication brand size. */
+:root { --size-auth-logo:88px; }
 
-  /* 중립: 차가운 회색 (블루와 어울리게 아주 약간 푸른 기) */
-  --gray-0:   #FFFFFF;
-  --gray-50:  #F4F7FB;  /* 화면 배경 */
-  --gray-100: #ECEFF3;
-  --gray-200: #DDE2E6;
-  --gray-300: #C5CACF;
-  --gray-400: #8A8E92;
-  --gray-500: #66696D;
-  --gray-600: #4D5054;
-  --gray-700: #393D41;
-  --gray-800: #25292D;
-  --gray-900: #1B2A31;  /* 주 텍스트 (아이콘 시트 텍스트색) */
+/* 4.9: circular navigation action inspired by the supplied CGV reference. */
+:root { --size-navigation-action:72px; --color-nav-action-top:#5A74EC; --color-nav-action-bottom:#4155C6; --shadow-nav-action:0 8px 20px rgb(82 105 233 / .18); }
+[data-role=merchant],[data-kind=owner] { --color-nav-action-top:#42966F; --color-nav-action-bottom:#236648; --shadow-nav-action:0 8px 20px rgb(38 114 83 / .18); }
 
-  /* 다크 모드 중립 */
-  --night-0:   #0C1014;  /* 배경 */
-  --night-50:  #14181B;
-  --night-100: #15191D;  /* 카드 */
-  --night-150: #1A1E22;
-  --night-200: #262A2E;
-  --night-300: #2A2E33;  /* 선 */
-  --night-500: #65696E;  /* 입력칸 테두리 */
-  --night-600: #94999E;
-  --night-700: #B6BBC1;
-  --night-900: #EAEFF5;  /* 주 텍스트 */
-
-  /* 상태 전용 (배지·알림에만. 장식에 쓰지 않음) */
-  --amber-50:  #FFF5E0;
-  --amber-500: #D88A0B;
-  --amber-700: #8A5300;
-  --red-50:    #FDEDEC;
-  --red-500:   #D93B30;
-  --red-700:   #A8241B;
-
-  /* 앱 아이콘 전용 — Claude Design 'wolgye-icons' 3a (PR #11 시안 우측 하단 아이콘 정밀 트레이싱) */
-  --logo-blue-head: #3F6FE8;
-  --logo-blue-body: #5B8BF0;
-  --logo-forest:    #1E4A3A;
-  --logo-frost:     #DCE7ED;  /* 바탕 (그라데이션 #E8F0F5 → #CCDCE5) */
-
-  /* -------------------------------------------------------------------
-     2. 의미 컬러 (컴포넌트는 이것만 사용)
-     ------------------------------------------------------------------- */
-
-  /* 배경·면 — 화면은 연한 회청색, 카드·입력칸은 흰색으로 띄움 */
-  --color-bg:            var(--gray-50);
-  --color-bg-subtle:     var(--gray-100);   /* 페이지 구획, 입력칸 비활성 */
-  --color-surface:       var(--gray-0);     /* 카드, 입력칸 */
-  --color-surface-raised:var(--gray-0);     /* 바텀시트, 모달 */
-  --color-overlay:       rgb(27 42 49 / 0.48);
-  --color-inverse-bg:    var(--gray-900);   /* 토스트 */
-  --color-inverse-fg:    var(--gray-0);
-
-  /* 텍스트 — 정보 위계 3단계 + 비활성 */
-  --color-text-primary:   var(--gray-900);  /* 제목, 본문, 금액 */
-  --color-text-secondary: var(--gray-600);  /* 보조 설명, 라벨 */
-  --color-text-tertiary:  var(--gray-500);  /* 메타 정보(시각 등). 핵심 정보에 쓰지 않음 */
-  --color-text-disabled:  var(--gray-400);
-  --color-text-on-brand:  var(--gray-0);
-
-  /* 선 */
-  --color-border:        var(--gray-200);   /* 카드·구분선 */
-  --color-border-strong: var(--gray-400);   /* 입력칸 (배경 대비 3:1 이상) */
-  --color-focus-ring:    var(--sky-500);
-
-  /* 포인트 1 (브랜드) — 화면당 '가장 중요한 행동 1개'에만 */
-  --color-brand:          var(--sky-500);
-  --color-brand-hover:    var(--sky-700);
-  --color-brand-pressed:  var(--sky-800);
-  --color-brand-subtle:   var(--sky-50);   /* 선택된 항목 배경 */
-  --color-brand-text:     var(--sky-600);  /* 링크, 강조 텍스트 */
-
-  /* 포인트 2 (보조 강조) — 칩 안의 태그, 안내 박스. 버튼에 쓰지 않음 */
-  --color-accent:         var(--forest-700);
-  --color-accent-subtle:  var(--forest-50);
-  --color-accent-text:    var(--forest-700);
-
-  /* 상태 톤 (docs/ia/state-definitions.md 0장의 5가지 톤) */
-  --tone-neutral-bg:  var(--gray-100);
-  --tone-neutral-fg:  var(--gray-700);
-  --tone-warning-bg:  var(--amber-50);
-  --tone-warning-fg:  var(--amber-700);
-  --tone-success-bg:  var(--sky-50);      /* success = 브랜드 색 (색 수를 줄이기 위함) */
-  --tone-success-fg:  var(--sky-600);
-  --tone-danger-bg:   var(--red-50);
-  --tone-danger-fg:   var(--red-700);
-  --tone-muted-bg:    var(--gray-100);
-  --tone-muted-fg:    var(--gray-500);
-
-  /* 지도 핀 */
-  --color-map-pin:          var(--sky-500);
-  --color-map-pin-selected: var(--gray-900);
-
-  /* 로고·앱 아이콘 — 테마와 관계없이 같은 색 (다크 모드에서도 바꾸지 않음) */
-  --color-logo-front-head: var(--logo-blue-head);
-  --color-logo-front-body: var(--logo-blue-body);
-  --color-logo-back:       var(--logo-forest);
-  --color-logo-bg:         var(--logo-frost);
-
-  /* -------------------------------------------------------------------
-     3. 타이포그래피 — Pretendard, 굵기 3종(400/600/700)
-     ------------------------------------------------------------------- */
-  --font-family: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont,
-                 system-ui, "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
-  --font-weight-regular: 400;
-  --font-weight-semibold: 600;
-  --font-weight-bold: 700;
-
-  /* 큰 글씨 모드: 사장님 설정에서 1.125 로 바꾸면 전체 글자가 커짐 */
-  --font-scale: 1;
-
-  /*          크기                                  / 행간  / 굵기   용도 */
-  --text-display-size: calc(28px * var(--font-scale)); --text-display-lh: 1.32; /* 700  화면당 1개: 금액·완료 메시지 */
-  --text-title1-size:  calc(22px * var(--font-scale)); --text-title1-lh:  1.36; /* 700  화면 제목 */
-  --text-title2-size:  calc(19px * var(--font-scale)); --text-title2-lh:  1.42; /* 600  섹션 제목, 카드 제목 */
-  --text-body1-size:   calc(17px * var(--font-scale)); --text-body1-lh:   1.53; /* 400/600 기본 본문, 버튼 */
-  --text-body2-size:   calc(15px * var(--font-scale)); --text-body2-lh:   1.47; /* 400  보조 설명, 목록 메타 */
-  --text-caption-size: calc(13px * var(--font-scale)); --text-caption-lh: 1.38; /* 600  배지, 입력 도움말 (핵심 정보 금지) */
-
-  --letter-spacing-tight: -0.02em;  /* 제목(display, title) */
-  --letter-spacing-normal: -0.01em; /* 본문 */
-
-  /* -------------------------------------------------------------------
-     4. 간격 · 크기 (4px 단위)
-     ------------------------------------------------------------------- */
-  --space-1: 4px;
-  --space-2: 8px;
-  --space-3: 12px;
-  --space-4: 16px;   /* 화면 좌우 여백, 카드 안쪽 여백 */
-  --space-5: 20px;
-  --space-6: 24px;   /* 섹션 사이 */
-  --space-8: 32px;
-  --space-10: 40px;
-  --space-14: 56px;
-
-  --page-gutter: var(--space-4);
-  --content-max-width: 480px;      /* 데스크톱에서도 모바일 폭 유지 */
-
-  --touch-target-min: 48px;        /* 모든 탭 가능한 요소의 최소 높이 */
-  --control-height-lg: 56px;       /* 화면 하단 주요 버튼 */
-  --control-height-md: 48px;       /* 입력칸, 일반 버튼 */
-  --bottom-nav-height: 64px;
-
-  /* -------------------------------------------------------------------
-     5. 모서리 · 그림자 (그림자보다 선을 우선)
-     ------------------------------------------------------------------- */
-  --radius-sm: 8px;     /* 입력칸, 작은 버튼 */
-  --radius-md: 12px;    /* 카드, 주요 버튼 */
-  --radius-lg: 20px;    /* 바텀시트 위쪽 */
-  --radius-full: 999px; /* 배지, 칩 */
-
-  --shadow-raised: 0 8px 24px rgb(24 24 22 / 0.10), 0 2px 6px rgb(24 24 22 / 0.06); /* 바텀시트·토스트만 */
-
-  /* -------------------------------------------------------------------
-     6. 모션 — 짧고 감속하는 움직임. 목적: 위치·상태 변화를 알려주는 것
-     ------------------------------------------------------------------- */
-  --duration-instant: 100ms;  /* 눌림, 체크 */
-  --duration-fast:    180ms;  /* 배지·토스트 등장, 색 변화 */
-  --duration-base:    260ms;  /* 화면 전환, 바텀시트 */
-  --duration-slow:    400ms;  /* 완료 화면 강조 (드물게) */
-
-  --ease-standard:   cubic-bezier(0.2, 0, 0, 1);    /* 대부분 */
-  --ease-decelerate: cubic-bezier(0, 0, 0, 1);      /* 들어올 때 */
-  --ease-accelerate: cubic-bezier(0.3, 0, 1, 1);    /* 나갈 때 */
-
-  --press-scale: 0.98;        /* 버튼 눌림 */
+/* 4.11.5: grouped rectangular selection controls. */
+:root {
+  --color-segment-track: #F4F6FA;
+  --color-segment-selected-bg: #EEF1FF;
+  --color-segment-selected-text: #485AC8;
+  --color-segment-hover: #FFFFFF;
+  --radius-segment-track: 16px;
+  --radius-segment-item: 12px;
+  --space-segment-padding: 4px;
+  --space-segment-gap: 4px;
+  --space-segment-item-block: 8px;
+  --space-segment-item-inline: 4px;
+  --height-segment-item: 48px;
+  --text-segment-size: calc(15px * var(--font-scale));
+  --font-weight-segment-idle: 650;
+  --font-weight-segment-selected: 750;
+  --shadow-segment-selected: 0 1px 4px rgb(17 24 39 / .06);
+  --opacity-segment-pressed: 14%;
+  --duration-segment-release: 140ms;
+  --color-calendar-switch-bg: var(--color-segment-track);
+  --shadow-calendar-switch: var(--shadow-segment-selected);
+  --radius-progress-step: var(--radius-segment-item);
+  --color-filter-requests-selected: var(--color-calendar-requests-subtle);
+  --color-filter-slots-selected: var(--color-calendar-slots-subtle);
+}
+[data-role=merchant], [data-kind=owner] {
+  --color-segment-selected-bg: #EAF4EE;
+  --color-segment-selected-text: #226347;
+}
+.calendar-panel[data-calendar-mode=requests] {
+  --color-segment-selected-bg: var(--color-calendar-requests-subtle);
+  --color-segment-selected-text: var(--color-calendar-requests-text);
+}
+.calendar-panel[data-calendar-mode=slots] {
+  --color-segment-selected-bg: var(--color-calendar-slots-subtle);
+  --color-segment-selected-text: var(--color-calendar-slots-text);
 }
 
-/* ---------------------------------------------------------------------
-   다크 모드 (시스템 설정을 따르되 data-theme 로 강제 가능)
-   --------------------------------------------------------------------- */
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --color-bg:             var(--night-0);
-    --color-bg-subtle:      var(--night-50);
-    --color-surface:        var(--night-100);
-    --color-surface-raised: var(--night-200);
-    --color-overlay:        rgb(0 0 0 / 0.6);
-    --color-inverse-bg:     var(--night-900);
-    --color-inverse-fg:     var(--night-0);
-
-    --color-text-primary:   var(--night-900);
-    --color-text-secondary: var(--night-700);
-    --color-text-tertiary:  var(--night-600);
-    --color-text-disabled:  var(--night-500);
-
-    --color-border:        var(--night-300);
-    --color-border-strong: var(--night-500);
-    --color-focus-ring:    var(--sky-300);
-
-    --color-brand:         var(--sky-400);
-    --color-brand-hover:   var(--sky-300);
-    --color-brand-pressed: var(--sky-200);
-    --color-brand-subtle:  var(--sky-900);
-    --color-brand-text:    var(--sky-200);
-    --color-text-on-brand: var(--night-0);
-
-    --color-accent:        var(--forest-400);
-    --color-accent-subtle: var(--forest-900);
-    --color-accent-text:   var(--forest-200);
-
-    --tone-neutral-bg: var(--night-200);  --tone-neutral-fg: #D2D7DC;
-    --tone-warning-bg: #3A2A0C;           --tone-warning-fg: #F5C46B;
-    --tone-success-bg: var(--sky-900);    --tone-success-fg: var(--sky-200);
-    --tone-danger-bg:  #3D1714;           --tone-danger-fg:  #F59A92;
-    --tone-muted-bg:   var(--night-150);  --tone-muted-fg:   var(--night-600);
-
-    --color-map-pin:          var(--sky-400);
-    --color-map-pin-selected: var(--night-900);
-  }
-}
-
-:root[data-theme="dark"] {
-  --color-bg:             var(--night-0);
-  --color-bg-subtle:      var(--night-50);
-  --color-surface:        var(--night-100);
-  --color-surface-raised: var(--night-200);
-  --color-overlay:        rgb(0 0 0 / 0.6);
-  --color-inverse-bg:     var(--night-900);
-  --color-inverse-fg:     var(--night-0);
-
-  --color-text-primary:   var(--night-900);
-  --color-text-secondary: var(--night-700);
-  --color-text-tertiary:  var(--night-600);
-  --color-text-disabled:  var(--night-500);
-
-  --color-border:        var(--night-300);
-  --color-border-strong: var(--night-500);
-  --color-focus-ring:    var(--sky-300);
-
-  --color-brand:         var(--sky-400);
-  --color-brand-hover:   var(--sky-300);
-  --color-brand-pressed: var(--sky-200);
-  --color-brand-subtle:  var(--sky-900);
-  --color-brand-text:    var(--sky-200);
-  --color-text-on-brand: var(--night-0);
-
-  --color-accent:        var(--forest-400);
-  --color-accent-subtle: var(--forest-900);
-  --color-accent-text:   var(--forest-200);
-
-  --tone-neutral-bg: var(--night-200);  --tone-neutral-fg: #D2D7DC;
-  --tone-warning-bg: #3A2A0C;           --tone-warning-fg: #F5C46B;
-  --tone-success-bg: var(--sky-900);    --tone-success-fg: var(--sky-200);
-  --tone-danger-bg:  #3D1714;           --tone-danger-fg:  #F59A92;
-  --tone-muted-bg:   var(--night-150);  --tone-muted-fg:   var(--night-600);
-
-  --color-map-pin:          var(--sky-400);
-  --color-map-pin-selected: var(--night-900);
-}
-
-/* 큰 글씨 모드 */
-:root[data-font-size="large"] { --font-scale: 1.125; }
-
-/* 모션 줄이기: 움직임 제거, 색·투명도 변화만 남김 */
-@media (prefers-reduced-motion: reduce) {
-  :root {
-    --duration-fast: 0ms;
-    --duration-base: 0ms;
-    --duration-slow: 0ms;
-    --press-scale: 1;
-  }
+/* 4.12.1: roomy action rows share the same rounded pressed surface. */
+:root {
+ --radius-action-row:20px;
+ --space-action-row-block:16px;
+ --space-action-row-inline:16px;
+ --space-action-row-gap:12px;
+ --height-action-row:80px;
+ --space-action-row-list-gap:8px;
 }

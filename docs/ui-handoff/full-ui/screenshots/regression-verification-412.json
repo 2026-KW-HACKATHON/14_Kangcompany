@@ -1,0 +1,302 @@
+{
+  "checked": "2026-10-07T06:45:54.806Z",
+  "version": "4.12",
+  "checks": [
+    {
+      "name": "39-screen gallery",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "Merchant role color",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "Merchant login routing",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "Signup password mismatch blocks",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "Group registration updates home",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "Registered student sees five categories",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "Request submission resets attendance to requested headcount",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "First store acceptance gives awaiting payment",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "Approved detail initialized from current data",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "Payment completion confirms reservation",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "Order calculation",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "Saved preorder propagates into approved detail",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "RSVP increments once",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "RSVP edit moves response without duplicate",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "Attendance rows reflect total and name",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "Attendance filter",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "Modification waiting disables approved payment",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "Modification accepted updates conditions",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "Merchant zero-deposit acceptance still waits group confirmation",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "Zero-deposit sheet avoids paid action",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "Zero-deposit confirmation",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "Menu edit updates catalogue",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "Selling stop cancel preserves menu",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "Selling stop confirm removes from active list",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "Inactive menu filter",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "Empty menu required validation stays in sheet",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "Direct menu add",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "OCR requires manual confirmation",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "OCR enables after confirmation",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "OCR edited data committed",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "Receipt requires manual confirmation",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "Receipt recalculation",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "Receipt menu match retained",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "Receipt confirmation result",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "Slot minimum must not exceed maximum",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "Slot valid submission",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "Offer capacity invalid input blocked",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "Offer booking updates headcount",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "Analytics period changes figures",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "Demand filter anonymous",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "Review state loading",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "Review state empty",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "Review state error",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "Review state denied",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "Error retry resets review",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "Date wheel keyboard commit 12/320/false",
+      "pass": true,
+      "detail": "2026-10-15"
+    },
+    {
+      "name": "Date wheel cancel 12/320/false",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "Time wheel sheet fits 12/320/false",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "Date wheel keyboard commit 12/320/true",
+      "pass": true,
+      "detail": "2026-10-15"
+    },
+    {
+      "name": "Date wheel cancel 12/320/true",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "Time wheel sheet fits 12/320/true",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "Date wheel keyboard commit 12/375/false",
+      "pass": true,
+      "detail": "2026-10-15"
+    },
+    {
+      "name": "Date wheel cancel 12/375/false",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "Time wheel sheet fits 12/375/false",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "Date wheel keyboard commit 12/375/true",
+      "pass": true,
+      "detail": "2026-10-15"
+    },
+    {
+      "name": "Date wheel cancel 12/375/true",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "Time wheel sheet fits 12/375/true",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "Large text scales",
+      "pass": true,
+      "detail": "14px → 15.75px"
+    },
+    {
+      "name": "No browser script errors",
+      "pass": true,
+      "detail": ""
+    }
+  ],
+  "errors": []
+}

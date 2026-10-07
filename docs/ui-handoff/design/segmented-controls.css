@@ -1,0 +1,67 @@
+/* 4.11.5: one shared surface for exclusive filters, tabs and request steps. */
+:is(.phone,.token-segment-demo) :is(.filter-row,.segmented,.calendar-tabs,.progress-nav):not(.review-control){
+  display:grid;
+  grid-auto-flow:column;
+  grid-auto-columns:minmax(0,1fr);
+  grid-template-columns:none;
+  align-items:stretch;
+  width:100%;
+  gap:var(--space-segment-gap);
+  padding:var(--space-segment-padding);
+  border:0;
+  border-radius:var(--radius-segment-track);
+  background:var(--color-segment-track);
+  box-shadow:none;
+}
+:is(.phone,.token-segment-demo) :is(.filter-row,.segmented,.calendar-tabs,.progress-nav):not(.review-control)>button{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  min-width:0;
+  min-height:var(--height-segment-item);
+  width:100%;
+  margin:0;
+  padding:var(--space-segment-item-block) var(--space-segment-item-inline);
+  border:0;
+  border-radius:var(--radius-segment-item);
+  background:transparent;
+  box-shadow:none;
+  color:var(--color-text-secondary);
+  font-size:var(--text-segment-size);
+  font-weight:var(--font-weight-segment-idle);
+  line-height:1.4;
+  white-space:normal;
+  word-break:keep-all;
+  text-align:center;
+  transform:none;
+  transition:background-color var(--duration-segment-release) ease,color var(--duration-segment-release) ease,box-shadow var(--duration-segment-release) ease;
+}
+:is(.phone,.token-segment-demo) :is(.filter-row,.segmented,.calendar-tabs,.progress-nav):not(.review-control)>button:is([aria-pressed=true],[aria-current=step]){
+  background:var(--color-segment-selected-bg);
+  color:var(--color-segment-selected-text);
+  font-weight:var(--font-weight-segment-selected);
+  box-shadow:var(--shadow-segment-selected);
+}
+:is(.phone,.token-segment-demo) .calendar-tab.requests{
+  --control-feedback-color:var(--color-calendar-requests);
+  --color-segment-selected-bg:var(--color-calendar-requests-subtle);
+  --color-segment-selected-text:var(--color-calendar-requests-text);
+}
+:is(.phone,.token-segment-demo) .calendar-tab.slots{
+  --control-feedback-color:var(--color-calendar-slots);
+  --color-segment-selected-bg:var(--color-calendar-slots-subtle);
+  --color-segment-selected-text:var(--color-calendar-slots-text);
+}
+:is(.phone,.token-segment-demo) .progress-nav button[aria-current=step]::before{content:none}
+:is(.phone,.token-segment-demo) :is(.filter-row,.segmented,.calendar-tabs,.progress-nav):not(.review-control)>button:not(:disabled):active:not(.primary):not(.social-brand):not(.nav-primary){
+  background:color-mix(in srgb,var(--control-feedback-color,var(--color-brand)) var(--opacity-segment-pressed),var(--color-surface));
+  box-shadow:none;
+  transform:none;
+  transition-duration:0s;
+}
+@media(hover:hover){
+  :is(.phone,.token-segment-demo) :is(.filter-row,.segmented,.calendar-tabs,.progress-nav):not(.review-control)>button:not(:disabled):not([aria-pressed=true]):not([aria-current=step]):hover:not(:active){background:var(--color-segment-hover)}
+}
+@media(prefers-reduced-motion:reduce){
+  :is(.phone,.token-segment-demo) :is(.filter-row,.segmented,.calendar-tabs,.progress-nav):not(.review-control)>button{transition:none}
+}

@@ -1,0 +1,70 @@
+/* A2 4.8. Quiet, flat navigation; role accents stay on outlines and type. */
+.phone .onboarding-hero .onboarding-app-icon{width:88px;height:88px;object-fit:contain;border-radius:26px;margin-bottom:22px}
+.phone .role-tile[data-role=group]{--color-brand:#5669E3;--color-brand-text:#485AC8;--color-brand-subtle:#EEF1FF;--color-focus-ring:#5669E3;--color-accent:#7785D2;--icon-main-top:#8895F4;--icon-main-bottom:#5669E3;--icon-back-top:#C4CBFF;--icon-back-bottom:#8895D9}
+.phone .role-tile{border:1px solid var(--color-border);background:var(--color-surface);text-align:left;padding:20px 16px;align-items:flex-start;gap:8px;box-shadow:none}
+.phone .role-tile[aria-pressed=true]{border:2px solid var(--color-brand);padding:19px 15px;background:var(--color-brand-subtle);box-shadow:none;color:var(--color-brand-text)}
+.phone .role-tile>span{font-size:calc(17px * var(--font-scale));font-weight:750}
+.phone .role-tile>small{font-size:calc(13px * var(--font-scale));line-height:1.5}
+.phone .role-tile .art{width:52px;height:52px;margin-bottom:6px}
+.phone .login-actions{gap:12px;margin-top:20px}
+.phone .login-actions button{width:100%;min-height:56px;border-radius:12px;display:flex;align-items:center;justify-content:center;gap:10px;font-weight:650;font-size:calc(17px * var(--font-scale));border:0;box-shadow:none}
+.phone .social-brand svg{width:20px;height:20px;flex-shrink:0}
+.phone .social-brand.kakao{background:var(--color-login-kakao);color:rgb(0 0 0 / .85)}
+.phone .social-brand.naver{background:var(--color-login-naver);color:white}
+.phone .login-actions .primary{background:#5669E3;color:white}
+.phone .bell-button{position:relative}
+.bell-dot{position:absolute;right:10px;top:10px;width:6px;height:6px;border-radius:50%;background:var(--color-brand);border:1px solid white}
+.phone .calendar-card{border:1px solid var(--color-border);border-radius:22px;padding:12px 8px 10px;background:var(--color-surface);margin-top:16px}
+.calendar-heading{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+.calendar-heading h2{font-size:calc(19px * var(--font-scale));letter-spacing:-.02em}
+.calendar-heading .icon-btn{background:none}
+.calendar-heading .icon{width:20px;height:20px}
+.calendar-week,.calendar-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:2px;text-align:center}
+.calendar-week{color:var(--color-text-secondary);font-size:calc(13px * var(--font-scale));margin-bottom:8px}
+.phone .calendar-day{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-width:0;min-height:var(--height-calendar-day);width:100%;padding:5px 0;border-radius:12px;font-size:calc(16px * var(--font-scale));font-weight:650;color:var(--color-text-primary);border:1px solid transparent}
+.phone .calendar-day[aria-pressed=true]{background:var(--color-brand-subtle);color:var(--color-brand-text);border-color:var(--color-brand)}
+.calendar-dot{display:block;width:4px;height:4px;border-radius:50%;background:transparent}
+.calendar-dot.visible,.calendar-legend>i{background:var(--color-brand)}
+.calendar-legend{display:flex;align-items:center;justify-content:center;gap:6px;margin-top:12px;font-size:calc(12px * var(--font-scale));color:var(--color-text-secondary)}
+.calendar-legend>i{width:5px;height:5px;border-radius:50%}
+.day-heading{margin:20px 0 12px}
+.available-card,.request-card{text-align:left;display:block;width:100%;padding:20px;border:1px solid var(--color-border);background:var(--color-surface);border-radius:20px;box-shadow:none}
+.available-card+.available-card,.request-card+.request-card{margin-top:12px}
+.available-card h3,.request-card h3{font-size:calc(18px * var(--font-scale));line-height:1.5}
+.available-card>.row{flex-wrap:wrap;gap:8px}
+.available-card p,.request-card p{margin-top:8px}
+.available-card .slot-time,.request-card .slot-time{font-weight:650;color:var(--color-text-primary)}
+.request-card>h3{margin-top:12px}
+.card-action{margin-top:16px;display:flex;justify-content:space-between;align-items:center;color:var(--color-brand-text);font-size:var(--text-body2-size);font-weight:650}
+.card-action .icon{width:18px;height:18px}
+.slot-actions{display:flex;gap:16px;justify-content:flex-end;margin-top:10px}
+.phone .section>.segmented{margin-top:16px}
+.phone .section>.calendar-card{margin-top:16px}
+.phone .section>.available-card,.phone .section>.request-card{margin-top:12px}
+.notification-date{font-size:var(--text-body2-size);font-weight:650;color:var(--color-text-secondary);margin-top:24px;padding-bottom:8px}
+.phone .notification-row{--color-text-secondary:var(--color-notification-text);position:relative;width:100%;display:block;text-align:left;padding:18px 24px 18px 0;border-bottom:1px solid var(--color-border);border-radius:0;transition:opacity 150ms;min-height:100px}
+.notification-row.is-unread{opacity:var(--opacity-notification-unread)}.notification-row.is-read{opacity:var(--opacity-notification-read)}
+.notification-heading{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.notification-heading h3{font-size:var(--text-body1-size);line-height:1.5}
+.notification-row p{font-size:var(--text-body2-size);color:var(--color-text-secondary);line-height:1.5;margin-bottom:10px}
+.notification-row>.icon{position:absolute;right:0;top:22px;width:18px;height:18px;color:var(--color-text-secondary)}
+.unread-dot{width:6px;height:6px;border-radius:50%;background:var(--color-brand);flex-shrink:0}
+.notification-detail h2{font-size:var(--text-title1-size);margin-bottom:14px}
+.selected-dates{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.phone .date-chip{display:flex;align-items:center;justify-content:center;gap:6px;padding:10px 12px;min-height:48px;border-radius:999px;background:var(--color-brand-subtle);color:var(--color-brand-text);font-size:var(--text-body2-size);font-weight:650}
+.date-chip .icon{width:16px;height:16px}
+.time-range{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px;margin-top:16px;padding-bottom:16px;border-bottom:1px solid var(--color-border);position:relative}
+.time-range>.field{margin:0}.time-range>.icon-btn{grid-column:1/-1;justify-self:end}
+.phone .time-range .date-trigger{padding:14px 10px;gap:6px;font-size:var(--text-body2-size)}
+.time-range .icon{width:18px;height:18px}
+.condition-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px}
+.date-condition{margin-top:16px}.date-condition>.choice{margin-block:16px}
+.date-condition:not(.is-custom) .date-condition-fields{display:none}
+@media(max-width:350px){.phone .role-tile{padding:16px 12px}.phone .role-tile[aria-pressed=true]{padding:15px 11px}.phone .calendar-card{padding-inline:4px;margin-inline:-8px}.phone .calendar-day{min-height:var(--height-calendar-day)}.available-card,.request-card{padding:16px}.phone .time-range{gap:8px}.phone .time-range .date-trigger{padding-inline:8px}}
+@media(prefers-reduced-motion:reduce){.notification-row{transition:none}}
+
+/* 4.9: keep the brand anchor unchanged between onboarding and login. */
+.phone .auth-hero {text-align:center;padding:0 0 24px;margin:0;}
+.phone .auth-hero img,.phone .auth-hero .onboarding-app-icon {display:block;width:var(--size-auth-logo);height:var(--size-auth-logo);object-fit:contain;border-radius:26px;margin:0 auto 24px;}
+.phone .auth-hero h2 {font-size:var(--text-title1-size);font-weight:var(--font-weight-bold);line-height:1.4;letter-spacing:var(--letter-spacing-tight);}
+.phone .auth-hero p {margin-top:12px;font-size:var(--text-body2-size);}
