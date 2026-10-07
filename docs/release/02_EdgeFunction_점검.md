@@ -7,7 +7,7 @@ DB(001~008)·데모 데이터와는 별개라서, SQL 체크(`check_migrations.s
 |---|---|---|---|
 | `extract-menu` | S-08 메뉴판 사진 인식 | `ANTHROPIC_API_KEY` | 메뉴 화면에서 직접 추가 |
 | `process-receipt` | S-10 영수증 등록 → S-11 보정 | `ANTHROPIC_API_KEY` | 시드에 있는 "확인 필요" 영수증으로 보정 화면만 시연 |
-| `extract-layout` | S-15 좌석 배치도 사진 인식 | `ANTHROPIC_API_KEY` | 배치도 화면에서 "직접 그리기" (시드에 고기굽는집 배치도 있음) |
+| `extract-layout` | S-15 좌석 배치도 손그림·사진 인식 | `ANTHROPIC_API_KEY` | 배치도 화면에서 "직접 그리기" (시드에 고기굽는집 배치도 있음) |
 | `toss-payment` | G-09 결제 → G-10 결과, 토스 결제분 취소 | `TOSS_SECRET_KEY` (+ 프런트 `VITE_TOSS_CLIENT_KEY`) | 토스 키를 비우면 "시연용 결제" 버튼 |
 
 `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY` 는 Supabase 가 자동으로 넣어 준다 (따로 설정하지 않음).
@@ -63,9 +63,9 @@ npx.cmd supabase functions deploy toss-payment --project-ref 프로젝트ID
 - [ ] 보정 화면에서 품목마다 메뉴 선택 → 저장 → **영수증 확정하기** 가 켜지는지
 
 **좌석 배치도 인식**
-- [ ] `owner2@wolgye.demo`(월계치킨, 배치도 없음) → 홈 → 좌석 배치도 → 사진으로 만들기 → 종이에 그린 테이블 배치 사진 또는 식당 홀 사진
+- [ ] `owner2@wolgye.demo`(월계치킨, 배치도 없음) → 홈 → 좌석 배치도 → 손그림·사진으로 만들기 → 종이에 그린 테이블 배치 사진 또는 식당 홀 사진
 - [ ] 20초 안팎으로 테이블 상자가 그려진다. 실내 사진이면 "위치는 대략적이에요" 안내가 정상
-- [ ] 끌어서 옮기기 → 임시 저장 (게시는 시연 때)
+- [ ] 끌어서 옮기기까지만 하고 **게시하지 않기** (게시는 시연 때. 게시했으면 시연 전 seed 재실행)
 - 실패하면 Logs 에서 `extract-layout` 확인. 모델 이름 오류면 `LAYOUT_MODEL` 을 메뉴판과 같은 모델로 지정해 보기
 
 **토스 결제** (키를 넣었을 때만)

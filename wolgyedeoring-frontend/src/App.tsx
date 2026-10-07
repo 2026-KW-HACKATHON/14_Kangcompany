@@ -47,6 +47,7 @@ const OwnerStats = lazy(() => import('./pages/owner/Stats'))
 const OwnerUnmet = lazy(() => import('./pages/owner/Unmet'))
 const OwnerStore = lazy(() => import('./pages/owner/Store'))
 const OwnerLayout = lazy(() => import('./pages/owner/Layout'))
+const GroupLayouts = lazy(() => import('./pages/group/Layouts'))
 
 export default function App() {
   return (
@@ -86,6 +87,7 @@ export default function App() {
         <Route path="reservations/:id/pay" element={<Pay />} />
         <Route path="reservations/:id/rsvp" element={<Rsvp />} />
         <Route path="reservations/:id/rsvp/responses" element={<RsvpResponses />} />
+        <Route path="layouts" element={<GroupLayouts />} />
       </Route>
 
       {/* 사장님 */}

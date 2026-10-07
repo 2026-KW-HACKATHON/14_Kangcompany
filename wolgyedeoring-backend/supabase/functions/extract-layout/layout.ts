@@ -166,6 +166,19 @@ function overlapArea(a: LayoutTable, b: LayoutTable): number {
   return w > 0 && h > 0 ? w * h : 0;
 }
 
+/** 새 테이블·시설을 놓을 빈자리: 위→아래, 왼쪽→오른쪽으로 훑어 아무것과도 겹치지 않는 첫 위치 (없으면 가운데) */
+export function findFreeSpot(layout: Layout, w: number, h: number, gap = 1): { x: number; y: number } {
+  const boxes = [...layout.tables, ...layout.fixtures]
+  const hit = (x: number, y: number) => boxes.some((b) =>
+    x < b.x + b.w + gap && x + w + gap > b.x && y < b.y + b.h + gap && y + h + gap > b.y)
+  for (let y = 2; y + h <= layout.height; y += 2) {
+    for (let x = 2; x + w <= WIDTH; x += 2) {
+      if (!hit(x, y)) return { x, y }
+    }
+  }
+  return { x: round1((WIDTH - w) / 2), y: round1((layout.height - h) / 2) }
+}
+
 export interface LayoutSummary {
   table_count: number;
   total_seats: number;

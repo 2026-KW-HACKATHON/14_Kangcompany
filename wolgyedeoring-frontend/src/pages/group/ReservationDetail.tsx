@@ -9,7 +9,6 @@ import { EVENT_LABEL, RESERVATION_STATUS, paymentView, reservationNextStep } fro
 import { formatDateTime, formatWon } from '../../lib/format'
 import { StoreMap } from '../../components/map/StoreMap'
 import { directionsUrl } from '../../components/map/kakao'
-import { StoreLayoutView } from '../../components/seat/StoreLayoutView'
 
 export default function GroupReservationDetail() {
   const id = Number(useParams().id)
@@ -52,12 +51,13 @@ export default function GroupReservationDetail() {
           ...(contacts?.store.owner_phone ? [['사장님', <a href={`tel:${contacts.store.owner_phone}`}>{contacts.store.owner_name} {contacts.store.owner_phone}</a>] as [string, React.ReactNode]] : []),
         ]} />
         {r.stores.lat != null && r.stores.lng != null && <StoreMap height={180} markers={[{ id: r.stores.id, lat: r.stores.lat, lng: r.stores.lng, title: r.stores.name }]} />}
-        {directionsUrl(r.stores.name, r.stores.lat, r.stores.lng, r.stores.address) && (
-          <a className="btn btn-text" href={directionsUrl(r.stores.name, r.stores.lat, r.stores.lng, r.stores.address)!} target="_blank" rel="noreferrer">길찾기</a>
-        )}
+        <div className="btn-row">
+          {directionsUrl(r.stores.name, r.stores.lat, r.stores.lng, r.stores.address) && (
+            <a className="btn btn-text" href={directionsUrl(r.stores.name, r.stores.lat, r.stores.lng, r.stores.address)!} target="_blank" rel="noreferrer">길찾기</a>
+          )}
+          <Button variant="text" onClick={() => nav(paths.groupLayouts(r.stores.id))}>좌석 배치도 보기</Button>
+        </div>
       </Section>
-
-      <StoreLayoutView storeId={r.stores.id} headcount={r.headcount} />
 
       <Section title="사전 주문" action={act.can_edit_preorder && <Button variant="text" onClick={() => nav(paths.groupPreorder(id))}>{pre.items.length ? '수정' : '메뉴 고르기'}</Button>}>
         {pre.items.length ? (

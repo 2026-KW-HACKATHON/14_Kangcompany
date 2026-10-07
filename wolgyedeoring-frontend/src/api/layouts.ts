@@ -1,20 +1,25 @@
-// 좌석 배치도 (009, 명세 7)
+// 좌석 배치도 (009, 명세 7) — 사장님 게시, 손님 보기
 import { supabase } from '../lib/supabase'
 import { unwrap, unwrapFunction } from '../lib/errors'
 import { stripForSave, normalizeLayout } from '../lib/layout'
-import type { ExtractLayoutResult, Layout, LayoutSuggestion, StoreLayoutInfo } from '../types/db'
+import type { ExtractLayoutResult, Layout, PublishedLayout } from '../types/db'
 
-/** 게시본(누구나) + 임시본·대기 중 제안 수(사장님만) */
-export async function getStoreLayout(storeId: number): Promise<StoreLayoutInfo> {
-  return unwrap(await supabase.rpc('get_store_layout', { p_store_id: storeId })) as StoreLayoutInfo
+const SELECT = 'store_id, layout, table_count, total_seats, source, published_at, stores(name, address, max_capacity)'
+
+/** 배치도를 게시한 가게 목록 (손님 G-15 가게 선택) */
+export async function listPublishedLayouts(): Promise<PublishedLayout[]> {
+  return unwrap(await supabase.from('store_layouts').select(SELECT).order('published_at', { ascending: false })) as unknown as PublishedLayout[]
 }
 
-/** [사장님] 저장. publish=true 면 게시본도 같은 내용으로 (손님에게 보임) */
-export async function saveStoreLayout(storeId: number, layout: Layout, opts: { publish?: boolean; source?: 'photo' | 'manual' } = {}): Promise<StoreLayoutInfo> {
+/** 한 가게의 게시된 배치도. 없으면 null */
+export async function getPublishedLayout(storeId: number): Promise<PublishedLayout | null> {
+  return unwrap(await supabase.from('store_layouts').select(SELECT).eq('store_id', storeId).maybeSingle()) as unknown as PublishedLayout | null
+}
+
+/** [사장님] 게시 (바로 손님에게 보임, 다시 게시하면 덮어씀) */
+export async function publishStoreLayout(storeId: number, layout: Layout, source: 'photo' | 'manual' = 'manual') {
   const clean = stripForSave(normalizeLayout(layout as unknown as Record<string, unknown>))
-  return unwrap(await supabase.rpc('save_store_layout', {
-    p_store_id: storeId, p_layout: clean, p_source: opts.source ?? 'manual', p_publish: opts.publish ?? false,
-  })) as StoreLayoutInfo
+  return unwrap(await supabase.rpc('save_store_layout', { p_store_id: storeId, p_layout: clean, p_source: source }))
 }
 
 /** 이미지 → 긴 변 maxSide 로 줄인 JPEG (base64, data: 접두어 없음) + 줄인 뒤 크기 */
@@ -28,25 +33,10 @@ export async function resizeImage(file: File, maxSide = 1600, quality = 0.85) {
   return { base64: canvas.toDataURL('image/jpeg', quality).split(',')[1], width: canvas.width, height: canvas.height }
 }
 
-/** [사장님] 평면도·손그림·실내 사진 → 테이블 후보 (저장 안 함, 원본 사진도 저장 안 함) */
+/** [사장님] 손그림·평면도·홀 사진 → 테이블 후보 (저장 안 함, 원본 사진도 저장 안 함) */
 export async function extractLayout(storeId: number, file: File): Promise<ExtractLayoutResult> {
   const img = await resizeImage(file)
   return unwrapFunction(await supabase.functions.invoke<ExtractLayoutResult>('extract-layout', {
     body: { store_id: storeId, image_base64: img.base64, media_type: 'image/jpeg', image_width: img.width, image_height: img.height },
   }))
-}
-
-/** [손님] 수정 제안 (공식 배치도는 바뀌지 않음) */
-export async function suggestLayoutChange(storeId: number, note: string) {
-  return unwrap(await supabase.rpc('suggest_layout_change', { p_store_id: storeId, p_note: note }))
-}
-
-/** [사장님] 제안 목록 (대기 중 먼저) */
-export async function listLayoutSuggestions(storeId: number): Promise<LayoutSuggestion[]> {
-  return unwrap(await supabase.rpc('list_layout_suggestions', { p_store_id: storeId })) as LayoutSuggestion[]
-}
-
-/** [사장님] 제안 답변. accept=true: "반영하기로 했어요" 알림 (반영은 직접 편집·게시) */
-export async function respondLayoutSuggestion(id: number, accept: boolean) {
-  return unwrap(await supabase.rpc('respond_layout_suggestion', { p_suggestion_id: id, p_accept: accept }))
 }

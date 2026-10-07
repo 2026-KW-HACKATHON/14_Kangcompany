@@ -14,7 +14,7 @@ supabase/
     007_first_accept.sql  선착순 확정, 가게 응답 기한, 같은 시간대 수용 인원 제한
     008_fe_requests.sql   FE 요청 반영(#10): 응답 기한·남은 자리, 요청 철회, 가게 수, 행동 플래그,
                           연락처, 가게 정보·좌표·사진 저장소, 수락 알림 통합, 테이블 직접 쓰기 권한 축소
-    009_seat_layout.sql   좌석 배치도(명세 7): 임시본·게시본, 서버 검증, 손님 수정 제안
+    009_seat_layout.sql   좌석 배치도(명세 7): 가게당 게시본 1개, 서버 검증 (다시 실행해도 됨)
   functions/
     extract-menu/         메뉴판 사진 → LLM 메뉴 후보 + 기존 메뉴 비교 (저장 안 함)
       index.ts, menu.ts

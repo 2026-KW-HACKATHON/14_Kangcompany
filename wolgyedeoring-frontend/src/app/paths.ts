@@ -27,6 +27,7 @@ export const paths = {
   groupRsvp: (id: number | string) => `/group/reservations/${id}/rsvp`, // G-12
   groupRsvpResponses: (id: number | string) => `/group/reservations/${id}/rsvp/responses`, // G-13
   groupMe: '/group/me', // G-14
+  groupLayouts: (storeId?: number | string) => (storeId ? `/group/layouts?store=${storeId}` : '/group/layouts'), // G-15 가게 좌석 배치도 보기
 
   // 사장님 (탭: 홈 · 요청·예약 · 메뉴 · 분석, 상단 ⚙ 가게 정보)
   ownerHome: '/owner', // S-01

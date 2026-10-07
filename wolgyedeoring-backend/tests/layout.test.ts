@@ -2,7 +2,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
-  estimateSeats, extractLayout, fitBox, heightFromImage, normalizeLayout, stripForSave, summarizeLayout, toExtractResult,
+  estimateSeats, findFreeSpot, extractLayout, fitBox, heightFromImage, normalizeLayout, stripForSave, summarizeLayout, toExtractResult,
 } from "../supabase/functions/extract-layout/layout.ts";
 
 test("사진 비율 → 캔버스 세로 (40~200 범위)", () => {
@@ -112,4 +112,13 @@ test("LLM 호출: 요청 형식과 tool 출력 처리", async () => {
 
   const bad = (async () => new Response("rate limited", { status: 429 })) as typeof fetch;
   await assert.rejects(() => extractLayout({ apiKey: "k", imageBase64: "A", mediaType: "image/png", storeName: "x", fetchFn: bad }), /429/);
+});
+
+test("새 테이블 빈자리: 기존 테이블·시설과 겹치지 않는 첫 위치", () => {
+  const l = normalizeLayout({ height: 40, tables: [{ label: "A", x: 0, y: 0, w: 50, h: 20, seats: 4 }],
+    fixtures: [{ kind: "entrance", x: 50, y: 0, w: 50, h: 10 }] });
+  const p = findFreeSpot(l, 14, 10);
+  assert.deepEqual(p, { x: 52, y: 12 });
+  const full = normalizeLayout({ height: 40, tables: [{ label: "A", x: 0, y: 0, w: 100, h: 40, seats: 4 }] });
+  assert.deepEqual(findFreeSpot(full, 14, 10), { x: 43, y: 15 }); // 자리가 없으면 가운데
 });

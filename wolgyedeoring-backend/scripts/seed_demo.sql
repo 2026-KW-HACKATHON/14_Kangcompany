@@ -236,7 +236,7 @@ begin
   values (g_town, 'etc', ((v_today + 11) + time '18:30') at time zone 'Asia/Seoul', 1, 18, 20000);
 
   -- ----------------------------------------------------------------
-  -- 좌석 배치도 (009): 고기굽는집 게시본 60석 + 손님 제안 1건 (시연: 사장님이 제안 확인)
+  -- 좌석 배치도 (009): 고기굽는집 게시본 60석
   -- ----------------------------------------------------------------
   v_layout := jsonb_build_object('width', 100, 'height', 70,
     'tables', jsonb_build_array(
@@ -258,13 +258,8 @@ begin
       jsonb_build_object('id','f4','kind','kitchen','label',null,'x',84,'y',42,'w',12,'h',12),
       jsonb_build_object('id','f5','kind','restroom','label',null,'x',4,'y',58,'w',12,'h',10)));
   v_sum := public._validate_layout(v_layout);
-  insert into public.store_layouts (store_id, kind, layout, table_count, total_seats, source, updated_by, published_at)
-  select s_meat, k, v_layout, (v_sum ->> 'table_count')::int, (v_sum ->> 'total_seats')::int, 'photo', u_o1,
-         case when k = 'published' then now() end
-    from unnest(array['draft', 'published']) k;
-  insert into public.layout_suggestions (store_id, user_id, note)
-  values (s_meat, u_band, '창가 T4 자리가 지금은 2인석 두 개로 나뉘어 있어요.');
-  perform public._notify(u_o1, 'layout_suggested', '좌석 배치도 수정 제안이 왔어요', '창가 T4 자리가 지금은 2인석 두 개로 나뉘어 있어요.');
+  insert into public.store_layouts (store_id, layout, table_count, total_seats, source, updated_by)
+  values (s_meat, v_layout, (v_sum ->> 'table_count')::int, (v_sum ->> 'total_seats')::int, 'photo', u_o1);
 
   raise notice '데모 데이터 생성 완료';
 end $$;

@@ -5,7 +5,7 @@ import { slots } from '../../api'
 import { paths } from '../../app/paths'
 import { useAsync } from '../../hooks/useAsync'
 import { Page } from '../../components/layout'
-import { Card, Empty, ErrorBox, Field, Input, Loading, Segmented } from '../../components/ui'
+import { Button, Card, Empty, ErrorBox, Field, Input, Loading, Segmented } from '../../components/ui'
 import { formatDateTime, formatWon } from '../../lib/format'
 import { StoreMap } from '../../components/map/StoreMap'
 
@@ -15,7 +15,7 @@ export default function Slots() {
   const [minCap, setMinCap] = useState('')
   const q = useAsync(() => slots.listOpenSlots({ minCapacity: Number(minCap) || undefined }), [minCap])
   return (
-    <Page title="가게 찾기" tabRoot>
+    <Page title="가게 찾기" tabRoot actions={<Button variant="text" onClick={() => nav(paths.groupLayouts())}>좌석 배치도</Button>}>
       <Segmented value={view} onChange={setView} options={[{ value: 'list', label: '목록' }, { value: 'map', label: '지도' }]} />
       <Field label="인원 (이상)"><Input type="number" inputMode="numeric" min={1} value={minCap} onChange={(e) => setMinCap(e.target.value)} placeholder="예: 20" /></Field>
       {view === 'map' && q.data && (

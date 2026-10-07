@@ -108,35 +108,52 @@ describe.sequential('화면 골격 (라우터 → 화면 → api → DB)', () =>
     expect(screen.getByText('영수증 총액')).toBeTruthy()
   })
 
-  it('사장님 좌석 배치도(S-15): 게시본·손님 제안 표시 → 테이블 추가 → 임시 저장 (게시본은 그대로)', async () => {
+  it('사장님 좌석 배치도(S-15): 게시된 배치도 → 테이블 추가 → 게시', async () => {
     await as('owner1@wolgye.demo')
     open('/owner/layout')
     expect(await screen.findByText(/게시됨/, {}, T)).toBeTruthy()
     expect(screen.getByText('11개')).toBeTruthy()
     expect(screen.getByText('60석')).toBeTruthy()
-    expect(await screen.findByText(/창가 T4 자리가/, {}, T)).toBeTruthy()
     expect(screen.getByRole('img', { name: /테이블 11개, 60석/ })).toBeTruthy()
+    expect(screen.queryByText('임시 저장')).toBeNull() // 단순 게시형
+    expect(screen.queryByText(/손님 제안/)).toBeNull()
     fireEvent.click(screen.getByRole('button', { name: '테이블 추가' }))
     expect(await screen.findByRole('heading', { name: '테이블 T12' }, T)).toBeTruthy()
     expect(screen.getByText('게시하지 않은 변경 있음')).toBeTruthy()
-    fireEvent.click(screen.getByRole('button', { name: '임시 저장' }))
-    expect(await screen.findByText(/임시 저장했어요/, {}, T)).toBeTruthy()
-    const info = await api.layouts.getStoreLayout((await api.stores.getMyStore((await api.auth.getMe())!.id))!.id)
-    expect(info.draft?.total_seats).toBe(64)
-    expect(info.published?.total_seats).toBe(60)
-    expect(info.draft?.unpublished_changes).toBe(true)
+    fireEvent.click(screen.getByRole('button', { name: '변경 내용 게시하기' }))
+    expect(await screen.findByText(/게시했어요/, {}, T)).toBeTruthy()
+    const me = (await api.auth.getMe())!
+    const pub = await api.layouts.getPublishedLayout((await api.stores.getMyStore(me.id))!.id)
+    expect(pub?.table_count).toBe(12)
+    expect(pub?.total_seats).toBe(64)
   })
 
-  it('손님 예약 상세(G-06): 게시된 배치도 보기 → 수정 제안', async () => {
+  it('사장님(배치도 없는 가게): 직접 그리기 → 테이블 추가 → 게시', async () => {
+    await as('owner3@wolgye.demo')
+    open('/owner/layout')
+    expect(await screen.findByText('아직 게시 안 함', {}, T)).toBeTruthy()
+    fireEvent.click(screen.getByRole('button', { name: '직접 그리기' }))
+    expect((screen.getByRole('button', { name: '게시하기' }) as HTMLButtonElement).disabled).toBe(true) // 테이블 0개
+    fireEvent.click(screen.getByRole('button', { name: '테이블 추가' }))
+    fireEvent.click(screen.getByRole('button', { name: '게시하기' }))
+    expect(await screen.findByText(/게시했어요/, {}, T)).toBeTruthy()
+  })
+
+  it('손님 좌석 배치도(G-15): 예약 상세 버튼 → 가게 선택해 보기', async () => {
     await as('ee@wolgye.demo')
     const list = await api.reservations.listMyReservations()
     const r = list.find((x) => x.status === 'confirmed' && x.stores.name === '고기굽는집')!
     open(`/group/reservations/${r.id}`)
-    expect(await screen.findByText(/테이블 11개 · 60석/, {}, T)).toBeTruthy() // 임시본(64석)이 아니라 게시본
-    fireEvent.click(screen.getByRole('button', { name: '배치도가 실제와 달라요' }))
-    fireEvent.change(screen.getByPlaceholderText(/창가 4인석이/), { target: { value: '단체2 테이블은 8인석이에요' } })
-    fireEvent.click(screen.getByRole('button', { name: '제안 보내기' }))
-    expect(await screen.findByText(/사장님께 전달했어요/, {}, T)).toBeTruthy()
+    fireEvent.click(await screen.findByRole('button', { name: '좌석 배치도 보기' }, T))
+    expect(await screen.findByText(/테이블 12개 · 64석/, {}, T)).toBeTruthy()
+    expect(screen.getByRole('img', { name: /고기굽는집 좌석 배치도/ })).toBeTruthy()
+    // 가게 바꾸기: 방금 게시한 광운분식
+    const select = screen.getByRole('combobox') as HTMLSelectElement
+    const snack = [...select.options].find((o) => o.text === '광운분식')!
+    fireEvent.change(select, { target: { value: snack.value } })
+    expect(await screen.findByText(/테이블 1개 · 4석/, {}, T)).toBeTruthy()
+    fireEvent.pointerDown(screen.getByRole('button', { name: /테이블 T1, 4석/ }))
+    expect(screen.getByText('T1 · 4석')).toBeTruthy()
   })
 
   it('참석 응답(P-01): 로그인 없이 시드 조사 열기', async () => {
