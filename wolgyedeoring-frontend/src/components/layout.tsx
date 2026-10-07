@@ -1,80 +1,118 @@
-// 화면 틀: 상단 헤더(뒤로·제목·알림·설정) + 역할별 하단 탭 (IA 3장)
+// 화면 틀 (시안 .phone 구조): 상단 appbar → 스크롤 본문 → 하단 dock → 하단 탭
+// 단체는 파랑, 사장님은 초록 (data-role=merchant → tokens.css 가 색을 바꾼다)
 import { createContext, useContext, useState, type ReactNode } from 'react'
-import { NavLink, Outlet, useNavigate } from 'react-router-dom'
+import { Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { paths } from '../app/paths'
 import { useSessionContext } from '../app/session'
 import { useNotifications } from '../hooks/useNotifications'
+import { Icon, type IconName } from './icons'
 import { Toast } from './ui'
 
-const GROUP_TABS = [
-  { to: paths.groupHome, label: '홈', icon: '⌂', end: true },
-  { to: paths.groupReservations, label: '예약', icon: '☰', end: false },
-  { to: paths.groupSlots, label: '가게 찾기', icon: '⌕', end: false }, // 이름은 #8 결정 대기
-  { to: paths.groupMe, label: '내 정보', icon: '☺', end: false },
+type Tab = { to: string; label: string; icon: IconName; primary?: boolean; match?: (p: string) => boolean }
+const GROUP_TABS: Tab[] = [
+  { to: paths.groupHome, label: '홈', icon: 'home', match: (p) => p === '/group' },
+  { to: paths.groupReservations, label: '내 예약', icon: 'receipt', match: (p) => p.startsWith('/group/reservations') || p.startsWith('/group/requests/') && !p.endsWith('/new') },
+  { to: paths.groupRequestNew, label: '예약하기', icon: 'calendar', primary: true },
+  { to: paths.groupSlots, label: '캘린더', icon: 'calendar', match: (p) => p.startsWith('/group/slots') || p.startsWith('/group/layouts') },
+  { to: paths.groupMe, label: '내 정보', icon: 'gathering', match: (p) => p.startsWith('/group/me') },
 ]
-const OWNER_TABS = [
-  { to: paths.ownerHome, label: '홈', icon: '⌂', end: true },
-  { to: paths.ownerInbox, label: '요청·예약', icon: '☰', end: false },
-  { to: paths.ownerMenus, label: '메뉴', icon: '≡', end: false },
-  { to: paths.ownerStats, label: '분석', icon: '▤', end: false },
+const OWNER_TABS: Tab[] = [
+  { to: paths.ownerHome, label: '홈', icon: 'home', match: (p) => p === '/owner' },
+  { to: paths.ownerMenus, label: '메뉴', icon: 'food', match: (p) => p.startsWith('/owner/menus') },
+  { to: paths.ownerInbox, label: '요청', icon: 'gathering', primary: true },
+  { to: paths.ownerStats, label: '분석', icon: 'chart', match: (p) => p.startsWith('/owner/stats') },
+  { to: paths.ownerStore, label: '정보', icon: 'settings', match: (p) => p.startsWith('/owner/store') },
 ]
 
-/** 안 읽은 알림 수 (헤더 🔔 점 표시용). 구독은 TabLayout 한 곳에서만 */
+/** 안 읽은 알림 수 (홈 🔔 점). 구독은 RoleShell 한 곳에서만 */
 const UnreadContext = createContext<{ unread: number; reload: () => Promise<void> }>({ unread: 0, reload: async () => {} })
 export const useUnread = () => useContext(UnreadContext)
 
-/** 하단 탭이 있는 화면들의 틀. 탭 루트 화면은 이 안에 둔다 */
-export function TabLayout({ role }: { role: 'group' | 'owner' }) {
-  const tabs = role === 'group' ? GROUP_TABS : OWNER_TABS
+/** 로그인한 역할 화면 전체를 감싼다: 실시간 알림 → 토스트 */
+export function RoleShell() {
   const { me } = useSessionContext()
   const [toast, setToast] = useState<string | null>(null)
-  // 실시간 알림 → 토스트 (목록은 C-01 에서)
   const { unread, reload } = useNotifications(me?.id, (n) => setToast(n.title))
   return (
     <UnreadContext.Provider value={{ unread, reload }}>
-    <div className="app-shell has-nav">
       <Outlet />
       <Toast message={toast} onClose={() => setToast(null)} />
-      <nav className="bottom-nav" aria-label="주요 메뉴">
-        {tabs.map((t) => (
-          <NavLink key={t.to} to={t.to} end={t.end} className={({ isActive }) => (isActive ? 'on' : '')}>
-            <span aria-hidden="true">{t.icon}</span>
-            <span>{t.label}</span>
-          </NavLink>
-        ))}
-      </nav>
-    </div>
     </UnreadContext.Provider>
   )
 }
+/** 이전 이름 호환 */
+export const TabLayout = RoleShell
 
-/** 화면 하나. back 이 있으면 뒤로 버튼, tabRoot 면 알림·설정 아이콘 */
-export function Page({ title, back, tabRoot, actions, children }: {
-  title: string; back?: boolean | string; tabRoot?: boolean; actions?: ReactNode; children: ReactNode
-}) {
+export function BottomNav({ role }: { role: 'group' | 'owner' }) {
   const nav = useNavigate()
-  const { me } = useSessionContext()
-  const { unread } = useUnread()
+  const { pathname } = useLocation()
+  const tabs = role === 'owner' ? OWNER_TABS : GROUP_TABS
   return (
-    <div className="page">
-      <header className="page-header">
-        {back && (
-          <button className="icon-btn" aria-label="뒤로" onClick={() => (typeof back === 'string' ? nav(back) : nav(-1))}>←</button>
+    <nav className="bottom-nav" aria-label="주요 메뉴">
+      {tabs.map((t) => t.primary ? (
+        <button key={t.to} type="button" className="nav-primary" aria-label={`${t.label} · ${role === 'owner' ? '요청 목록' : '새 예약 작성'} 열기`} onClick={() => nav(t.to)}>
+          <span className="nav-action-content"><Icon name={t.icon} /><span className="nav-action-label">{t.label}</span></span>
+        </button>
+      ) : (
+        <button key={t.to} type="button" aria-current={t.match?.(pathname) ? 'page' : undefined} onClick={() => nav(t.to)}>
+          <span className="nav-symbol"><Icon name={t.icon} /></span>
+          <span className="nav-label">{t.label}</span>
+        </button>
+      ))}
+    </nav>
+  )
+}
+
+export function useRole(): 'group' | 'owner' {
+  const { me } = useSessionContext()
+  const { pathname } = useLocation()
+  if (pathname.startsWith('/owner')) return 'owner'
+  if (pathname.startsWith('/group')) return 'group'
+  return me?.role === 'owner' ? 'owner' : 'group'
+}
+
+/**
+ * 화면 하나 (시안 article.phone).
+ * back: true 면 이전 화면, 문자열이면 그 경로. bell: 알림 버튼. nav: 하단 탭. dock: 하단 고정 버튼 영역.
+ * a2: 승인 A2 화면(예약 요청·예약 상세·받은 요청) 스타일 범위
+ */
+export function Page({ title, back = true, bell, nav, dock, children, a2, kind, role: roleProp, overlay, actions }: {
+  title: string; back?: boolean | string; bell?: boolean; nav?: boolean; dock?: ReactNode; children: ReactNode
+  a2?: boolean; kind?: string; role?: 'group' | 'owner'; overlay?: ReactNode; actions?: ReactNode
+  /** 이전 버전 호환 (무시) */ tabRoot?: boolean
+}) {
+  const navigate = useNavigate()
+  const ctxRole = useRole()
+  const role = roleProp ?? ctxRole
+  const { unread } = useUnread()
+  const goBack = () => {
+    if (typeof back === 'string') navigate(back)
+    else if (window.history.length > 1) navigate(-1)
+    else navigate(role === 'owner' ? paths.ownerHome : paths.groupHome)
+  }
+  return (
+    <div className={`app${a2 ? ' a2' : ''}`} data-role={role === 'owner' ? 'merchant' : 'group'} data-kind={kind}>
+      <header className="appbar">
+        {back !== false && (
+          <button type="button" className={a2 ? 'back' : 'icon-btn'} aria-label="뒤로" onClick={goBack}><Icon name="back" /></button>
         )}
-        <h1>{title}</h1>
-        <div className="header-actions">
-          {actions}
-          {tabRoot && (
-            <NavLink to={paths.notifications} className="icon-btn" aria-label={unread ? `알림, 새 알림 ${unread}개` : '알림'}>
-              🔔{unread > 0 && <span className="dot" aria-hidden="true" />}
-            </NavLink>
-          )}
-          {tabRoot && me?.role === 'owner' && (
-            <NavLink to={paths.ownerStore} className="icon-btn" aria-label="가게 정보">⚙</NavLink>
-          )}
-        </div>
+        {a2 ? <h2>{title}</h2> : <h1>{title}</h1>}
+        {actions}
+        {bell && (
+          <button type="button" className="icon-btn bell-button" aria-label={unread ? `알림 목록, 새 알림 ${unread}개` : '알림 목록'} onClick={() => navigate(paths.notifications)}>
+            <Icon name="bell" />{unread > 0 && <i className="bell-dot" aria-hidden="true" />}
+          </button>
+        )}
       </header>
-      <main className="page-body">{children}</main>
+      <div className="app-body">{children}</div>
+      {dock}
+      {nav && <BottomNav role={role} />}
+      {overlay}
     </div>
   )
+}
+
+/** 화면 틀 없이 가운데 로딩 (가드·지연 로딩용) */
+export function FrameLoading() {
+  return <div className="app"><div className="app-body"><div className="skeleton short" /><div className="skeleton" /></div></div>
 }

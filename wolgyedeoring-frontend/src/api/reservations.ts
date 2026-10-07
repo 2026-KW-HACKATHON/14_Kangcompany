@@ -8,9 +8,11 @@ import type {
 export type ReservationRow = Reservation & {
   groups: Pick<Group, 'id' | 'name' | 'group_type'>
   stores: Pick<Store, 'id' | 'name' | 'address' | 'phone' | 'photo_url' | 'lat' | 'lng'>
+  /** 요청에서 온 예약이면 요청 메모 (모임 종류 [회식] 머리표 포함). 권한이 없으면 null */
+  requests?: { note: string | null } | null
 }
 
-const SELECT = '*, groups(id, name, group_type), stores(id, name, address, phone, photo_url, lat, lng)'
+const SELECT = '*, groups(id, name, group_type), stores(id, name, address, phone, photo_url, lat, lng), requests(note)'
 
 /** 내 예약 목록 (단체·사장님 모두 자기 것만 보임) */
 export async function listMyReservations(opts: { upcomingOnly?: boolean } = {}): Promise<ReservationRow[]> {

@@ -1,53 +1,71 @@
-// G-13 참석 현황 (실시간) · 장난 응답 삭제 · 마감
-import { useEffect } from 'react'
-import { useParams } from 'react-router-dom'
-import { rsvp } from '../../api'
+// G-13 참석 현황 (시안 20, 실시간) · 장난 응답 삭제 · 마감
+import { useEffect, useState } from 'react'
+import { useNavigate, useParams } from 'react-router-dom'
+import { reservations, rsvp } from '../../api'
 import { paths } from '../../app/paths'
 import { useAction, useAsync } from '../../hooks/useAsync'
 import { Page } from '../../components/layout'
-import { Badge, BottomAction, Button, Empty, ErrorBox, Loading, Rows, Section } from '../../components/ui'
+import { Badge, Button, Dock, Empty, ErrorBox, Loading, Metric, Metrics, Segmented, Sheet } from '../../components/ui'
 
+type F = 'all' | 'yes' | 'no'
 export default function RsvpResponses() {
   const id = Number(useParams().id)
+  const nav = useNavigate()
   const q = useAsync(async () => {
-    const rv = await rsvp.getRsvpForReservation(id)
-    return { rv, list: rv ? await rsvp.listRsvpResponses(rv.id) : [] }
+    const [r, rv] = await Promise.all([reservations.getReservation(id), rsvp.getRsvpForReservation(id)])
+    return { r, rv, list: rv ? await rsvp.listRsvpResponses(rv.id) : [] }
   }, [id])
   const act = useAction()
+  const [filter, setFilter] = useState<F>('all')
+  const [ask, setAsk] = useState<null | { kind: 'close' } | { kind: 'delete'; id: number; name: string }>(null)
   const rsvpId = q.data?.rv?.id
   useEffect(() => (rsvpId ? rsvp.subscribeRsvpResponses(rsvpId, () => void q.reload()) : undefined), [rsvpId]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  if (q.loading && !q.data) return <Page title="참석 현황" back><Loading /></Page>
-  if (q.error || !q.data) return <Page title="참석 현황" back><ErrorBox message={q.error?.message ?? '불러오지 못했어요'} /></Page>
-  const { rv, list } = q.data
-  if (!rv) return <Page title="참석 현황" back><Empty>아직 참석 조사가 없어요</Empty></Page>
+  if (q.loading && !q.data) return <Page title="참석 현황"><Loading /></Page>
+  if (q.error || !q.data) return <Page title="참석 현황"><ErrorBox message={q.error?.message ?? '불러오지 못했어요'} /></Page>
+  const { r, rv, list } = q.data
+  if (!rv) return <Page title="참석 현황" dock={<Dock><Button variant="primary" onClick={() => nav(paths.groupRsvp(id))}>참석 링크 만들기</Button></Dock>}><Empty art="link" title="아직 참석 조사가 없어요.">링크를 만들어 구성원에게 공유해 보세요.</Empty></Page>
   const yes = list.filter((x) => x.attending)
   const no = list.filter((x) => !x.attending)
+  const shown = filter === 'yes' ? yes : filter === 'no' ? no : list
 
   return (
-    <Page title="참석 현황" back={paths.groupReservation(id)}>
-      <Rows rows={[['참석', `${yes.length}명`], ['불참', `${no.length}명`], ['상태', rv.is_closed ? '마감됨' : '응답 받는 중']]} />
-      <Section title="응답">
-        {!list.length ? <Empty>아직 응답이 없어요. 링크를 공유해 보세요.</Empty> : (
-          <ul className="list">
-            {list.map((x) => (
-              <li key={x.id} className="card">
-                <div className="card-top">
-                  <span className="strong">{x.name}</span>
-                  <Badge tone={x.attending ? 'success' : 'muted'}>{x.attending ? '참석' : '불참'}</Badge>
-                </div>
-                {x.note && <p className="muted">{x.note}</p>}
-                <Button variant="danger" onClick={() => { if (confirm(`${x.name}님의 응답을 지울까요?`)) void act.run(async () => { await rsvp.deleteRsvpResponse(x.id); await q.reload() }) }}>응답 삭제</Button>
-              </li>
-            ))}
-          </ul>
-        )}
-      </Section>
-      {act.error && <p className="inline-error" role="alert">{act.error}</p>}
-      {!rv.is_closed && (
-        <BottomAction hint="마감하면 가게에 최종 인원이 알려져요">
-          <Button variant="primary" busy={act.busy} onClick={() => void act.run(async () => { await rsvp.closeRsvp(id); await q.reload() })}>참석 조사 마감하기</Button>
-        </BottomAction>
+    <Page title="참석 현황" back={paths.groupReservation(id)}
+      dock={<Dock>
+        {!rv.is_closed && <p className="meta">마감하면 참석 인원({yes.length}명)이 예약 인원에 반영되고 가게에 알려져요.</p>}
+        <div className="btn-pair">
+          <Button onClick={() => nav(paths.groupRsvp(id))}>참석 링크 공유</Button>
+          {!rv.is_closed ? <Button variant="primary" onClick={() => setAsk({ kind: 'close' })}>마감하기</Button> : <Button variant="primary" disabled>마감됨</Button>}
+        </div>
+      </Dock>}
+      overlay={<Sheet open={Boolean(ask)} danger={ask?.kind === 'delete'} busy={act.busy} onClose={() => setAsk(null)}
+        title={ask?.kind === 'delete' ? `${ask.name}님의 응답을 지울까요?` : '참석 조사를 마감할까요?'}
+        confirmLabel={ask?.kind === 'delete' ? '응답 삭제' : '마감하기'}
+        onConfirm={() => void act.run(async () => {
+          if (ask?.kind === 'delete') await rsvp.deleteRsvpResponse(ask.id); else await rsvp.closeRsvp(id)
+          setAsk(null); await q.reload()
+        })}>
+        <p className="subtitle">{ask?.kind === 'delete' ? '장난 응답이나 중복 응답을 정리할 때 사용해요.' : `예약 인원이 ${yes.length}명으로 바뀌고 가게에 알려져요.`}</p>
+        {act.error && <p className="note-error">{act.error}</p>}
+      </Sheet>}>
+      <Metrics three className="attendance-metrics">
+        <Metric label="참석" value={yes.length} unit="명" />
+        <Metric label="불참" value={no.length} unit="명" />
+        <Metric label="미응답" value={Math.max(0, r.headcount - list.length)} unit="명" />
+      </Metrics>
+      <p className="meta">예약 {r.headcount}명 · 응답 {list.length}명 · {rv.is_closed ? '마감됨' : '응답 받는 중'}</p>
+      <Segmented className="attendance-filter" label="참석 응답 상태별 명단" value={filter} onChange={setFilter} options={[{ value: 'all', label: '전체' }, { value: 'yes', label: '참석' }, { value: 'no', label: '불참' }]} />
+      {!shown.length ? <Empty art="link">아직 응답이 없어요. 링크를 공유해 보세요.</Empty> : (
+        <section>
+          {shown.map((x) => (
+            <div key={x.id} className="person-row">
+              <span className="avatar">{x.name[0]}</span>
+              <div><h3>{x.name}</h3><p className="meta">{x.note || '응답 정보'}</p></div>
+              <Badge tone={x.attending ? 'success' : 'muted'}>{x.attending ? '참석' : '불참'}</Badge>
+              {!rv.is_closed && <Button variant="danger" aria-label={`${x.name} 응답 삭제`} onClick={() => setAsk({ kind: 'delete', id: x.id, name: x.name })}>삭제</Button>}
+            </div>
+          ))}
+        </section>
       )}
     </Page>
   )

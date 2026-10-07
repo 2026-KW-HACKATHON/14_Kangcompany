@@ -1,42 +1,82 @@
-// G-04 가게 찾기 (가게가 연 빈 날짜). 지도/목록 전환 — 지도는 VITE_KAKAO_MAP_KEY 가 있을 때 표시 (#8)
-import { useState } from 'react'
+// G-04 캘린더 (시안 17 · hub.js groupCalendar): 내 예약·요청 / 공개 빈자리를 날짜별로
+import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { slots } from '../../api'
+import { requests, reservations, slots } from '../../api'
 import { paths } from '../../app/paths'
+import { useGroupSession } from '../../app/session'
 import { useAsync } from '../../hooks/useAsync'
 import { Page } from '../../components/layout'
-import { Button, Card, Empty, ErrorBox, Field, Input, Loading, Segmented } from '../../components/ui'
-import { formatDateTime, formatWon } from '../../lib/format'
-import { StoreMap } from '../../components/map/StoreMap'
+import { Calendar, monthOf, todayKst } from '../../components/Calendar'
+import { RequestCard, ReservationCard, SlotCard } from '../../components/cards'
+import { Icon } from '../../components/icons'
+import { Button, ErrorBox, Loading } from '../../components/ui'
+import { dayLabel, kstDay } from '../../lib/format'
+import { effectiveRequestStatus } from '../../lib/status'
 
 export default function Slots() {
+  const { group } = useGroupSession()
   const nav = useNavigate()
-  const [view, setView] = useState<'list' | 'map'>('list')
-  const [minCap, setMinCap] = useState('')
-  const q = useAsync(() => slots.listOpenSlots({ minCapacity: Number(minCap) || undefined }), [minCap])
+  const [mode, setMode] = useState<'requests' | 'slots'>('slots')
+  const [day, setDay] = useState(todayKst())
+  const [month, setMonth] = useState(monthOf(todayKst()))
+  const q = useAsync(async () => {
+    const [open, reqs, res] = await Promise.all([slots.listOpenSlots({}), requests.listMyRequests(group.id), reservations.listMyReservations({ upcomingOnly: true })])
+    return {
+      open,
+      reqs: reqs.filter((r) => effectiveRequestStatus(r) === 'open'),
+      res: res.filter((r) => ['awaiting_payment', 'confirmed'].includes(r.status)),
+    }
+  }, [group.id])
+
+  const counts = useMemo(() => {
+    const c: Record<string, number> = {}
+    const add = (iso: string) => { const k = kstDay(iso); c[k] = (c[k] ?? 0) + 1 }
+    if (q.data) {
+      if (mode === 'slots') q.data.open.forEach((s) => add(s.start_at))
+      else { q.data.reqs.forEach((r) => add(r.desired_at)); q.data.res.forEach((r) => add(r.start_at)) }
+    }
+    return c
+  }, [q.data, mode])
+
+  const onMonth = (m: string) => {
+    setMonth(m)
+    const first = Object.keys(counts).filter((k) => k.startsWith(m)).sort()[0]
+    setDay(first ?? `${m}-01`)
+  }
+  const d = q.data
+  const daySlots = d ? d.open.filter((s) => kstDay(s.start_at) === day) : []
+  const dayReqs = d ? d.reqs.filter((r) => kstDay(r.desired_at) === day) : []
+  const dayRes = d ? d.res.filter((r) => kstDay(r.start_at) === day) : []
+  const n = mode === 'slots' ? daySlots.length : dayReqs.length + dayRes.length
+  const canRequest = day >= todayKst()
+
   return (
-    <Page title="가게 찾기" tabRoot actions={<Button variant="text" onClick={() => nav(paths.groupLayouts())}>좌석 배치도</Button>}>
-      <Segmented value={view} onChange={setView} options={[{ value: 'list', label: '목록' }, { value: 'map', label: '지도' }]} />
-      <Field label="인원 (이상)"><Input type="number" inputMode="numeric" min={1} value={minCap} onChange={(e) => setMinCap(e.target.value)} placeholder="예: 20" /></Field>
-      {view === 'map' && q.data && (
-        <StoreMap height={320} markers={q.data.filter((s) => s.stores.lat != null && s.stores.lng != null).map((s) => ({
-          id: s.id, lat: s.stores.lat!, lng: s.stores.lng!, title: `${s.stores.name} ${formatDateTime(s.start_at)}`, onClick: () => nav(paths.groupSlotBook(s.id)),
-        }))} />
+    <Page title="캘린더" back={false} nav>
+      <div className="section-heading"><h2>예약·공개 빈자리</h2><Button variant="text" onClick={() => nav(paths.groupLayouts())}>좌석 배치도</Button></div>
+      <div className="calendar-tabs" role="group" aria-label="캘린더 내용">
+        <button type="button" className="calendar-tab requests" aria-pressed={mode === 'requests'} onClick={() => setMode('requests')}>내 예약·요청</button>
+        <button type="button" className="calendar-tab slots" aria-pressed={mode === 'slots'} onClick={() => setMode('slots')}>공개 빈자리</button>
+      </div>
+      {q.loading ? <Loading /> : q.error || !d ? <ErrorBox message={q.error?.message ?? ''} onRetry={q.reload} /> : (
+        <section className="calendar-panel" data-calendar-mode={mode} aria-label={mode === 'slots' ? '공개 빈자리 캘린더와 날짜별 결과' : '예약 요청 캘린더와 날짜별 결과'}>
+          <Calendar month={month} onMonth={onMonth} selected={[day]} onPick={setDay} counts={counts} legend={mode === 'slots' ? '공개된 빈자리' : '내 예약 · 요청'} />
+          <div className="calendar-results" aria-live="polite">
+            <div className="selected-day-heading">
+              <div><h2>{dayLabel(day)}</h2><p className="meta">{mode === 'slots' ? '빈자리' : '예약·요청'} {n}건</p></div>
+              <button type="button" className="date-quick date-quick-group" disabled={!canRequest} aria-label={`${dayLabel(day)} 예약 요청`}
+                onClick={() => nav(paths.groupRequestNew, { state: { day } })}><Icon name="plus" /><span>예약 요청</span></button>
+            </div>
+            {n === 0 ? (
+              <div className="calendar-empty">
+                <h3>{mode === 'slots' ? '공개된 빈자리가 없어요' : '이 날짜에는 내 예약이 없어요'}</h3>
+                <p>원하는 조건으로 가게에 예약을 요청해 보세요.</p>
+              </div>
+            ) : mode === 'slots' ? daySlots.map((s) => <SlotCard key={s.id} s={s} />) : (
+              <>{dayRes.map((r) => <ReservationCard key={r.id} r={r} role="group" />)}{dayReqs.map((r) => <RequestCard key={r.id} r={r} />)}</>
+            )}
+          </div>
+        </section>
       )}
-      {q.loading ? <Loading /> : q.error ? <ErrorBox message={q.error.message} onRetry={q.reload} /> :
-        !q.data?.length ? <Empty action={<button className="btn btn-secondary" onClick={() => nav(paths.groupRequestNew)}>예약 요청하기</button>}>지금 열린 날짜가 없어요. 원하는 날짜로 요청해 보세요.</Empty> : (
-          <ul className="list">
-            {q.data.map((s) => (
-              <Card as="li" key={s.id} onClick={() => nav(paths.groupSlotBook(s.id))}>
-                {s.stores.photo_url && <img className="store-photo" src={s.stores.photo_url} alt="" />}
-                <div className="card-top"><span className="strong">{s.stores.name}</span><span className="muted">최대 {s.capacity}명</span></div>
-                <p>{formatDateTime(s.start_at)} ~ {formatDateTime(s.end_at).split(' ')[1]}</p>
-                {s.stores.intro && <p className="muted">{s.stores.intro}</p>}
-                <p className="muted">예약금 {s.deposit_amount > 0 ? formatWon(s.deposit_amount) : '없음'}</p>
-              </Card>
-            ))}
-          </ul>
-        )}
     </Page>
   )
 }

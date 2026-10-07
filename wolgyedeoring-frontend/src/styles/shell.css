@@ -1,0 +1,61 @@
+/* 시안의 폰 틀(.phone 844px 고정)을 실제 기기 화면에 맞춘다. 시안 CSS(proto/*) 다음에 불러온다 */
+html, body, #root { height: 100%; }
+body { margin: 0; background: var(--color-bg); }
+.app, .app.a2 {
+  position: relative; isolation: isolate;
+  display: flex; flex-direction: column;
+  height: 100vh; height: 100dvh; max-width: 480px; margin: 0 auto;
+  overflow: hidden; border: 0; border-radius: 0; box-shadow: none;
+  background: var(--color-surface);
+}
+@media (min-width: 600px) {
+  body { background: var(--color-bg-subtle); }
+  .app, .app.a2 { height: min(calc(100dvh - 32px), 900px); margin: 16px auto; max-width: 420px; border: 1px solid var(--color-border); border-radius: 32px; box-shadow: var(--shadow-soft); }
+}
+.app .appbar { padding-top: max(12px, env(safe-area-inset-top)); }
+.app .bottom-nav, .app .dock { padding-bottom: max(12px, env(safe-area-inset-bottom)); }
+.app .app-body { flex: 1; min-height: 0; overflow-y: auto; }
+.app .appbar h1, .app .appbar h2 { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.app .overlay { position: absolute; }
+
+/* 네이티브 select 를 시안 선택 상자 모양으로 */
+.app .native-select { position: relative; display: block; }
+.app .native-select select {
+  appearance: none; width: 100%; min-height: 60px; padding: 16px 44px 16px 16px;
+  border-radius: var(--radius-control); border: 1px solid var(--color-border); background: var(--color-surface);
+  font-weight: var(--font-weight-semibold); box-shadow: 0 2px 4px rgb(25 38 65 / .025);
+}
+.app .native-select .icon { position: absolute; right: 16px; top: 50%; width: 20px; height: 20px; transform: translateY(-50%) rotate(90deg); color: var(--color-text-secondary); pointer-events: none; }
+.app .field .native-select select { border-bottom: 1px solid var(--color-border); }
+
+/* 시안에 없는 실제 앱 보조 요소 */
+.app .inline-error, .app .note-error { color: var(--tone-danger-fg); font-size: var(--text-body2-size); }
+.app .btn-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.app .btn-row > .secondary { width: auto; flex: 1; }
+.app .stack > * + * { margin-top: 12px; }
+.app .store-photo { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; border-radius: var(--radius-card); background: var(--color-bg-subtle); }
+.app .map-placeholder { min-height: 180px; border-radius: var(--radius-card); background: var(--color-bg-subtle); display: flex; align-items: center; justify-content: center; color: var(--color-text-secondary); text-align: center; padding: 16px; }
+.app .offer-card .card-action { display: inline-flex; align-items: center; gap: 4px; margin-top: 12px; color: var(--color-brand-text); font-weight: 600; font-size: var(--text-body2-size); }
+.app .offer-card .card-action .icon { width: 16px; height: 16px; }
+.app .file-input { display: block; width: 100%; }
+.app .loading-inline { color: var(--color-text-secondary); font-size: var(--text-body2-size); }
+.app .dock .text-btn { margin-top: 8px; }
+.app .dock .btn-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.app .dock .btn-pair .primary, .app .dock .btn-pair .secondary { min-height: 56px; }
+.app .card .row + .row { margin-top: 0; }
+
+/* 좌석 배치도 캔버스 (기존 S-15·G-15 컴포넌트) */
+.seat-canvas { width: 100%; overflow: auto; border-radius: var(--radius-control); }
+.seat-canvas g:focus-visible > :first-child { stroke: var(--color-focus-ring) !important; stroke-width: 1 !important; }
+
+/* /dev 연결 확인 페이지 (화면 틀 밖) */
+.dev-page { max-width: 720px; margin: 0 auto; padding: 24px 16px; font-family: var(--font-family); }
+.dev-page table { width: 100%; border-collapse: collapse; }
+.dev-page td, .dev-page th { border-bottom: 1px solid var(--color-border); padding: 8px; text-align: left; }
+
+/* 날짜·시간: 시안의 버튼 모양 위에 투명한 기본 입력을 겹쳐 기기 기본 선택기를 쓴다 */
+.app .picker-native { position: relative; cursor: pointer; }
+.app .picker-native input { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; border: 0; padding: 0; margin: 0; min-height: 0; }
+.app .picker-native input::-webkit-calendar-picker-indicator { position: absolute; inset: 0; width: 100%; height: 100%; cursor: pointer; }
+/* 사진 올리기 상자 안 버튼은 회색 바탕 위에서 보이도록 흰 바탕 (시안 25·28 스크린샷) */
+.app .upload .secondary { background: var(--color-surface); border: 1px solid var(--color-border-strong); }

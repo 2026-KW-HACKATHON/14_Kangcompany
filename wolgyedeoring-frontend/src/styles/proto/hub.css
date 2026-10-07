@@ -1,0 +1,67 @@
+/* Connected calendar surfaces use content colors independently of account role. */
+.app:where(:not(.a2)) .calendar-panel[data-calendar-mode=requests]{--color-brand:var(--color-calendar-requests);--color-brand-text:var(--color-calendar-requests-text);--color-brand-subtle:var(--color-calendar-requests-subtle);--color-focus-ring:var(--color-calendar-requests);--calendar-fill:var(--color-calendar-requests-bg)}
+.app:where(:not(.a2)) .calendar-panel[data-calendar-mode=slots]{--color-brand:var(--color-calendar-slots);--color-brand-text:var(--color-calendar-slots-text);--color-brand-subtle:var(--color-calendar-slots-subtle);--color-focus-ring:var(--color-calendar-slots);--calendar-fill:var(--color-calendar-slots-bg)}
+.app:where(:not(.a2)) .calendar-panel{padding:12px;border-radius:var(--radius-calendar-panel);background:var(--calendar-fill);border:1px solid transparent}
+.app:where(:not(.a2)) .calendar-panel>.calendar-card{margin:0;padding:8px 0 12px;border:0;border-radius:0;background:transparent}
+.app:where(:not(.a2)) .calendar-panel .calendar-day[aria-pressed=true]{background:var(--color-brand);color:#fff;border-color:transparent;border-radius:14px}
+.app:where(:not(.a2)) .calendar-panel .calendar-day[aria-pressed=true] .calendar-dot.visible{background:#fff}
+.calendar-tabs{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:4px;margin:16px 0 12px;padding:4px;background:var(--color-calendar-switch-bg);border-radius:18px}
+.app:where(:not(.a2)) .calendar-tab{display:flex;align-items:center;justify-content:center;min-height:48px;font-size:var(--text-body2-size);font-weight:550;border-radius:14px;background:transparent;color:var(--color-text-secondary);padding:10px 6px;border:0;box-shadow:none;transition:background-color 160ms ease,box-shadow 160ms ease,color 160ms ease}
+.app:where(:not(.a2)) .calendar-tab[aria-pressed=true]{background:var(--color-surface);font-weight:650;box-shadow:var(--shadow-calendar-switch)}
+.app:where(:not(.a2)) .calendar-tab.requests[aria-pressed=true]{color:var(--color-calendar-requests-text)}
+.app:where(:not(.a2)) .calendar-tab.slots[aria-pressed=true]{color:var(--color-calendar-slots-text)}
+@media(hover:hover){.app:where(:not(.a2)) .calendar-tab[aria-pressed=false]:hover{background:rgb(255 255 255 / .55)}}
+@media(prefers-reduced-motion:reduce){.app:where(:not(.a2)) .calendar-tab{transition:none}}
+.calendar-results{margin-top:10px;padding-top:18px;border-top:1px solid rgb(70 95 115 / .12)}
+.selected-day-heading{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:14px}
+.selected-day-heading h2{font-size:var(--text-body1-size)}
+.selected-day-heading p{margin-top:4px;font-size:var(--text-caption-size)}
+.app:where(:not(.a2)) .date-quick{display:flex;align-items:center;justify-content:center;gap:4px;padding:8px;min-height:48px;border-radius:14px;background:#fff;color:var(--color-brand-text);font-size:var(--text-caption-size);font-weight:650;flex-shrink:0}
+.date-quick .icon{width:18px;height:18px}
+.app:where(:not(.a2)) .date-quick-group{color:var(--color-calendar-requests-text)}.app:where(:not(.a2)) .date-quick-owner{color:var(--color-calendar-slots-text)}
+.calendar-results>.filter-row{margin-bottom:16px;gap:6px}
+.calendar-results .filter-row button{padding:8px 10px}
+.app:where(:not(.a2)) .calendar-results .available-card,.app:where(:not(.a2)) .calendar-results .request-card,.app:where(:not(.a2)) .calendar-results .my-booking-card{padding:16px;border:0;border-radius:20px;background:#fff;margin:12px 0 0}
+.calendar-results .available-card h3,.calendar-results .request-card h3{font-size:var(--text-body1-size)}
+.calendar-results .badge.success{background:var(--color-calendar-slots-subtle);color:var(--color-calendar-slots-text)}
+.calendar-results .empty-state,.calendar-empty{padding:24px 16px;background:#fff;border-radius:20px;text-align:center;margin-top:12px}
+.calendar-results .empty-state .art{display:none}
+.calendar-empty h3{font-size:var(--text-body1-size)}
+.calendar-empty p{margin-top:8px;font-size:var(--text-body2-size);color:var(--color-text-secondary)}
+.app:where(:not(.a2)) .attention-banner{display:block;text-align:left;padding:20px;width:100%;border-radius:24px;background:var(--color-brand-subtle);color:var(--color-text-primary)}
+.attention-kicker{display:block;color:var(--color-brand-text);font-size:var(--text-body2-size);font-weight:650;margin-bottom:8px}
+.attention-banner>strong{display:block;font-size:var(--text-title2-size);font-weight:750}
+.attention-bottom{display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:var(--text-body2-size);margin-top:14px;color:var(--color-brand-text)}
+.attention-bottom .icon{width:18px;height:18px}
+.app:where(:not(.a2)) .meeting-card{border:1px solid var(--color-border);border-radius:26px;padding:20px;background:#fff;margin-top:16px}
+.meeting-card>h3{font-size:calc(23px * var(--font-scale));margin-top:10px}
+.meeting-card>.meta{margin-top:4px}
+.meeting-schedule{font-size:var(--text-body1-size);font-weight:650;margin-top:10px}
+.attendance-summary{margin-top:20px;padding:18px 16px;border-radius:18px;background:var(--color-attendance-surface)}
+.attendance-heading{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:var(--text-body2-size);font-weight:650}
+.attendance-heading strong{font-size:calc(25px * var(--font-scale));line-height:1.2;white-space:nowrap}
+.attendance-heading small{font-size:var(--text-body2-size);font-weight:550;color:var(--color-text-secondary)}
+.attendance-progress{height:7px;border-radius:999px;background:var(--color-attendance-track);overflow:hidden;margin:14px 0 10px}
+.attendance-progress>span{display:block;height:100%;border-radius:inherit;background:var(--color-brand)}
+.attendance-summary>.meta{font-size:var(--text-caption-size)}
+.deadline{display:flex;flex-direction:column;gap:4px;margin-top:16px;font-size:var(--text-body2-size)}
+.deadline strong{color:var(--color-brand-text);font-weight:750}
+.deadline>span{font-size:var(--text-caption-size);color:var(--color-text-secondary)}
+.payment-deadline{font-size:calc(12px * var(--font-scale));color:var(--color-text-secondary);margin-top:8px}
+.meeting-actions{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px;margin-top:16px}
+.app:where(:not(.a2)) .meeting-actions>.secondary{padding:10px 8px;border:0;border-radius:14px;background:var(--color-meeting-action-bg);color:var(--color-calendar-requests-text);box-shadow:var(--shadow-meeting-action);min-height:48px;font-size:var(--text-body2-size);transition:background-color 140ms ease,box-shadow 140ms ease}
+.app:where(:not(.a2)) .meeting-actions>.secondary:active{background:var(--color-meeting-action-pressed);box-shadow:none;transition-duration:0s}
+.app:where(:not(.a2)) .meeting-card>.preorder-link{margin-top:8px;display:flex;align-items:center;justify-content:center;min-height:48px;padding:10px 8px;border:0;border-radius:14px;background:transparent;box-shadow:none;transition:background-color 140ms ease}
+.app:where(:not(.a2)) .meeting-card>.preorder-link:active{background:var(--color-meeting-action-pressed);transition-duration:0s}
+.app:where(:not(.a2)) .meeting-card>.preorder-link:focus-visible:not(:active){background:var(--color-brand-subtle)}
+@media(hover:hover){.app:where(:not(.a2)) .meeting-actions>.secondary:hover:not(:active){background:var(--color-meeting-action-hover)}.app:where(:not(.a2)) .meeting-card>.preorder-link:hover:not(:active){background:var(--color-brand-subtle)}}
+@media(prefers-reduced-motion:reduce){.app:where(:not(.a2)) .meeting-actions>.secondary,.app:where(:not(.a2)) .meeting-card>.preorder-link{transition:none}}
+.app:where(:not(.a2)) .my-booking-card{background:#F5F6FA;margin:14px 0 0;border-radius:22px}
+.my-booking-card>h3{margin-top:12px}
+.app:where(:not(.a2)) .hub-shortcut{display:flex;align-items:center;justify-content:space-between;gap:12px;text-align:left;width:100%;padding:18px 0;border-bottom:1px solid var(--color-border)}
+.hub-shortcut strong{display:block;font-size:var(--text-body1-size);font-weight:650}
+.hub-shortcut small{display:block;font-size:var(--text-caption-size);color:var(--color-text-secondary);margin-top:6px}
+.hub-shortcut>.icon{width:20px;height:20px}
+.app:where(:not(.a2)) .section>.calendar-panel{margin-top:12px}
+.app:where(:not(.a2)) .calendar-tabs+.calendar-panel{margin-top:12px}
+@media(max-width:350px){.app:where(:not(.a2)) .calendar-panel{padding:8px}.app:where(:not(.a2)) .calendar-panel>.calendar-card{margin-inline:0}.app:where(:not(.a2)) .date-quick{padding:8px 6px;gap:2px;font-size:calc(12px * var(--font-scale))}.selected-day-heading h2{font-size:var(--text-body2-size)}.app:where(:not(.a2)) .meeting-card{padding:16px}.attendance-summary{padding:16px 12px}.app:where(:not(.a2)) .calendar-results .available-card,.app:where(:not(.a2)) .calendar-results .request-card{padding:14px}}

@@ -1,0 +1,20 @@
+/* 4.10.8: circular single days and uninterrupted, softly tinted date runs. */
+.app:where(:not(.a2)) .calendar-card{--calendar-selection-size:36px;--calendar-selection-fill:var(--color-brand-subtle)}
+.app:where(:not(.a2)) .calendar-card[data-calendar-context=publish]{border:0}
+.app:where(:not(.a2)) .calendar-panel[data-calendar-mode=requests] .calendar-card{--calendar-selection-fill:var(--color-filter-requests-selected)}
+.app:where(:not(.a2)) .calendar-panel[data-calendar-mode=slots] .calendar-card{--calendar-selection-fill:var(--color-filter-slots-selected)}
+.app:where(:not(.a2)) .calendar-card .calendar-day{position:relative;isolation:isolate;display:grid;place-items:center;gap:0;padding:0;border:0;min-height:var(--height-calendar-day);height:var(--height-calendar-day);background:transparent;box-shadow:none;border-radius:999px}
+.app:where(:not(.a2)) .calendar-card .calendar-day>span{position:relative;z-index:1;line-height:1}
+.app:where(:not(.a2)) .calendar-card .calendar-dot{position:absolute;z-index:1;bottom:1px;left:calc(50% - 2px)}
+.app:where(:not(.a2)) .calendar-card[data-calendar-context=publish] .calendar-dot{display:none}
+.app:where(:not(.a2)) .calendar-card .calendar-day::before{content:'';position:absolute;z-index:0;top:50%;left:50%;width:var(--calendar-selection-size);height:var(--calendar-selection-size);transform:translate(-50%,-50%);border:0;border-radius:999px;background:var(--calendar-selection-fill);opacity:0;pointer-events:none}
+.app:where(:not(.a2)) .calendar-card .calendar-day[aria-pressed=true],.app:where(:not(.a2)) .calendar-panel .calendar-day[aria-pressed=true]{border:0;background:transparent;color:var(--color-brand-text);box-shadow:none}
+.app:where(:not(.a2)) .calendar-card .calendar-day[aria-pressed=true]::before{opacity:1}
+.app:where(:not(.a2)) .calendar-card .calendar-day:is(.is-joined-left,.is-joined-right)::before{left:calc((100% - var(--calendar-selection-size)) / 2);right:calc((100% - var(--calendar-selection-size)) / 2);width:auto;transform:translateY(-50%)}
+.app:where(:not(.a2)) .calendar-card .calendar-day.is-joined-left::before{left:-1px;border-top-left-radius:0;border-bottom-left-radius:0}
+.app:where(:not(.a2)) .calendar-card .calendar-day.is-joined-right::before{right:-1px;border-top-right-radius:0;border-bottom-right-radius:0}
+.app:where(:not(.a2)) .calendar-panel .calendar-day[aria-pressed=true] .calendar-dot.visible{background:var(--color-brand)}
+.app:where(:not(.a2)) .calendar-card button.calendar-day:not(:disabled):active:not(.primary):not(.social-brand):not(.nav-primary){background:transparent;box-shadow:none;color:var(--color-brand-text)}
+.app:where(:not(.a2)) .calendar-card .calendar-day:not(:disabled):active::before{opacity:1;background:color-mix(in srgb,var(--color-brand) 18%,var(--color-surface))}
+@media(hover:hover){.app:where(:not(.a2)) .calendar-card .calendar-day[aria-pressed=false]:hover:not(:active)::before{opacity:1;background:var(--color-bg-subtle)}}
+@media(max-width:350px){.app:where(:not(.a2)) .calendar-card{--calendar-selection-size:30px}}

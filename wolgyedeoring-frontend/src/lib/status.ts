@@ -115,3 +115,32 @@ export function deadlineTone(hoursLeft: number | null): Tone {
   if (hoursLeft === null) return 'muted'
   return hoursLeft <= 3 ? 'warning' : 'neutral'
 }
+
+// 모임 종류 (시안 A2: 회식·뒤풀이·총회·간식행사·기타) ↔ DB event_type
+// DB 에 '회식' 값이 없어 etc + 메모 머리표 [회식] 으로 저장한다. 기타 직접 입력도 [입력값] 으로.
+export interface EventChoice { key: string; label: string; sub?: string; type: EventType; tag?: string; art: 'gathering' | 'cheers' | 'celebration' | 'snack' | 'other'; studentOnly?: boolean }
+export const EVENT_CHOICES: EventChoice[] = [
+  { key: 'dinner', label: '회식', type: 'etc', tag: '회식', art: 'gathering' },
+  { key: 'after', label: '뒤풀이', type: 'after_party', art: 'cheers' },
+  { key: 'opening', label: '개강총회', sub: '개강', type: 'opening_party', art: 'celebration', studentOnly: true },
+  { key: 'closing', label: '종강총회', sub: '종강', type: 'closing_party', art: 'celebration', studentOnly: true },
+  { key: 'snack', label: '간식행사', type: 'snack_event', art: 'snack', studentOnly: true },
+  { key: 'other', label: '기타', type: 'etc', art: 'other' },
+]
+const TAG_RE = /^\[([^\]]{1,40})\]\s*/
+/** 화면에 보일 모임 종류 */
+export function eventLabel(type: EventType, note?: string | null): string {
+  if (type === 'etc' && note) { const m = note.match(TAG_RE); if (m) return m[1] }
+  return type === 'etc' ? '기타 모임' : EVENT_LABEL[type]
+}
+/** 메모에서 모임 종류 머리표를 뺀 본문 */
+export function noteBody(note?: string | null): string {
+  return (note ?? '').replace(TAG_RE, '')
+}
+/** 저장할 메모 = [모임 종류] + 본문 (etc 일 때만) */
+export function composeNote(choice: EventChoice, otherText: string, body: string): string | null {
+  const tag = choice.tag ?? (choice.key === 'other' ? otherText.trim() : '')
+  const text = body.trim()
+  const out = choice.type === 'etc' && tag ? `[${tag}] ${text}`.trim() : text
+  return out || null
+}

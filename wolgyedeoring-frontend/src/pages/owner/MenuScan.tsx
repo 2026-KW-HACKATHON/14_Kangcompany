@@ -1,4 +1,4 @@
-// S-08 메뉴판 사진 인식·확인: 인식 → 수정·추가·삭제 → "메뉴판에 없는 기존 메뉴 판매 중지" 확인 → 저장
+// S-08 메뉴판 확인 (시안 25): 사진 → 인식 → 메뉴명·가격 확인 → 확정
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { menus, receipts } from '../../api'
@@ -6,7 +6,7 @@ import { paths } from '../../app/paths'
 import { useOwnerSession } from '../../app/session'
 import { useAction } from '../../hooks/useAsync'
 import { Page } from '../../components/layout'
-import { Badge, BottomAction, Button, Field, Input, Section, Select } from '../../components/ui'
+import { Badge, Button, Check, Dock, Field, Input, Notice, Section, Select, UploadBox } from '../../components/ui'
 import { MENU_CATEGORY_LABEL } from '../../lib/status'
 import { formatWon } from '../../lib/format'
 import type { ExtractMenuResult, ExtractedMenuItem, MenuCategory } from '../../types/db'
@@ -16,73 +16,73 @@ const STATUS: Record<ExtractedMenuItem['status'], { label: string; tone: 'succes
   new: { label: '새 메뉴', tone: 'success' }, price_changed: { label: '가격 변경', tone: 'warning' },
   same: { label: '변경 없음', tone: 'muted' }, reactivate: { label: '다시 판매', tone: 'success' },
 }
+type Row = ExtractedMenuItem & { include: boolean }
 
 export default function MenuScan() {
   const { store } = useOwnerSession()
   const nav = useNavigate()
   const [result, setResult] = useState<ExtractMenuResult | null>(null)
-  const [items, setItems] = useState<ExtractedMenuItem[]>([])
+  const [items, setItems] = useState<Row[]>([])
   const [deactivate, setDeactivate] = useState(false)
+  const [confirmed, setConfirmed] = useState(false)
   const scan = useAction()
   const save = useAction()
 
-  const onFile = (file: File) => scan.run(async () => {
+  const onFile = (file: File) => void scan.run(async () => {
     const b64 = await receipts.resizeImageToBase64(file, 2000)
     const r = await menus.extractMenu(store.id, b64)
-    setResult(r)
+    setResult(r); setConfirmed(false)
     // 메뉴판이 여러 장이면 결과를 이어 붙임 (같은 이름은 마지막 값)
-    setItems((prev) => [...prev.filter((p) => !r.items.some((n) => n.name === p.name)), ...r.items])
+    setItems((prev) => [...prev.filter((p) => !r.items.some((n) => n.name === p.name)), ...r.items.map((x) => ({ ...x, include: true }))])
   })
-  const update = (i: number, patch: Partial<ExtractedMenuItem>) => setItems(items.map((x, j) => (j === i ? { ...x, ...patch } : x)))
+  const update = (i: number, patch: Partial<Row>) => { setConfirmed(false); setItems(items.map((x, j) => (j === i ? { ...x, ...patch } : x))) }
+  const chosen = items.filter((m) => m.include)
 
   return (
-    <Page title="메뉴판 인식" back={paths.ownerMenus}>
-      <Field label={items.length ? '메뉴판 사진 더 올리기' : '메뉴판 사진'} hint="여러 장이면 한 장씩 올리면 합쳐져요">
-        <input type="file" accept="image/*" capture="environment" disabled={scan.busy} onChange={(e) => { const f = e.target.files?.[0]; if (f) void onFile(f); e.target.value = '' }} />
-      </Field>
-      {scan.busy && <p className="muted" role="status">메뉴판을 읽는 중이에요 (10초 정도)</p>}
-      {scan.error && <p className="inline-error" role="alert">{scan.error}</p>}
-      {result?.note && <p className="muted">{result.note}</p>}
+    <Page title="메뉴판 확인" back={paths.ownerMenus}
+      dock={<Dock>{save.error && <p className="note-error" role="alert">{save.error}</p>}
+        <Button variant="primary" busy={save.busy} disabled={!chosen.length || !confirmed || chosen.some((m) => !m.name.trim())}
+          onClick={() => void save.run(async () => {
+            await menus.saveMenus(store.id, chosen.map((m) => ({ name: m.name.trim(), price: m.price, category: m.category })), deactivate)
+            nav(paths.ownerMenus, { replace: true })
+          })}>메뉴 목록 확정</Button></Dock>}>
+      <Section>
+        <UploadBox art="receipt" title={items.length ? '메뉴판 사진 더 올리기' : '메뉴판 사진'} help="메뉴명과 가격이 모두 나오게 찍어주세요. 여러 장이면 합쳐져요." onFile={onFile} disabled={scan.busy} />
+      </Section>
+      {scan.busy && <p className="meta" role="status">메뉴판을 읽는 중이에요 (10초 정도)</p>}
+      {scan.error && <p className="note-error" role="alert">{scan.error}</p>}
+      <Notice>인식 결과는 다를 수 있어요. 메뉴명과 가격을 직접 확인한 뒤 확정해 주세요.</Notice>
+      {result?.note && <p className="meta">{result.note}</p>}
 
       {items.length > 0 && (
         <Section title={`인식한 메뉴 ${items.length}개`}>
-          <ul className="list">
-            {items.map((m, i) => {
-              const st = STATUS[m.status]
-              const check = m.confidence === 'low' || m.price === null
-              return (
-                <li key={i} className="card">
-                  <div className="btn-row"><Badge tone={st.tone}>{st.label}</Badge>{check && <Badge tone="warning">확인 필요</Badge>}
-                    {m.status === 'price_changed' && <span className="muted">{formatWon(m.existing_price)} → {formatWon(m.price)}</span>}</div>
-                  <Input value={m.name} onChange={(e) => update(i, { name: e.target.value })} aria-label="메뉴 이름" />
-                  <div className="btn-row">
-                    <Input type="number" min={0} step={500} value={m.price ?? ''} placeholder="가격" aria-label="가격" style={{ maxWidth: 140 }}
-                      onChange={(e) => update(i, { price: e.target.value === '' ? null : Number(e.target.value) })} />
-                    <Select value={m.category} onChange={(e) => update(i, { category: e.target.value as MenuCategory })} options={CATS} aria-label="분류" style={{ maxWidth: 160 }} />
-                    <Button variant="danger" onClick={() => setItems(items.filter((_, j) => j !== i))}>빼기</Button>
-                  </div>
-                </li>
-              )
-            })}
-          </ul>
+          {items.map((m, i) => {
+            const st = STATUS[m.status]
+            const check = m.confidence === 'low' || m.price === null
+            return (
+              <div key={i} className="ocr-row">
+                <div className="row">
+                  <span className="btn-row"><Badge tone={st.tone}>{st.label}</Badge>{check && <Badge tone="warning">가격 확인</Badge>}</span>
+                  <span className="meta">{m.status === 'price_changed' ? `${formatWon(m.existing_price)} → ${formatWon(m.price)}` : `항목 ${i + 1}`}</span>
+                </div>
+                <Field label="메뉴명"><Input value={m.name} onChange={(e) => update(i, { name: e.target.value })} /></Field>
+                <div className="pair">
+                  <Field label="가격 (원)"><Input type="number" min={0} step={500} value={m.price ?? ''} onChange={(e) => update(i, { price: e.target.value === '' ? null : Number(e.target.value) })} /></Field>
+                  <Field label="분류"><Select value={m.category} onChange={(e) => update(i, { category: e.target.value as MenuCategory })} options={CATS} /></Field>
+                </div>
+                <Check label="이 메뉴 포함" checked={m.include} onChange={(v) => update(i, { include: v })} />
+              </div>
+            )
+          })}
         </Section>
       )}
       {result && result.missing.length > 0 && (
         <Section title="메뉴판에 없는 기존 메뉴">
-          <p className="muted">{result.missing.map((m) => m.name).join(', ')}</p>
-          <label className="btn-row"><input type="checkbox" checked={deactivate} onChange={(e) => setDeactivate(e.target.checked)} /> 이 메뉴들을 판매 중지할게요</label>
+          <p className="meta">{result.missing.map((m) => m.name).join(', ')}</p>
+          <Check label="이 메뉴들을 판매 중지할게요" checked={deactivate} onChange={setDeactivate} />
         </Section>
       )}
-      {save.error && <p className="inline-error" role="alert">{save.error}</p>}
-      {items.length > 0 && (
-        <BottomAction>
-          <Button variant="primary" busy={save.busy} disabled={items.some((m) => !m.name.trim())}
-            onClick={() => void save.run(async () => {
-              await menus.saveMenus(store.id, items.map((m) => ({ name: m.name.trim(), price: m.price, category: m.category })), deactivate)
-              nav(paths.ownerMenus, { replace: true })
-            })}>메뉴 {items.length}개 저장하기</Button>
-        </BottomAction>
-      )}
+      {items.length > 0 && <Check label="메뉴명과 가격을 확인했어요" checked={confirmed} onChange={setConfirmed} />}
     </Page>
   )
 }

@@ -1,10 +1,11 @@
-// P-01 참석 응답 (로그인 없음, /r/:token)
+// P-01 참석 여부 (시안 19, 로그인 없음, /r/:token)
 import { useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { rsvp } from '../../api'
 import { useAction, useAsync } from '../../hooks/useAsync'
-import { BottomAction, Badge, Button, ErrorBox, Field, Input, Loading, Rows, Segmented } from '../../components/ui'
-import { formatDateTime } from '../../lib/format'
+import { Page } from '../../components/layout'
+import { Badge, Button, Dock, Empty, Field, Input, Loading, Notice, OptionGrid, Row, Section, Textarea } from '../../components/ui'
+import { dateTimeLabel } from '../../lib/format'
 import { rsvpView } from '../../lib/status'
 import { directionsUrl } from '../../components/map/kakao'
 import type { RsvpRespondResult } from '../../types/db'
@@ -18,48 +19,42 @@ export default function RsvpPublic() {
   const [result, setResult] = useState<RsvpRespondResult | null>(null)
   const act = useAction()
 
-  if (q.loading) return <Loading />
-  if (q.error || !q.data) return <div className="page"><main className="page-body"><ErrorBox message={q.error?.message ?? '참석 조사를 찾을 수 없어요'} /></main></div>
+  if (q.loading) return <Page title="참석 여부" back={false} role="group"><Loading /></Page>
+  if (q.error || !q.data) return <Page title="참석 여부" back={false} role="group"><Empty art="link" title="참석 조사를 찾을 수 없어요.">{q.error?.message ?? '링크를 다시 확인해 주세요.'}</Empty></Page>
   const p = q.data
   const view = rsvpView(p)
-
+  const canAnswer = !p.cancelled && p.is_open && !result
   const submit = () => act.run(async () => {
-    const r = await rsvp.respondRsvp(token, name.trim(), attending === 'yes', note.trim() || undefined)
-    setResult(r)
+    setResult(await rsvp.respondRsvp(token, name.trim(), attending === 'yes', note.trim() || undefined))
     void q.reload()
   })
+  const dir = p.store_address ? directionsUrl(p.store_name, null, null, `${p.store_address} ${p.store_name}`) : null
 
   return (
-    <div className="page">
-      <header className="page-header"><h1>{p.group_name} {p.event_label}</h1></header>
-      <main className="page-body">
-        <Badge tone={view.tone}>{view.label}</Badge>
-        {p.message && <p>{p.message}</p>}
-        <Rows rows={[
-          ['일시', formatDateTime(p.start_at)],
-          ['장소', p.store_name],
-          ...(p.store_address ? [['주소', p.store_address] as [string, string]] : []),
-          ['응답 마감', formatDateTime(p.deadline)],
-          ['참석', `${p.attending}명${p.full ? ' (정원 마감)' : ''}`],
-        ]} />
-        {p.store_address && <a className="btn btn-text" href={directionsUrl(p.store_name, null, null, `${p.store_address} ${p.store_name}`)!} target="_blank" rel="noreferrer">길찾기</a>}
-
-        {p.cancelled ? <p>취소된 행사예요.</p> : !p.is_open ? <p>응답이 마감되었어요. 최종 {p.attending}명</p> :
-          result ? (
-            <div className="card">
-              <p className="strong">{result.name}님, {result.attending ? '참석' : '불참'}으로 {result.result === 'created' ? '응답했어요' : '바꿨어요'}</p>
-              <p className="muted">이 기기에서 같은 이름으로 다시 응답하면 수정돼요.</p>
-              <Button variant="text" onClick={() => setResult(null)}>응답 바꾸기</Button>
-            </div>
-          ) : (
-            <form className="form" onSubmit={(e) => { e.preventDefault(); void submit() }}>
-              <Field label="이름" hint="같은 이름이 있으면 구분해서 적어 주세요 (예: 김민준B)"><Input value={name} onChange={(e) => setName(e.target.value)} maxLength={20} required /></Field>
-              <Field label="참석 여부"><Segmented value={attending} onChange={setAttending} options={[{ value: 'yes', label: '참석' }, { value: 'no', label: '불참' }]} /></Field>
-              <Field label="메모 (선택)" error={act.error}><Input value={note} onChange={(e) => setNote(e.target.value)} maxLength={100} placeholder="예: 30분 늦어요" /></Field>
-              <BottomAction><Button variant="primary" type="submit" busy={act.busy} disabled={!name.trim()}>응답 보내기</Button></BottomAction>
-            </form>
-          )}
-      </main>
-    </div>
+    <Page title="참석 여부" back={false} role="group"
+      dock={canAnswer ? <Dock>{act.error && <p className="note-error" role="alert">{act.error}</p>}<Button variant="primary" busy={act.busy} disabled={!name.trim()} onClick={() => void submit()}>참석 여부 제출</Button></Dock>
+        : result ? <Dock><Button variant="primary" onClick={() => setResult(null)}>응답 수정하기</Button></Dock> : undefined}>
+      {result && <Notice icon="check">{result.name}님, {result.attending ? '참석' : '불참'}으로 {result.result === 'created' ? '응답했어요' : '바꿨어요'}. 같은 이름으로 다시 응답하면 수정돼요.</Notice>}
+      <section className="card">
+        <h2>{p.group_name} · {p.event_label}</h2>
+        <Row label="일시" value={dateTimeLabel(p.start_at)} />
+        <Row label="장소" value={p.store_name} />
+        <Row label="응답 마감" value={dateTimeLabel(p.deadline)} />
+        <Row label="참석" value={`${p.attending}명${p.full ? ' (정원 마감)' : ''}`} />
+        {dir && <a className="text-btn" href={dir} target="_blank" rel="noreferrer">길찾기</a>}
+      </section>
+      <Badge tone={view.tone}>{view.label}</Badge>
+      {p.message && <p className="subtitle">{p.message}</p>}
+      {p.cancelled ? <Empty art="calendar" title="취소된 행사예요." /> : !p.is_open ? <Empty art="check" title="응답이 마감되었어요.">최종 {p.attending}명이 참석해요.</Empty> : !result && (
+        <>
+          <Section title="함께할 수 있나요?">
+            <OptionGrid value={attending} onChange={setAttending} options={[{ value: 'yes', label: '참석할게요' }, { value: 'no', label: '이번엔 어려워요' }]} />
+          </Section>
+          <Field label="이름" hint="같은 이름이 있으면 구분해서 적어 주세요 (예: 김민준B)"><Input value={name} onChange={(e) => setName(e.target.value)} maxLength={20} placeholder="이름을 알려주세요." /></Field>
+          <Field label="전하고 싶은 말 (선택)"><Textarea value={note} onChange={(e) => setNote(e.target.value)} maxLength={100} placeholder="알레르기나 미리 전할 내용을 적어주세요." /></Field>
+          <p className="meta">응답은 모임 담당자가 인원을 확인하는 데 사용해요.</p>
+        </>
+      )}
+    </Page>
   )
 }

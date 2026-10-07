@@ -2,7 +2,7 @@
 import { Navigate, Outlet, useLocation } from 'react-router-dom'
 import { useSessionContext } from './session'
 import { homeFor, paths } from './paths'
-import { Loading } from '../components/ui'
+import { FrameLoading as Loading } from '../components/layout'
 import type { Role } from '../types/db'
 
 export function RequireRole({ role }: { role: Role }) {

@@ -1,0 +1,105 @@
+/* 4.10.4: quiet surfaces for secondary actions and selection controls. */
+.app .secondary,
+.app .filter-row button,
+.app .option:not(.role-tile),
+.app .select-trigger {
+  border:0;
+  background:var(--color-bg-subtle);
+  box-shadow:none;
+  transition:background-color 140ms ease,color 140ms ease;
+}
+.app .filter-row button {color:var(--color-text-secondary);font-weight:var(--font-weight-semibold)}
+.app .filter-row button[aria-pressed=true],
+.app .option:not(.role-tile)[aria-pressed=true],
+.app .select-trigger[aria-expanded=true] {
+  border:0;
+  background:var(--color-brand-subtle);
+  color:var(--color-brand-text);
+  font-weight:var(--font-weight-bold);
+}
+.app .calendar-panel[data-calendar-mode=requests] {--color-filter-selected:var(--color-filter-requests-selected)}
+.app .calendar-panel[data-calendar-mode=slots] {--color-filter-selected:var(--color-filter-slots-selected)}
+.app .calendar-panel .filter-row button {background:var(--color-surface)}
+.app .calendar-panel .filter-row button[aria-pressed=true] {background:var(--color-filter-selected);color:var(--color-brand-text)}
+.app .round-button>span {border:0;background:var(--color-bg-subtle)}
+.app .secondary:active,
+.app .filter-row button:active,
+.app .option:not(.role-tile):active,
+.app .select-trigger:active {
+  background:color-mix(in srgb,var(--color-brand) 14%,var(--color-surface));
+  transition-duration:0s;
+}
+@media(hover:hover) {
+  .app .secondary:hover:not(:active),
+  .app .filter-row button[aria-pressed=false]:hover:not(:active),
+  .app .option:not(.role-tile)[aria-pressed=false]:hover:not(:active),
+  .app .select-trigger[aria-expanded=false]:hover:not(:active) {background:var(--color-brand-subtle)}
+}
+@media(prefers-reduced-motion:reduce) {
+  .app .secondary,.app .filter-row button,.app .option:not(.role-tile),.app .select-trigger {transition:none}
+}
+
+/* 4.10.5: every enabled product action responds immediately while held. */
+.app button:is(.available-card,.request-card) {border:0;background:var(--color-bg-subtle)}
+.app button {transition:background-color 140ms ease,color 140ms ease,box-shadow 140ms ease}
+.app button:not(:disabled):active:not(.primary):not(.social-brand):not(.nav-primary) {
+  background:color-mix(in srgb,var(--control-feedback-color,var(--color-brand)) 14%,var(--color-surface));
+  box-shadow:none;
+  transition-duration:0s;
+}
+.app .calendar-tab.requests {--control-feedback-color:var(--color-calendar-requests)}
+.app .calendar-tab.slots {--control-feedback-color:var(--color-calendar-slots)}
+.app .calendar-day:not(:disabled):active {color:var(--color-brand-text)}
+.app :is(.text-btn,.icon-btn,.back,.plain,.calendar-day,.calendar-heading button) {border-radius:14px}
+.app .bottom-nav button:not(.nav-primary) {border-radius:14px}
+.app .round-button:not(:disabled):active>span {background:transparent}
+.app .event-option:not(:disabled):active {transform:none}
+.app button.primary:not(:disabled):active {transition-duration:0s}
+.app button.social-brand:not(:disabled):active {filter:brightness(.96);transition-duration:0s}
+.app button.nav-primary:not(:disabled):active {transition-duration:0s}
+.app .role-tile,.app .role-tile[aria-pressed=true] {border:0;padding:20px 16px;box-shadow:none}
+.app .role-tile[aria-pressed=true] {background:var(--color-brand-subtle);color:var(--color-brand-text)}
+.app button.text-btn.danger,.app button.danger-link,.app button.decline {--control-feedback-color:var(--tone-danger-fg)}
+@media(max-width:350px) {.app .role-tile,.app .role-tile[aria-pressed=true] {padding:16px 12px}}
+@media(prefers-reduced-motion:reduce) {.app button {transition:none}}
+
+/* 4.10.10: date/time controls share the quiet, rounded numeric input surface. */
+.app .date-trigger,.app .date-control{--date-control-pressed:color-mix(in srgb,var(--color-brand) 8%,var(--color-surface));min-height:60px;padding:17px 16px;border:0;border-radius:var(--radius-control);background:var(--color-bg-subtle);box-shadow:none;font-size:var(--text-body1-size)}
+.app .date-control :is([data-date-label],[data-time-label]){font-size:var(--text-body1-size)}
+.app button:is(.date-trigger,.date-control):not(:disabled):active:not(.primary):not(.social-brand):not(.nav-primary){background:var(--date-control-pressed);border:0;border-radius:var(--radius-control);box-shadow:none;transition-duration:0s}
+@media(hover:hover){.app :is(.date-trigger,.date-control):hover:not(:active){background:var(--date-control-pressed)}}
+
+/* 4.12.1: rounded, generously padded rows in the full UI and approved iframe. */
+:is(.app,.token-action-demo) :is(.list-link,.notification-row,.prep-summary),
+:is(.app,.token-action-demo) button.hub-shortcut,
+:is(.app,.token-action-demo) button.next-inline,
+:is(.app,.token-action-demo) .flow-panel>summary {
+ border:0;
+ border-radius:var(--radius-action-row);
+ padding:var(--space-action-row-block) var(--space-action-row-inline);
+ min-height:var(--height-action-row);
+ gap:var(--space-action-row-gap);
+ width:100%;
+}
+:is(.app,.token-action-demo) .link-list {display:flex;flex-direction:column;gap:var(--space-action-row-list-gap)}
+:is(.app,.token-action-demo) .link-list>.list-link {margin-block:0;padding-block:var(--space-action-row-block)}
+:is(.app,.token-action-demo) .list-link>div {min-width:0}
+:is(.app,.token-action-demo) .notification-row {padding-right:44px}
+:is(.app,.token-action-demo) .notification-row>.icon {right:var(--space-action-row-inline);top:22px}
+:is(.app,.token-action-demo) .flow-panel[open]>summary {min-height:var(--height-action-row);padding-bottom:var(--space-action-row-block)}
+:is(.app,.token-action-demo) .prep-summary {text-align:left}
+:is(.app,.token-action-demo) summary:active {
+ background:color-mix(in srgb,var(--color-brand) 14%,var(--color-surface));
+ transition-duration:0s;
+}
+@media(hover:hover) {
+ :is(.app,.token-action-demo) :is(.list-link,.notification-row,.prep-summary):hover:not(:active),
+ :is(.app,.token-action-demo) button.hub-shortcut:hover:not(:active),
+ :is(.app,.token-action-demo) button.next-inline:hover:not(:active),
+ :is(.app,.token-action-demo) .flow-panel>summary:hover:not(:active) {background:var(--color-brand-subtle)}
+}
+
+.token-action-demo button:not(:disabled):active {
+ background:color-mix(in srgb,var(--color-brand) 14%,var(--color-surface));
+ transition-duration:0s;
+}

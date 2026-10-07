@@ -48,3 +48,33 @@ export function localInputToIso(value: string): string {
   // value: "2026-10-14T18:30"
   return `${value}:00+09:00`
 }
+
+/** 10월 14일(수) — 시안 표기 */
+export function dateLabel(iso: string): string {
+  const p = kstParts(iso)
+  return `${Number(p.m)}월 ${Number(p.d)}일(${WEEKDAY[p.dow]})`
+}
+/** 오후 6:30 — 시안 표기 */
+export function timeLabel(iso: string): string {
+  const p = kstParts(iso)
+  const h = Number(p.hh)
+  return `${h < 12 ? '오전' : '오후'} ${h % 12 || 12}:${p.mm}`
+}
+/** 10월 14일(수) · 오후 6:30 */
+export function dateTimeLabel(iso: string): string {
+  return `${dateLabel(iso)} · ${timeLabel(iso)}`
+}
+/** YYYY-MM-DD (KST) */
+export function kstDay(iso: string | Date): string {
+  const p = kstParts(typeof iso === 'string' ? iso : iso.toISOString())
+  return `${p.y}-${p.m}-${p.d}`
+}
+/** 'YYYY-MM-DD' → 10월 14일(수) */
+export function dayLabel(day: string): string {
+  return dateLabel(`${day}T12:00:00+09:00`)
+}
+/** 'HH:MM' → 오후 6:30 */
+export function hmLabel(hm: string): string {
+  const [h, m] = hm.split(':').map(Number)
+  return `${h < 12 ? '오전' : '오후'} ${h % 12 || 12}:${String(m).padStart(2, '0')}`
+}

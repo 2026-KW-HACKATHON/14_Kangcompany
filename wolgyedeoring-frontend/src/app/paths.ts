@@ -8,7 +8,8 @@ export const paths = {
   signup: '/signup', // A-03
   onboardingGroup: '/onboarding/group', // A-04
   onboardingStore: '/onboarding/store', // A-05
-  notifications: '/notifications', // C-01
+  notifications: '/notifications', // C-01 (시안 33·34)
+  notification: (id: number | string) => `/notifications/${id}`, // C-02 알림 상세 (시안 7·35)
   rsvpPublic: (token: string) => `/r/${token}`, // P-01
   paySuccess: '/pay/success', // G-10
   payFail: '/pay/fail', // G-10
