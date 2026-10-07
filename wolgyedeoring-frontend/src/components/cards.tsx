@@ -4,7 +4,7 @@ import { paths } from '../app/paths'
 import { Badge, Countdown } from './ui'
 import { Icon } from './icons'
 import { dateTimeLabel, formatWon, timeLabel, dateLabel } from '../lib/format'
-import { REQUEST_STATUS, RESERVATION_STATUS, effectiveRequestStatus, eventLabel } from '../lib/status'
+import { REQUEST_STATUS, RESERVATION_STATUS, effectiveRequestStatus, eventLabel, noteBody } from '../lib/status'
 import type { ReservationRow } from '../api/reservations'
 import type { Request } from '../types/db'
 import type { SlotWithStore } from '../api/slots'
@@ -53,18 +53,39 @@ export function SlotCard({ s }: { s: SlotWithStore }) {
   )
 }
 
-/** 사장님에게 온 동네 요청 카드 (익명) */
-export function OwnerRequestCard({ id, headcount, desiredAt, budget, eventType, note, mine }: {
-  id: number; headcount: number; desiredAt: string; budget: number; eventType: Request['event_type']; note: string | null; mine?: string
+/** 420000 → 42만 원, 425000 → 42.5만 원 */
+const shortWon = (n: number) => (n >= 10000 ? `${Math.round(n / 1000) / 10}만 원` : formatWon(n))
+
+/** 사장님에게 온 동네 요청 카드 — 흰 카드 + 왼쪽 색 띠, 핵심 숫자(인원·예산·총액)를 색 칩으로 */
+export function OwnerRequestCard({ id, headcount, desiredAt, budget, eventType, note, mine, groupName, deadline, canAccept = true, remaining }: {
+  id: number; headcount: number; desiredAt: string; budget: number; eventType: Request['event_type']; note: string | null
+  mine?: string | null; groupName?: string; deadline?: string; canAccept?: boolean; remaining?: number
 }) {
   const nav = useNavigate()
+  const declined = mine === 'declined'
+  const memo = noteBody(note)
+  const hoursLeft = deadline ? (new Date(deadline).getTime() - Date.now()) / 3600e3 : null
+  const urgent = hoursLeft !== null && hoursLeft > 0 && hoursLeft <= 3
+  const state = declined ? 'is-declined' : !canAccept ? 'is-blocked' : urgent ? 'is-urgent' : 'is-new'
   return (
-    <button type="button" className="offer-card request-card" onClick={() => nav(paths.ownerRequest(id))}>
-      <div className="row"><Badge tone={mine === 'declined' ? 'muted' : 'neutral'}>{mine === 'declined' ? '거절함' : '새 요청'}</Badge><span className="meta">월계동 · 단체 요청</span></div>
-      <h3>{eventLabel(eventType, note)} · {headcount}명</h3>
-      <p className="slot-time">{dateLabel(desiredAt)} · {timeLabel(desiredAt)}</p>
-      <p>1인 {formatWon(budget)}</p>
-      <span className="card-action">조건 확인 후 수락<Icon name="chevron" /></span>
+    <button type="button" className={`req-tile ${state}`} onClick={() => nav(paths.ownerRequest(id))}>
+      <div className="req-tile-top">
+        <Badge tone={declined ? 'muted' : !canAccept ? 'muted' : 'success'}>{declined ? '거절함' : !canAccept ? '자리 부족' : '새 요청'}</Badge>
+        {groupName && <span className="req-tile-group">{groupName}</span>}
+      </div>
+      <h3>{eventLabel(eventType, note)}</h3>
+      <p className="req-tile-when"><Icon name="calendar" />{dateLabel(desiredAt)} · {timeLabel(desiredAt)}</p>
+      <div className="req-tile-chips">
+        <span className="req-chip people"><small>인원</small><strong>{headcount}명</strong></span>
+        <span className="req-chip budget"><small>1인</small><strong>{formatWon(budget)}</strong></span>
+        <span className="req-chip total"><small>총액</small><strong>{shortWon(headcount * budget)}</strong></span>
+      </div>
+      {memo && <p className="req-tile-memo">“{memo}”</p>}
+      <div className="req-tile-foot">
+        {deadline ? <Countdown until={deadline} /> : <span />}
+        {!canAccept && remaining !== undefined && <span className="meta">남은 자리 {remaining}석</span>}
+        <span className="req-tile-cta">확인하기<Icon name="chevron" /></span>
+      </div>
     </button>
   )
 }

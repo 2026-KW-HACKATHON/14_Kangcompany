@@ -56,7 +56,7 @@ export default function OwnerHome() {
     <Page title={store.name} back={false} bell nav>
       {q.loading ? <Loading /> : q.error || !d ? <ErrorBox message={q.error?.message ?? ''} onRetry={q.reload} /> : (
         <>
-          <p className="meta home-identity">{store.name} · {me.display_name.endsWith('사장님') ? me.display_name : `${me.display_name} 사장님`}</p>
+          <p className="meta home-identity">{me.display_name.includes(store.name) ? me.display_name : `${store.name} · ${me.display_name.endsWith('사장님') ? me.display_name : `${me.display_name} 사장님`}`}</p>
 
           {d.needFinish.length > 0 ? (
             <button type="button" className="attention-banner" onClick={() => nav(paths.ownerReservation(d.needFinish[0].id))}>
@@ -116,7 +116,7 @@ export default function OwnerHome() {
                   )
                 }) : (
                   <>
-                    {dayReqs.map((r) => <OwnerRequestCard key={r.request_id} id={r.request_id} headcount={r.headcount} desiredAt={r.desired_at} budget={r.budget_per_person} eventType={r.event_type} note={r.note} mine={r.my_response ?? undefined} />)}
+                    {dayReqs.map((r) => <OwnerRequestCard key={r.request_id} id={r.request_id} headcount={r.headcount} desiredAt={r.desired_at} budget={r.budget_per_person} eventType={r.event_type} note={r.note} mine={r.my_response} groupName={r.group_name} deadline={r.response_deadline} canAccept={r.can_accept} remaining={r.remaining_capacity} />)}
                     {dayRes.length > 0 && <section className="section"><h2>수락한 일정</h2>{dayRes.map((r) => <ReservationCard key={r.id} r={r} role="owner" />)}</section>}
                   </>
                 )}
