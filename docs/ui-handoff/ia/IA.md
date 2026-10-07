@@ -28,7 +28,7 @@
 - **서비스 형태**: 모바일 웹 우선의 웹앱 (React + Vite). 기준 폭 375px
 - **역할**: 단체 담당자(`group`), 가게 사장님(`owner`), 참석자(로그인 없음). 운영자는 [#4](https://github.com/2026-KW-HACKATHON/14_Kangcompany/issues/4) 결정 대기
 - **매칭**: 단체가 요청 → 조건을 받을 수 있는 가게 중 **가장 먼저 수락한 가게로 확정**(결제 대기). 단체가 가게를 고르는 단계는 없다
-- **범위 밖**: 좌석 배치도([#5](https://github.com/2026-KW-HACKATHON/14_Kangcompany/issues/5)), 운영자 화면([#4](https://github.com/2026-KW-HACKATHON/14_Kangcompany/issues/4))
+- **범위 밖**: 운영자 화면([#4](https://github.com/2026-KW-HACKATHON/14_Kangcompany/issues/4))
 
 ### 상태 표기
 
@@ -161,6 +161,7 @@ flowchart TB
 | S-12 | 분석 대시보드 | n66~n69 | 하단 탭 | S-13 | ✅ |
 | S-13 | 미충족 수요 | n70 | S-12 | S-12 | ✅ (운영자 화면 n71~n73과의 관계는 ⏸ [#4](https://github.com/2026-KW-HACKATHON/14_Kangcompany/issues/4)) |
 | S-14 | 가게 정보 수정 | n74, n75 | 상단 ⚙ | S-01 | ✅ 로그아웃도 여기 |
+| S-15 | 좌석 배치도 | — | S-01 바로가기, S-14, 알림 | S-01 | 🆕 명세 7 (#5). 사진 인식 → 편집 → 임시 저장/게시, 손님 제안 답변. 손님은 G-05·G-06 에서 게시본 보기·제안 |
 
 ### 4-4. 참석자 (로그인 없음)
 
@@ -176,7 +177,6 @@ flowchart TB
 | — | 알림 상세 | n17 | 🗑 알림을 누르면 관련 화면으로 바로 이동 |
 | O-01 | 운영자 홈 | n71 | ⏸ [#4](https://github.com/2026-KW-HACKATHON/14_Kangcompany/issues/4) |
 | O-02 | 운영자 미충족 수요 조회 | n72, n73 | ⏸ [#4](https://github.com/2026-KW-HACKATHON/14_Kangcompany/issues/4) |
-| — | 좌석 배치도 | (없음) | ⏸ [#5](https://github.com/2026-KW-HACKATHON/14_Kangcompany/issues/5) |
 
 ---
 
