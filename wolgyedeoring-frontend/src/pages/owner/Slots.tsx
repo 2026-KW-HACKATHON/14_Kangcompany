@@ -76,9 +76,10 @@ export default function OwnerSlots() {
       </Section>
       <Section title="공통 조건">
         <div className="condition-grid">
-          <Field label="최대 인원" hint={`가게 최대 ${store.max_capacity}명`}><Input type="number" inputMode="numeric" min={1} max={store.max_capacity} value={capacity} onChange={(e) => setCapacity(e.target.value)} /></Field>
+          <Field label="최대 인원"><Input type="number" inputMode="numeric" min={1} max={store.max_capacity} value={capacity} onChange={(e) => setCapacity(e.target.value)} /></Field>
           <Field label="예약금 (원)"><Input type="number" inputMode="numeric" min={0} step={1000} value={deposit} onChange={(e) => setDeposit(e.target.value)} /></Field>
         </div>
+        <p className="meta">최대 인원은 가게 최대 {store.max_capacity}명까지 정할 수 있어요.</p>
       </Section>
       <p className="meta">{dates.length}개 날짜 × {ranges.length}개 시간대 · 선택한 날짜마다 시간대가 동일하게 적용돼요.</p>
 
