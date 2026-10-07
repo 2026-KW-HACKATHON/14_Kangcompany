@@ -1,6 +1,6 @@
 -- =====================================================================
 -- 월계더링 시연용 데모 데이터
--- 전제: 001~008 실행 완료 + scripts/create-demo-users.mjs 로 데모 계정 생성 완료
+-- 전제: 001~009 실행 완료 + scripts/create-demo-users.mjs 로 데모 계정 생성 완료
 -- SQL Editor 에서 실행. 여러 번 실행해도 데모 계정의 기존 데이터를 지우고 다시 만든다
 -- 날짜는 실행 시점 기준 (지난 8주 이력 + 앞으로 2주 일정)
 -- =====================================================================
@@ -15,6 +15,7 @@ declare
   v_req bigint; v_res bigint; v_rc bigint; v_status text; v_total int;
   v_today date := (now() at time zone 'Asia/Seoul')::date;
   m record;
+  v_layout jsonb; v_sum jsonb;
 begin
   perform setseed(0.42);  -- 매번 같은 데이터
 
@@ -233,6 +234,37 @@ begin
 
   insert into public.requests (group_id, event_type, desired_at, flexible_days, headcount, budget_per_person)
   values (g_town, 'etc', ((v_today + 11) + time '18:30') at time zone 'Asia/Seoul', 1, 18, 20000);
+
+  -- ----------------------------------------------------------------
+  -- 좌석 배치도 (009): 고기굽는집 게시본 60석 + 손님 제안 1건 (시연: 사장님이 제안 확인)
+  -- ----------------------------------------------------------------
+  v_layout := jsonb_build_object('width', 100, 'height', 70,
+    'tables', jsonb_build_array(
+      jsonb_build_object('id','t1','label','T1','x',6, 'y',6, 'w',14,'h',10,'shape','rect','seats',4),
+      jsonb_build_object('id','t2','label','T2','x',26,'y',6, 'w',14,'h',10,'shape','rect','seats',4),
+      jsonb_build_object('id','t3','label','T3','x',46,'y',6, 'w',14,'h',10,'shape','rect','seats',4),
+      jsonb_build_object('id','t4','label','T4','x',66,'y',6, 'w',14,'h',10,'shape','rect','seats',4),
+      jsonb_build_object('id','t5','label','T5','x',6, 'y',24,'w',14,'h',10,'shape','rect','seats',4),
+      jsonb_build_object('id','t6','label','T6','x',26,'y',24,'w',14,'h',10,'shape','rect','seats',4),
+      jsonb_build_object('id','t7','label','T7','x',46,'y',24,'w',14,'h',10,'shape','rect','seats',4),
+      jsonb_build_object('id','t8','label','T8','x',66,'y',24,'w',14,'h',10,'shape','rect','seats',4),
+      jsonb_build_object('id','t9','label','단체1','x',6, 'y',42,'w',40,'h',10,'shape','rect','seats',12),
+      jsonb_build_object('id','t10','label','단체2','x',52,'y',42,'w',28,'h',10,'shape','rect','seats',10),
+      jsonb_build_object('id','t11','label','바','x',86,'y',6,'w',8,'h',32,'shape','rect','seats',6)),
+    'fixtures', jsonb_build_array(
+      jsonb_build_object('id','f1','kind','window','label',null,'x',6,'y',0,'w',74,'h',3),
+      jsonb_build_object('id','f2','kind','entrance','label',null,'x',40,'y',66,'w',16,'h',4),
+      jsonb_build_object('id','f3','kind','counter','label',null,'x',84,'y',58,'w',12,'h',10),
+      jsonb_build_object('id','f4','kind','kitchen','label',null,'x',84,'y',42,'w',12,'h',12),
+      jsonb_build_object('id','f5','kind','restroom','label',null,'x',4,'y',58,'w',12,'h',10)));
+  v_sum := public._validate_layout(v_layout);
+  insert into public.store_layouts (store_id, kind, layout, table_count, total_seats, source, updated_by, published_at)
+  select s_meat, k, v_layout, (v_sum ->> 'table_count')::int, (v_sum ->> 'total_seats')::int, 'photo', u_o1,
+         case when k = 'published' then now() end
+    from unnest(array['draft', 'published']) k;
+  insert into public.layout_suggestions (store_id, user_id, note)
+  values (s_meat, u_band, '창가 T4 자리가 지금은 2인석 두 개로 나뉘어 있어요.');
+  perform public._notify(u_o1, 'layout_suggested', '좌석 배치도 수정 제안이 왔어요', '창가 T4 자리가 지금은 2인석 두 개로 나뉘어 있어요.');
 
   raise notice '데모 데이터 생성 완료';
 end $$;

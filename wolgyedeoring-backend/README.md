@@ -14,6 +14,7 @@ supabase/
     007_first_accept.sql  선착순 확정, 가게 응답 기한, 같은 시간대 수용 인원 제한
     008_fe_requests.sql   FE 요청 반영(#10): 응답 기한·남은 자리, 요청 철회, 가게 수, 행동 플래그,
                           연락처, 가게 정보·좌표·사진 저장소, 수락 알림 통합, 테이블 직접 쓰기 권한 축소
+    009_seat_layout.sql   좌석 배치도(명세 7): 임시본·게시본, 서버 검증, 손님 수정 제안
   functions/
     extract-menu/         메뉴판 사진 → LLM 메뉴 후보 + 기존 메뉴 비교 (저장 안 함)
       index.ts, menu.ts
@@ -22,6 +23,8 @@ supabase/
       llm.ts              LLM 호출 (다른 LLM 으로 바꿀 때 이 파일만 교체)
       validate.ts         검증 규칙 (산술, 합계, 메뉴 매칭, 일시)
     toss-payment/         토스 결제 승인·환불 취소
+    extract-layout/       평면도·손그림·홀 사진 → LLM 테이블·시설 후보 (저장 안 함)
+      index.ts, layout.ts  (layout.ts 는 프런트와 공유하는 정리·검사 규칙)
       index.ts            진입점 (금액 검증, 승인 후 확정 실패 시 자동 환불)
       toss.ts             토스 API 호출
 scripts/
@@ -45,7 +48,8 @@ tests/                    로컬 테스트 (Supabase 에는 올리지 않음)
 6. `006_rsvp.sql` 실행
 7. `007_first_accept.sql` 실행
 8. `008_fe_requests.sql` 실행
-9. 확인: `scripts/check_migrations.sql` 실행 → ok 열이 모두 true (7번 Realtime 은 Supabase 에서만 true)
+9. `009_seat_layout.sql` 실행
+10. 확인: `scripts/check_migrations.sql` 실행 → ok 열이 모두 true (7번 Realtime 은 Supabase 에서만 true)
 
 > 이미 운영 중인 DB 에 008 을 적용하면 `open_requests_for_store` 반환 형식이 바뀐다 (컬럼 추가만, 기존 컬럼 유지).
 > 008 은 앱이 `requests`·`request_responses`·`profiles.role` 에 직접 쓰는 권한을 회수한다 → API.md 방식만 쓰면 영향 없음.
@@ -61,6 +65,7 @@ npx supabase login
 npx supabase secrets set ANTHROPIC_API_KEY=발급받은키 --project-ref 프로젝트ID
 npx supabase functions deploy process-receipt --project-ref 프로젝트ID
 npx supabase functions deploy extract-menu --project-ref 프로젝트ID      # ANTHROPIC_API_KEY 공용
+npx supabase functions deploy extract-layout --project-ref 프로젝트ID    # 좌석 배치도, ANTHROPIC_API_KEY 공용
 
 npx supabase secrets set TOSS_SECRET_KEY=테스트시크릿키 --project-ref 프로젝트ID
 npx supabase functions deploy toss-payment --project-ref 프로젝트ID
@@ -69,7 +74,7 @@ npx supabase functions deploy toss-payment --project-ref 프로젝트ID
 - 토스 키: tosspayments.com 가입 → 개발자센터 → API 키. 테스트 **클라이언트 키는 프런트에, 시크릿 키는 서버 비밀값에만**. 두 키는 같은 세트여야 함
 
 - 프로젝트 ID: 대시보드 주소 `supabase.com/dashboard/project/<여기>`
-- 모델을 바꾸려면: `npx supabase secrets set RECEIPT_MODEL=모델명 --project-ref 프로젝트ID`
+- 모델을 바꾸려면: `npx supabase secrets set RECEIPT_MODEL=모델명 --project-ref 프로젝트ID` (메뉴판 `MENU_MODEL`, 배치도 `LAYOUT_MODEL`)
 - API 키는 저장소에 커밋하지 말 것
 
 ### 4. 프런트에 전달할 것
@@ -110,8 +115,8 @@ psql -d 테스트DB -f tests/stub_supabase.sql -f supabase/migrations/001_schema
      -f supabase/migrations/006_rsvp.sql -f supabase/migrations/007_first_accept.sql \
      -f supabase/migrations/008_fe_requests.sql -f tests/test_flow.sql
 # 003 기능은 tests/test_features.sql, 004 결제는 tests/test_toss.sql, 005 메뉴·사전 주문은 tests/test_preorder.sql, 006 참석 조사는 tests/test_rsvp.sql
-# 007 선착순은 tests/test_first_accept.sql, 008 FE 요청 반영은 tests/test_fe_requests.sql
-# 토스·메뉴판 모듈: node --experimental-strip-types --test tests/toss.test.ts tests/menu.test.ts
+# 007 선착순은 tests/test_first_accept.sql, 008 FE 요청 반영은 tests/test_fe_requests.sql, 009 좌석 배치도는 tests/test_layout.sql
+# 토스·메뉴판·배치도 모듈: node --experimental-strip-types --test tests/toss.test.ts tests/menu.test.ts tests/layout.test.ts
 # 데모 데이터는 tests/demo_users.sql 다음에 scripts/seed_demo.sql
 ```
 

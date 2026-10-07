@@ -1,4 +1,4 @@
--- 001~008 적용 확인: SQL Editor 에서 실행 → ok 열이 모두 true 면 정상
+-- 001~009 적용 확인: SQL Editor 에서 실행 → ok 열이 모두 true 면 정상
 with expected_fn(name) as (values
   ('respond_to_request'), ('book_slot'), ('pay_deposit_test'), ('cancel_reservation'),
   ('finish_reservation'), ('correct_receipt_item'), ('add_receipt_item'), ('delete_receipt_item'), ('confirm_receipt'),
@@ -8,10 +8,12 @@ with expected_fn(name) as (values
   ('book_slot_with_menu'),
   ('create_rsvp'), ('get_rsvp_public'), ('respond_rsvp'), ('delete_rsvp_response'), ('close_rsvp'),
   ('expire_old_requests'), ('_store_committed_headcount'),
-  ('reservation_contacts'), ('cancel_request'), ('request_reach'), ('reservation_actions')
+  ('reservation_contacts'), ('cancel_request'), ('request_reach'), ('reservation_actions'),
+  ('save_store_layout'), ('get_store_layout'), ('suggest_layout_change'), ('list_layout_suggestions'),
+  ('respond_layout_suggestion'), ('_validate_layout')
 ),
 checks(no, item, expected, actual) as (
-  select 1, '테이블 수', '15',  -- 007 은 테이블을 추가하지 않음 (컬럼만 추가)
+  select 1, '테이블 수', '17',  -- 009 에서 store_layouts, layout_suggestions 추가
          (select count(*)::text from information_schema.tables where table_schema = 'public' and table_type = 'BASE TABLE')
   union all
   select 2, 'RLS 꺼진 테이블', '없음',
@@ -84,6 +86,13 @@ checks(no, item, expected, actual) as (
   union all
   select 20, '빈 날짜 직접 수정 보호 트리거', 'trg_slots_guard_direct_update',
          coalesce((select tgname from pg_trigger where tgname = 'trg_slots_guard_direct_update'), '없음')
+  union all
+  select 21, '좌석 배치도 테이블 (store_layouts, layout_suggestions)', '2',
+         (select count(*)::text from information_schema.tables
+           where table_schema = 'public' and table_name in ('store_layouts', 'layout_suggestions'))
+  union all
+  select 22, '로그인 사용자가 배치도 직접 쓰기 가능?', 'false',
+         has_table_privilege('authenticated', 'public.store_layouts', 'insert')::text
 )
 select no, item as "확인 항목", expected as "기대값", actual as "실제값", expected = actual as ok
 from checks order by no;

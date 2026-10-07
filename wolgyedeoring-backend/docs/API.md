@@ -13,8 +13,9 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)  // URL·anon key
 에러는 `{ data, error }` 의 `error.message` 에 한글 사유가 담겨 온다. 그대로 사용자에게 보여줘도 된다.
 권한이 없으면 `error.code === '42501'` (테이블 직접 쓰기 금지 위반도 `permission denied` 로 온다).
 
-> **기준: 마이그레이션 001~008** (2026-10-05 갱신)
+> **기준: 마이그레이션 001~009** (2026-10-07 갱신)
 > - 007: 선착순 확정 — 가게가 수락하면 그 즉시 예약 생성(결제 대기). `choose_response*` 삭제
+> - 009: 좌석 배치도 (사진 인식 → 편집 → 게시, 손님 수정 제안) — 7장
 > - 008: 응답 기한·남은 자리, 요청 철회, 가게 수, 행동 플래그, 연락처, 가게 정보·좌표, 수락 알림 1건 통합, 행사 전 완료 처리 금지, 테이블 직접 쓰기 권한 축소
 
 ---
@@ -400,6 +401,8 @@ supabase.channel('my-notifications')
 | `preorder_changed` | 사장님 | 확정 후 사전 주문 변경 | `reservation_id` |
 | `rsvp_closed` | 사장님 | 참석 조사 마감 (최종 인원) | `reservation_id` |
 | `receipt_review` | 사장님 | 영수증 확인 필요 | `reservation_id`, `receipt_id` |
+| `layout_suggested` | 사장님 | 손님이 좌석 배치도 수정 제안 (009) | 없음 → 배치도 화면 |
+| `layout_suggestion_answered` | 제안한 사람 | 사장님이 제안에 답변 (009) | 없음 |
 
 008 변경: 가게 수락 시 단체가 받던 알림 2건(`request_accepted` + `reservation_new`)을 `request_accepted` 1건으로 합침 (R-01).
 
@@ -441,3 +444,52 @@ supabase.from('v_store_item_stats').select('*').gte('event_date', '2026-09-01').
 ```
 
 단체별 합계·메뉴별 합계는 받아온 행을 프런트에서 묶어서 계산한다 (데이터 양이 적어 충분함).
+
+## 7. 좌석 배치도 (009, 명세 7)
+
+사장님이 사진(평면도·손그림·홀 사진)으로 테이블 후보를 인식 → 편집 화면에서 확인·보정 → **게시**하면 손님 예약 화면에 보인다.
+게시 전 저장은 **임시본**으로만 남아 손님에게 보이지 않는다. 원본 사진은 저장하지 않는다.
+
+### 좌표 형식
+
+```js
+// 가로 100 기준, 세로 height(40~200). x,y = 왼쪽 위
+{ width: 100, height: 70,
+  tables:   [{ id: 't1', label: 'T1', x: 6, y: 6, w: 14, h: 10, shape: 'rect' | 'round', seats: 4 }],   // 100개까지, 좌석 1~30, 이름 1~10자·중복 불가
+  fixtures: [{ id: 'f1', kind: 'entrance' | 'counter' | 'kitchen' | 'restroom' | 'window' | 'other', label: null, x, y, w, h }] }
+```
+정리·검사 규칙은 `supabase/functions/extract-layout/layout.ts` 한 파일에 있고 프런트도 같은 파일을 쓴다 (`normalizeLayout`, `summarizeLayout`).
+서버(`save_store_layout`)는 규칙에 맞지 않으면 고치지 않고 한글 사유로 거절한다.
+
+### 사장님
+
+```js
+// 1) 사진 인식 (저장 안 함). 이미지 크기를 함께 보내면 세로 비율이 맞음
+const { data } = await supabase.functions.invoke('extract-layout', {
+  body: { store_id, image_base64, media_type: 'image/jpeg', image_width, image_height }
+})
+// data = { layout, summary: { table_count, total_seats, overlaps, warnings }, source_type, note }
+
+// 2) 저장: p_publish=false 임시본만 / true 게시본도 (손님에게 보임, 테이블 0개면 거절)
+await supabase.rpc('save_store_layout', { p_store_id, p_layout: layout, p_source: 'photo' | 'manual', p_publish: true })
+
+// 3) 손님 제안 목록 / 답변 (답변은 알림만. 배치도 반영은 직접 편집 후 게시)
+supabase.rpc('list_layout_suggestions', { p_store_id })   // [{ id, note, status, created_at, responded_at, suggester_name }]
+supabase.rpc('respond_layout_suggestion', { p_suggestion_id, p_accept: true })
+```
+
+### 누구나 (로그인)
+
+```js
+const { data } = await supabase.rpc('get_store_layout', { p_store_id })
+// { store_id, is_owner,
+//   published: { layout, table_count, total_seats, source, published_at } | null,
+//   draft: { …, updated_at, unpublished_changes } | null,     // 사장님만
+//   pending_suggestions: 3 | null }                            // 사장님만
+
+// 실제와 다른 점 제안 (본인 가게 불가, 한 가게에 대기 중 제안 1인당 3개까지, 1~300자)
+await supabase.rpc('suggest_layout_change', { p_store_id, p_note: '창가 4인석이 2인석 두 개로 나뉘어 있어요' })
+```
+
+- `store_layouts`, `layout_suggestions` 는 직접 쓸 수 없다 (함수로만)
+- 비로그인 참석 응답 화면(`/r/:token`)에는 배치도를 보여주지 않는다
