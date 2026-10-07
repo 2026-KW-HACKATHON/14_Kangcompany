@@ -42,6 +42,11 @@ select 'modify accept', start_at is not null, headcount, modify_status from resp
 set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000c';
 select 'pay', status from pay_deposit_test(:res);
 set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000a';
+-- 008(R-03): 행사 시작 전에는 완료 처리 불가 → 확인 후 시작 시각을 과거로 옮겨 진행
+\set ON_ERROR_STOP 0
+select finish_reservation(:res);
+\set ON_ERROR_STOP 1
+reset role; update reservations set start_at = now() - interval '3 hour' where id = :res; set role authenticated;
 select 'finish', status from finish_reservation(:res);
 select '사장A 알림 목록', type from notifications order by id;
 select '읽음 처리', mark_notifications_read();

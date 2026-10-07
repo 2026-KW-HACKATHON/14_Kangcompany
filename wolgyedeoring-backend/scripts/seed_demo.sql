@@ -1,6 +1,6 @@
 -- =====================================================================
 -- 월계더링 시연용 데모 데이터
--- 전제: 001~006 실행 완료 + scripts/create-demo-users.mjs 로 데모 계정 생성 완료
+-- 전제: 001~009 실행 완료 + scripts/create-demo-users.mjs 로 데모 계정 생성 완료
 -- SQL Editor 에서 실행. 여러 번 실행해도 데모 계정의 기존 데이터를 지우고 다시 만든다
 -- 날짜는 실행 시점 기준 (지난 8주 이력 + 앞으로 2주 일정)
 -- =====================================================================
@@ -15,6 +15,7 @@ declare
   v_req bigint; v_res bigint; v_rc bigint; v_status text; v_total int;
   v_today date := (now() at time zone 'Asia/Seoul')::date;
   m record;
+  v_layout jsonb; v_sum jsonb;
 begin
   perform setseed(0.42);  -- 매번 같은 데이터
 
@@ -36,12 +37,18 @@ begin
   delete from public.notifications where user_id in (u_o1, u_o2, u_o3, u_sw, u_ee, u_band, u_fc, u_town);
 
   -- 가게 · 메뉴
-  insert into public.stores (owner_id, name, address, max_capacity)
-  values (u_o1, '고기굽는집', '서울 노원구 월계1동', 60) returning id into s_meat;
-  insert into public.stores (owner_id, name, address, max_capacity)
-  values (u_o2, '월계치킨', '서울 노원구 월계1동', 40) returning id into s_chicken;
-  insert into public.stores (owner_id, name, address, max_capacity)
-  values (u_o3, '광운분식', '서울 노원구 월계1동', 30) returning id into s_snack;
+  -- 전화번호·좌표는 시연용 가상 값 (좌표는 광운대 인근 임의 지점, 실제 가게 위치 아님)
+  insert into public.stores (owner_id, name, address, max_capacity, phone, intro, lat, lng)
+  values (u_o1, '고기굽는집', '서울 노원구 월계1동', 60, '02-0000-0001', '단체석 60석, 개강·종강총회 전문', 37.6188, 127.0581) returning id into s_meat;
+  insert into public.stores (owner_id, name, address, max_capacity, phone, intro, lat, lng)
+  values (u_o2, '월계치킨', '서울 노원구 월계1동', 40, '02-0000-0002', '뒤풀이 단골집, 생맥주 단체 할인', 37.6201, 127.0569) returning id into s_chicken;
+  insert into public.stores (owner_id, name, address, max_capacity, phone, intro, lat, lng)
+  values (u_o3, '광운분식', '서울 노원구 월계1동', 30, '02-0000-0003', '간식행사 대량 포장 가능', 37.6179, 127.0602) returning id into s_snack;
+
+  -- 데모 계정 연락처 (B-01, 가상 번호)
+  update public.profiles set phone = '010-0000-0' || lpad(n::text, 3, '0')
+    from (values (u_o1, 1), (u_o2, 2), (u_o3, 3), (u_sw, 11), (u_ee, 12), (u_band, 13), (u_fc, 14), (u_town, 15)) v(uid, n)
+   where id = v.uid;
 
   insert into public.menus (store_id, name, price) values
     (s_meat, '삼겹살', 15000), (s_meat, '목살', 16000), (s_meat, '된장찌개', 8000),
@@ -158,10 +165,7 @@ begin
     from (values (g_sw, 'opening_party', 50, 80, 15000), (g_ee, 'closing_party', 20, 75, 15000),
                  (g_band, 'after_party', 12, 35, 10000), (g_fc, 'after_party', 26, 65, 12000),
                  (g_sw, 'snack_event', 33, 120, 3000), (g_town, 'etc', 40, 25, 10000)) v(g, ev, d, hc, b);
-  -- 그중 하나는 가게가 수락했지만 단체가 선택하지 않음
-  insert into public.request_responses (request_id, store_id, status, deposit_amount)
-  select id, s_chicken, 'accepted', 50000 from public.requests
-   where group_id = g_band and status = 'expired' limit 1;
+  -- (007 선착순 이후 "수락했지만 단체가 선택하지 않음"은 생길 수 없어 해당 데이터 삭제)
 
   -- 과거 이력 알림은 지움 (아래 앞으로 일정만 알림으로 남김)
   delete from public.notifications where user_id in (u_o1, u_o2, u_o3, u_sw, u_ee, u_band, u_fc, u_town);
@@ -222,14 +226,40 @@ begin
     (s_meat,    ((v_today + 13) + time '18:00') at time zone 'Asia/Seoul', ((v_today + 13) + time '21:00') at time zone 'Asia/Seoul', 45, 50000),
     (s_chicken, ((v_today + 12) + time '19:00') at time zone 'Asia/Seoul', ((v_today + 12) + time '22:00') at time zone 'Asia/Seoul', 40, 30000);
 
-  -- 열린 요청 2건 (하나는 가게 1곳 수락) → 사장님·단체 알림이 생김
+  -- 열린 요청 2건 → 사장님에게 새 요청 알림. 시연에서 사장님이 직접 수락 (선착순)
+  --  (007 이전에는 '수락됐지만 열린 요청'을 넣었으나, 선착순에서는 수락 = 즉시 예약이라 제거)
   insert into public.requests (group_id, event_type, desired_at, flexible_days, headcount, budget_per_person, note)
   values (g_band, 'after_party', ((v_today + 9) + time '20:00') at time zone 'Asia/Seoul', 2, 28, 15000, '공연 끝나고 21시 이후 입장 가능한 곳')
   returning id into v_req;
-  insert into public.request_responses (request_id, store_id, status, deposit_amount) values (v_req, s_chicken, 'accepted', 30000);
 
   insert into public.requests (group_id, event_type, desired_at, flexible_days, headcount, budget_per_person)
   values (g_town, 'etc', ((v_today + 11) + time '18:30') at time zone 'Asia/Seoul', 1, 18, 20000);
+
+  -- ----------------------------------------------------------------
+  -- 좌석 배치도 (009): 고기굽는집 게시본 60석
+  -- ----------------------------------------------------------------
+  v_layout := jsonb_build_object('width', 100, 'height', 70,
+    'tables', jsonb_build_array(
+      jsonb_build_object('id','t1','label','T1','x',6, 'y',6, 'w',14,'h',10,'shape','rect','seats',4),
+      jsonb_build_object('id','t2','label','T2','x',26,'y',6, 'w',14,'h',10,'shape','rect','seats',4),
+      jsonb_build_object('id','t3','label','T3','x',46,'y',6, 'w',14,'h',10,'shape','rect','seats',4),
+      jsonb_build_object('id','t4','label','T4','x',66,'y',6, 'w',14,'h',10,'shape','rect','seats',4),
+      jsonb_build_object('id','t5','label','T5','x',6, 'y',24,'w',14,'h',10,'shape','rect','seats',4),
+      jsonb_build_object('id','t6','label','T6','x',26,'y',24,'w',14,'h',10,'shape','rect','seats',4),
+      jsonb_build_object('id','t7','label','T7','x',46,'y',24,'w',14,'h',10,'shape','rect','seats',4),
+      jsonb_build_object('id','t8','label','T8','x',66,'y',24,'w',14,'h',10,'shape','rect','seats',4),
+      jsonb_build_object('id','t9','label','단체1','x',6, 'y',42,'w',40,'h',10,'shape','rect','seats',12),
+      jsonb_build_object('id','t10','label','단체2','x',52,'y',42,'w',28,'h',10,'shape','rect','seats',10),
+      jsonb_build_object('id','t11','label','바','x',86,'y',6,'w',8,'h',32,'shape','rect','seats',6)),
+    'fixtures', jsonb_build_array(
+      jsonb_build_object('id','f1','kind','window','label',null,'x',6,'y',0,'w',74,'h',3),
+      jsonb_build_object('id','f2','kind','entrance','label',null,'x',40,'y',66,'w',16,'h',4),
+      jsonb_build_object('id','f3','kind','counter','label',null,'x',84,'y',58,'w',12,'h',10),
+      jsonb_build_object('id','f4','kind','kitchen','label',null,'x',84,'y',42,'w',12,'h',12),
+      jsonb_build_object('id','f5','kind','restroom','label',null,'x',4,'y',58,'w',12,'h',10)));
+  v_sum := public._validate_layout(v_layout);
+  insert into public.store_layouts (store_id, layout, table_count, total_seats, source, updated_by)
+  values (s_meat, v_layout, (v_sum ->> 'table_count')::int, (v_sum ->> 'total_seats')::int, 'photo', u_o1);
 
   raise notice '데모 데이터 생성 완료';
 end $$;

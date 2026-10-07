@@ -3,7 +3,7 @@
 -- 001~005 실행 후 SQL Editor 에서 실행
 --
 -- 흐름
---  1) [단체 대표·앱] rpc('create_rsvp') → token 발급 → 링크 공유  https://<참석조사페이지>/?t=<token>
+--  1) [단체 대표·앱] rpc('create_rsvp') → token 발급 → 링크 공유  https://<웹앱>/r/<token>  (주석만 수정, 008 시점)
 --  2) [구성원·웹, 로그인 없음] rpc('get_rsvp_public'), rpc('respond_rsvp')
 --  3) 참석 응답 수 → reservations.headcount 자동 반영 (정원 초과 참석은 거절)
 --  4) [단체 대표] rpc('close_rsvp') → 사장님에게 최종 인원 알림
