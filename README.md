@@ -82,6 +82,16 @@
 
 ---
 
+## 디자인 시스템
+
+![월계더링 디자인 시스템 — 색, 글꼴 Pretendard, 아이콘, 모서리·터치](docs/images/design-system.png)
+
+- **원본**: [`docs/ui-handoff/design/tokens.css`](docs/ui-handoff/design/tokens.css) — 앱이 이 파일을 복사하지 않고 직접 불러와 쓴다
+- 토큰 설명 [`design-tokens.md`](docs/ui-handoff/design/design-tokens.md) · 컴포넌트 [`components.md`](docs/ui-handoff/design/components.md)
+- 역할별 포인트 색: 단체 `#5669E3`, 사장님 `#267253`. 모든 글자 WCAG AA, 터치 영역 48px 이상
+
+---
+
 ## 저장소 구성
 
 ```
