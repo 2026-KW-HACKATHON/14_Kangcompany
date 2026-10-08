@@ -1,4 +1,4 @@
-import { slot, request, store } from './mock-api'
+import { slotForCase, request, store } from './mock-api'
 export const isSupabaseConfigured = true
 export const supabase = {
   rpc: async () => ({
@@ -21,7 +21,7 @@ export const supabase = {
       chain[k] = () => chain
     chain.then = (resolve: any) =>
       Promise.resolve({
-        data: table === 'slots' ? slot : table === 'requests' ? request : store,
+        data: table === 'slots' ? slotForCase() : table === 'requests' ? request : store,
         error: null,
       }).then(resolve)
     return chain

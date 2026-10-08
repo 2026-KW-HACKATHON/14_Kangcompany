@@ -1,7 +1,7 @@
 # 월계더링 프런트엔드 (React + Vite + TypeScript)
 
 지금 들어 있는 것: **데이터 계층 + 화면 골격**(IA의 모든 화면에 라우트·가드·데이터 연결·기본 동작). 디자인은 골격용 최소 스타일뿐이라, 선택된 초안 방향으로 `components/ui.tsx`·`styles/app.css`·각 화면 마크업을 다듬으면 된다.
-BE 기준: `wolgyedeoring-backend` 마이그레이션 001~010, 호출 방법 원본은 `wolgyedeoring-backend/docs/API.md`. 일괄 빈자리 공개를 사용하기 전에 010을 먼저 적용한다.
+BE 기준: `wolgyedeoring-backend` 마이그레이션 001~012, 호출 방법 원본은 `wolgyedeoring-backend/docs/API.md`. 일괄 빈자리 공개를 사용하기 전에 010 소셜 로그인 → 011 추가 입력 칸 → 012 통합 오류 수정을 먼저 적용한다.
 
 ## 실행
 

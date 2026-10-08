@@ -28,23 +28,25 @@ export default function RsvpResponses() {
   const yes = list.filter((x) => x.attending)
   const no = list.filter((x) => !x.attending)
   const total = rv.expected_headcount ?? r.headcount
+  const minimum = r.slots?.min_headcount ?? 0
+  const shortage = Math.max(0, minimum - yes.length)
   const closeMessage = yes.length > 0 ? `예약 인원이 ${yes.length}명으로 바뀌고 가게에 알려져요.` : `참석 응답이 0명이어서 기존 예약 인원 ${r.headcount}명을 유지하고 가게에 알려져요. 예약 취소는 예약 상세에서 할 수 있어요.`
   const shown = filter === 'yes' ? yes : filter === 'no' ? no : list
 
   return (
     <Page title="참석 현황" back={paths.groupReservation(id)}
       dock={<Dock>
-        {!rv.is_closed && <p className="meta">{yes.length > 0 ? `마감하면 참석 인원(${yes.length}명)이 예약 인원에 반영되고 가게에 알려져요.` : `참석 응답이 0명이면 마감해도 기존 예약 인원 ${r.headcount}명을 유지해요.`}</p>}
+        {!rv.is_closed && (shortage > 0 ? <p className="note-error" role="alert">최소 {minimum}명까지 {shortage}명이 더 필요해요. 참석 응답을 더 받은 뒤 마감해 주세요.</p> : <p className="meta">{yes.length > 0 ? `마감하면 참석 인원(${yes.length}명)이 예약 인원에 반영되고 가게에 알려져요.` : `참석 응답이 0명이면 마감해도 기존 예약 인원 ${r.headcount}명을 유지해요.`}</p>)}
         <div className="btn-pair">
           <Button onClick={() => nav(paths.groupRsvp(id))}>참석 링크 공유</Button>
-          {!rv.is_closed ? <Button variant="primary" onClick={() => setAsk({ kind: 'close' })}>마감하기</Button> : <Button variant="primary" disabled>마감됨</Button>}
+          {!rv.is_closed ? <Button variant="primary" disabled={shortage > 0} onClick={() => setAsk({ kind: 'close' })}>마감하기</Button> : <Button variant="primary" disabled>마감됨</Button>}
         </div>
       </Dock>}
       overlay={<Sheet open={Boolean(ask)} danger={ask?.kind === 'delete'} busy={act.busy} onClose={() => setAsk(null)}
         title={ask?.kind === 'delete' ? `${ask.name}님의 응답을 지울까요?` : '참석 조사를 마감할까요?'}
         confirmLabel={ask?.kind === 'delete' ? '응답 삭제' : '마감하기'}
         onConfirm={() => void act.run(async () => {
-          if (ask?.kind === 'delete') await rsvp.deleteRsvpResponse(ask.id); else await rsvp.closeRsvp(id)
+          if (ask?.kind === 'delete') await rsvp.deleteRsvpResponse(ask.id); else { if (shortage > 0) return; await rsvp.closeRsvp(id) }
           setAsk(null); await q.reload()
         })}>
         <p className="subtitle">{ask?.kind === 'delete' ? '장난 응답이나 중복 응답을 정리할 때 사용해요.' : closeMessage}</p>

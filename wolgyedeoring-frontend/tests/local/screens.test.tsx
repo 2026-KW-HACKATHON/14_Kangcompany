@@ -484,7 +484,7 @@ describe('캘린더 / 선택기 / 참석 / 빈 화면', () => {
         (e) => !(e as HTMLButtonElement).disabled,
       )!,
     )
-    fireEvent.change(screen.getByRole('spinbutton', { name: '최대 인원' }), {
+    fireEvent.change(screen.getByRole('spinbutton', { name: /^최대 인원/ }), {
       target: { value: '31' },
     })
     expect(
@@ -494,7 +494,7 @@ describe('캘린더 / 선택기 / 참석 / 빈 화면', () => {
         }) as HTMLButtonElement
       ).disabled,
     ).toBe(true)
-    fireEvent.change(screen.getByRole('spinbutton', { name: '최대 인원' }), {
+    fireEvent.change(screen.getByRole('spinbutton', { name: /^최대 인원/ }), {
       target: { value: '0' },
     })
     expect(

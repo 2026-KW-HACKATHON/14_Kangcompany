@@ -78,3 +78,9 @@ export function hmLabel(hm: string): string {
   const [h, m] = hm.split(':').map(Number)
   return `${h < 12 ? '오전' : '오후'} ${h % 12 || 12}:${String(m).padStart(2, '0')}`
 }
+
+/** 빈자리 인원·금액 한 줄 (시안 17: "10–30명 · 1인 25,000원"). 최소 인원·1인 금액은 011 */
+export function slotPeopleLine(s: { capacity: number; min_headcount?: number | null; price_per_person?: number | null }): string {
+  const people = s.min_headcount ? `${s.min_headcount}–${s.capacity}명` : `최대 ${s.capacity}명`
+  return s.price_per_person != null ? `${people} · 1인 ${formatWon(s.price_per_person)}` : people
+}

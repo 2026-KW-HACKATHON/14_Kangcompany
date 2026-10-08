@@ -13,7 +13,7 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)  // URL·anon key
 에러는 `{ data, error }` 의 `error.message` 에 한글 사유가 담겨 온다. 그대로 사용자에게 보여줘도 된다.
 권한이 없으면 `error.code === '42501'` (테이블 직접 쓰기 금지 위반도 `permission denied` 로 온다).
 
-> **기준: 마이그레이션 001~009** (2026-10-07 갱신)
+> **기준: 마이그레이션 001~012** (2026-10-08 통합 갱신)
 > - 007: 선착순 확정 — 가게가 수락하면 그 즉시 예약 생성(결제 대기). `choose_response*` 삭제
 > - 009: 좌석 배치도 (손그림·사진 인식 또는 직접 그리기 → 게시, 손님은 보기만) — 7장
 > - 008: 응답 기한·남은 자리, 요청 철회, 가게 수, 행동 플래그, 연락처, 가게 정보·좌표, 수락 알림 1건 통합, 행사 전 완료 처리 금지, 테이블 직접 쓰기 권한 축소
@@ -33,8 +33,14 @@ await supabase.auth.signInWithPassword({ email, password })
 // 내 정보
 const { data: me } = await supabase.from('profiles').select('*').single()
 
-// 내 정보 수정: 이름·전화번호만 가능 (role 은 바꿀 수 없음)
+// 내 정보 수정: 이름·전화번호만 가능 (role 은 직접 바꿀 수 없음)
 await supabase.from('profiles').update({ display_name, phone }).eq('id', me.id)
+
+// 소셜 로그인 (010): 처음이면 계정이 자동으로 만들어진다. role 은 기본 'group', 이름은 제공자가 준 이름
+await supabase.auth.signInWithOAuth({ provider: 'kakao', options: { redirectTo: `${location.origin}/login` } })
+await supabase.auth.signInWithOAuth({ provider: 'custom:naver', options: { redirectTo: `${location.origin}/login` } })
+// 역할 고르기: 단체·가게를 등록하기 전까지만 가능 (등록 후에는 오류)
+await supabase.rpc('choose_role', { p_role: 'owner' })
 ```
 
 ---
@@ -47,7 +53,7 @@ await supabase.from('profiles').update({ display_name, phone }).eq('id', me.id)
 | 사장님 | 가게 등록 | `supabase.from('stores').insert({ owner_id: me.id, name, address, max_capacity, phone, intro, lat, lng })` (사진은 아래 2-1) |
 | 사장님 | 가게 정보 수정 | `supabase.from('stores').update({ phone, intro, photo_url, lat, lng }).eq('id', store_id)` |
 | 사장님 | 메뉴 등록 | 메뉴판 사진 인식 또는 직접 입력 → `rpc('save_menus')` (아래 2-2 참고) |
-| 사장님 | 빈 날짜 일괄 열기 (010) | `supabase.rpc('publish_slots', { p_store_id, p_batch_id, p_slots })`. 같은 요청 키로 재시도하면 기존 결과 반환. 전체 성공/전체 실패 |
+| 사장님 | 빈 날짜 일괄 열기 (012) | `supabase.rpc('publish_slots', { p_store_id, p_batch_id, p_slots })`. 같은 요청 키로 재시도하면 기존 결과 반환. 전체 성공/전체 실패 |
 | 사장님 | 빈 날짜 닫기 / 다시 열기 | `supabase.from('slots').update({ status: 'closed' }).eq('id', slot_id)` (`'open'` 으로 다시 열기). **예약된(`booked`) 날짜는 수정 불가** |
 | 단체 | 요청 보내기 | `supabase.from('requests').insert({ group_id, event_type, desired_at, flexible_days, headcount, budget_per_person, note }).select().single()` |
 | 단체 | 요청 메모 수정 | `supabase.from('requests').update({ note }).eq('id', request_id)` (메모 외 컬럼·삭제는 불가 → 철회는 `cancel_request`) |
@@ -62,6 +68,12 @@ await supabase.from('profiles').update({ display_name, phone }).eq('id', me.id)
 - `phone` 가게 전화번호 (숫자·`-`·`+`·괄호·공백 7~20자), `intro` 한 줄 소개 (60자 이하), `photo_url` 대표 사진 공개 URL
 - `lat`, `lng` 지도 좌표. 주소→좌표 변환 위치와 지도 서비스는 #8 결정 후 확정 (지금은 값을 받아 저장만)
 - 전화번호·대표 사진은 기획상 **필수**(D-05)지만 DB 는 null 허용 → 가게 등록 화면에서 필수로 받기
+
+**시안 입력 칸 (011)** — 모두 선택, 같은 insert·update 에 넣으면 된다
+- 가게 `stores`: `category` 업종 (`restaurant` 음식점 기본값, `cafe` 카페, `venue` 행사·공간), `address_detail` 상세주소(60자), `hours` 영업시간 안내(80자), `business_no` 사업자등록번호, `commerce_no` 통신판매신고번호
+- 단체 `groups`: `affiliation` 소속·학교·학과(40자), `region` 활동 지역(40자), `usual_size` 평소 인원(1~200), `description` 기타 단체 한 줄 설명(40자)
+- 빈 날짜 `slots`: `min_headcount` 최소 인원(최대 인원 이하), `price_per_person` 1인 금액, `note` 안내(100자). **최소 인원보다 적게 예약하면 `book_slot` 이 거절**
+- 사전 주문 메모: `rpc('set_preorder_note', { p_reservation_id, p_note })` → `reservations.preorder_note` (200자, 사전 주문과 같은 기간에만 수정, 빈 문자열이면 지움)
 
 **요청 생성 시 서버가 정하는 값**
 - `response_deadline` 가게 응답 기한: 행사까지 7일 초과면 생성 후 24시간, 그 외 12시간 (행사 시작보다 늦지 않게 보정). 숫자는 #6 결정에 따라 바뀔 수 있음
@@ -344,9 +356,9 @@ supabase.rpc('confirm_receipt', { p_receipt_id })
 ## 4-1. 참석 조사 (RSVP)
 
 예약된 행사(결제 대기·확정)에 대해 단체 대표가 링크를 만들고, 구성원은 **로그인 없이** 웹앱의 `/r/:token` 화면에서 응답한다.
-참석 인원은 **대표가 `close_rsvp`로 마감할 때만 예약 인원(`reservations.headcount`)에 반영**된다 (010). 응답·수정·삭제 중에는 예약 인원을 유지한다. 참석 0명으로 마감하면 기존 예약 인원을 유지하며 자동 취소하지 않는다.
+참석 인원은 **대표가 `close_rsvp`로 마감할 때만 예약 인원(`reservations.headcount`)에 반영**된다 (012). 응답·수정·삭제 중에는 예약 인원을 유지한다. 빈자리의 명시된 최소 인원보다 참석 응답이 적으면 마감을 거절하고 조사·예약 인원·알림을 변경하지 않는다. 최소 인원이 없는 예약에서 참석 0명으로 마감하면 기존 인원을 유지하며 자동 취소하지 않는다.
 
-`rsvps.expected_headcount`는 조사 생성 시 예약 인원을 보관하고 재개·마감 후에도 유지한다. 홈 참석률과 미응답 인원은 이 모집 인원을 기준으로 계산한다. 010 이전 조사에서 이미 덮인 모집 인원은 자동 복원하지 않고 마이그레이션 시 현재 예약 인원으로 초기화한다.
+`rsvps.expected_headcount`는 조사 생성 시 예약 인원을 보관하고 재개·마감 후에도 유지한다. 홈 참석률과 미응답 인원은 이 모집 인원을 기준으로 계산한다. 012 이전 조사에서 이미 덮인 모집 인원은 자동 복원하지 않고 마이그레이션 시 현재 예약 인원으로 초기화한다.
 
 ### 대표 (앱)
 
@@ -370,7 +382,7 @@ supabase.channel('rsvp').on('postgres_changes',
 
 // 장난 응답 삭제 → 인원 재계산
 supabase.rpc('delete_rsvp_response', { p_response_id })
-// 마감 → 참석 1명 이상이면 예약 인원 변경, 0명은 기존 인원 유지 → 사장님 알림 (rsvp_closed)
+// 마감 → 최소 인원 미달이면 거절; 그 외 참석 1명 이상이면 예약 인원 변경, 0명은 기존 인원 유지 → 사장님 알림 (rsvp_closed)
 supabase.rpc('close_rsvp', { p_reservation_id })
 ```
 
@@ -495,3 +507,9 @@ supabase.from('store_layouts').select('store_id, layout, table_count, total_seat
 ```
 
 - `store_layouts` 는 가게당 1행(게시본). 직접 쓸 수 없다 (`save_store_layout` 으로만)
+
+### 012 통합: 날짜별 조건을 일괄 공개
+
+`publish_slots({ p_store_id, p_batch_id, p_slots })`의 각 일정에는 `start_at`, `end_at`, `capacity`, `deposit_amount`와 선택값 `min_headcount`, `price_per_person`, `note`를 전달한다. 최소 인원은 1~capacity, 모든 인원·금액은 PostgreSQL int 범위의 정수, 안내는 100자 이하. 0원과 null(미정)은 구별한다. 모든 일정·재시도 기록이 함께 저장되거나 함께 롤백된다. 같은 키·같은 조건 재시도는 원래 결과를 반환한다.
+
+최소 인원 미달 마감은 서버의 한국어 오류를 표시하고 참석 응답을 더 받도록 안내한다. 화면은 예약의 `slots.min_headcount`를 조회해 부족 인원과 비활성 마감 버튼을 표시한다. 마감 중 변경에 대한 최종 판단은 서버가 한다. 마감 후 응답 추가·수정·삭제는 거절하며, 조사를 다시 열어야 변경할 수 있다.

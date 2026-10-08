@@ -15,7 +15,10 @@ supabase/
     008_fe_requests.sql   FE 요청 반영(#10): 응답 기한·남은 자리, 요청 철회, 가게 수, 행동 플래그,
                           연락처, 가게 정보·좌표·사진 저장소, 수락 알림 통합, 테이블 직접 쓰기 권한 축소
     009_seat_layout.sql   좌석 배치도(명세 7): 가게당 게시본 1개, 서버 검증 (다시 실행해도 됨)
-    010_functional_audit.sql 빈자리 일괄 공개·재시도 중복 방지, 과거 시간 차단, 참석 마감 시 인원 반영
+    010_social_login.sql  소셜 로그인: 새 계정 이름을 제공자 이름으로, 등록 전 역할 고르기(choose_role) (다시 실행해도 됨)
+    011_proto_fields.sql  시안 입력 칸: 가게 업종·상세주소·영업시간·사업자번호, 단체 소속·지역·인원 규모,
+                          빈자리 최소 인원·1인 금액·안내, 사전 주문 알레르기 메모 (다시 실행해도 됨)
+    012_functional_audit.sql  일괄 공개·재시도, 새 조건 저장, 과거 시간 차단, 참석 마감 시 인원 반영·최소 인원 보호 (1회 적용)
   functions/
     extract-menu/         메뉴판 사진 → LLM 메뉴 후보 + 기존 메뉴 비교 (저장 안 함)
       index.ts, menu.ts
@@ -50,13 +53,10 @@ tests/                    로컬 테스트 (Supabase 에는 올리지 않음)
 7. `007_first_accept.sql` 실행
 8. `008_fe_requests.sql` 실행
 9. `009_seat_layout.sql` 실행
-10. `010_functional_audit.sql` 실행 (한 번만, 프런트 배포 전에 적용)
-11. 확인: `scripts/check_migrations.sql` 실행 → ok 열이 모두 true (7번 Realtime 은 Supabase 에서만 true)
-
-### 운영 DB 없이 테스트
-
-Node.js 24 이상에서 `pnpm install --frozen-lockfile && pnpm test`를 실행한다.
-PGlite 메모리 PostgreSQL에 001~010을 적용해 원자적 빈자리 공개·재시도·권한·과거 시간·참석 마감 동작을 검증한다. Supabase 인증/Realtime/Storage, 결제창, OCR 외부 서비스 통합 검증은 별도로 필요하다.
+10. `010_social_login.sql` 실행 (카카오·네이버 로그인 설정은 `docs/release/04_소셜로그인_설정.md`)
+11. `011_proto_fields.sql` 실행 → 시드를 다시 돌리면 새 칸에도 시연 값이 들어간다
+12. `012_functional_audit.sql` 실행 (010·011 다음, 1회만)
+13. 확인: `scripts/check_migrations.sql` 실행 → ok 열이 모두 true (7번 Realtime 은 Supabase 에서만 true)
 
 > 이미 운영 중인 DB 에 008 을 적용하면 `open_requests_for_store` 반환 형식이 바뀐다 (컬럼 추가만, 기존 컬럼 유지).
 > 008 은 앱이 `requests`·`request_responses`·`profiles.role` 에 직접 쓰는 권한을 회수한다 → API.md 방식만 쓰면 영향 없음.
@@ -134,3 +134,14 @@ psql -d 테스트DB -f tests/stub_supabase.sql -f supabase/migrations/001_schema
 - `pay_deposit_test`(결제 없이 확정) 차단: 시연 후 실서비스 전에 권한 회수 필요
 - 팀 결정 대기라 반영하지 않은 것: 취소 시간 제한·위약(R-02), 환불 규정 문구(B-08), `flexible_days`(B-06), 마감 알림 대상(#2), 조건 수정 주체(#3), 응답 기한 숫자(#6)
 - 주소→좌표 자동 변환 (지도 서비스 #8 결정 후)
+
+## 기능 오류 수정 및 통합 로컬 검사 (012)
+
+운영 DB에는 자동 적용하지 않습니다. 백엔드 담당자가 **010 → 011 → 012** 순서로 적용한 뒤 프런트를 배포하세요. 과거 브랜치의 `010_functional_audit.sql`은 배포하지 않았으며 `012`로 번호를 정리했습니다.
+
+- `publish_slots`: 모든 날짜별 조건을 한 트랜잭션으로 저장하고 같은 요청 키 재시도는 기존 결과를 반환합니다.
+- 참석 응답·수정·삭제는 예약 인원을 바꾸지 않습니다. 대표가 마감할 때만 반영합니다.
+- 명시된 빈자리 최소 인원보다 참석자가 적으면 마감·예약 인원 변경·마감 알림을 모두 보류합니다. 최소 인원 없는 예약의 0명 응답은 기존 인원을 유지합니다.
+- `expected_headcount`는 모집 인원입니다. 이미 과거 응답으로 덮인 인원은 현재 인원으로 초기화하며 추측하여 복원하지 않습니다.
+
+`pnpm install --frozen-lockfile` 후 `pnpm test`를 실행하세요. PGlite 메모리 PostgreSQL에 전체 마이그레이션을 적용해 검사하며 Supabase·실제 결제·운영 데이터에 접근하지 않습니다.

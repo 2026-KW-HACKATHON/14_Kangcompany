@@ -9,7 +9,7 @@ import { Page } from '../../components/layout'
 import { Empty, ErrorBox, LinkRow, Loading, Metric, Metrics, Section, Segmented } from '../../components/ui'
 import { todayKst } from '../../components/Calendar'
 import { GROUP_TYPE_LABEL } from '../../lib/status'
-import { formatWon } from '../../lib/format'
+import { formatWon, kstDay } from '../../lib/format'
 
 function Chart({ labels, values, unit, title, legend }: { labels: string[]; values: number[]; unit: string; title: string; legend: string }) {
   const max = Math.max(1, ...values)
@@ -29,16 +29,21 @@ function Chart({ labels, values, unit, title, legend }: { labels: string[]; valu
 export default function OwnerStats() {
   const { store } = useOwnerSession()
   const nav = useNavigate()
-  const [period, setPeriod] = useState<'month' | 'quarter'>('quarter')
+  const [period, setPeriod] = useState<'week' | 'month' | 'quarter'>('quarter')
   const q = useAsync(() => {
     if (period === 'quarter') return stats.getStoreStats(store.id)
     const t = todayKst()
+    if (period === 'week') { // 이번 주 월요일부터
+      const d = new Date(`${t}T12:00:00+09:00`)
+      d.setDate(d.getDate() - ((d.getDay() + 6) % 7))
+      return stats.getStoreStats(store.id, kstDay(d), t)
+    }
     return stats.getStoreStats(store.id, `${t.slice(0, 7)}-01`, t)
   }, [store.id, period])
   const d = q.data
   return (
     <Page title="가게 분석" back={false} nav>
-      <Segmented value={period} onChange={setPeriod} options={[{ value: 'month', label: '이번 달' }, { value: 'quarter', label: '최근 3개월' }]} />
+      <Segmented value={period} onChange={setPeriod} options={[{ value: 'week', label: '이번 주' }, { value: 'month', label: '이번 달' }, { value: 'quarter', label: '최근 3개월' }]} />
       {q.loading ? <Loading /> : q.error || !d ? <ErrorBox message={q.error?.message ?? ''} onRetry={q.reload} /> : (
         <>
           <section>

@@ -2,17 +2,19 @@
 import { supabase } from '../lib/supabase'
 import { unwrap, unwrapFunction } from '../lib/errors'
 import type {
-  EventType, Group, Payment, Reservation, ReservationActions, ReservationContacts, Store,
+  EventType, Group, Payment, Reservation, ReservationActions, ReservationContacts, Slot, Store,
 } from '../types/db'
 
 export type ReservationRow = Reservation & {
+  slots?: Pick<Slot, 'min_headcount'> | null
   groups: Pick<Group, 'id' | 'name' | 'group_type'>
-  stores: Pick<Store, 'id' | 'name' | 'address' | 'phone' | 'photo_url' | 'lat' | 'lng'>
+  stores: Pick<Store, 'id' | 'name' | 'address' | 'phone' | 'photo_url' | 'lat' | 'lng' | 'address_detail' | 'hours'>
   /** 요청에서 온 예약이면 요청 메모 (모임 종류 [회식] 머리표 포함). 권한이 없으면 null */
   requests?: { note: string | null } | null
 }
 
-const SELECT = '*, groups(id, name, group_type), stores(id, name, address, phone, photo_url, lat, lng), requests(note)'
+// stores(*): 011 상세주소·영업시간은 실행 전 DB 에 없으므로 열 이름을 고정하지 않는다
+const SELECT = '*, groups(id, name, group_type), stores(*), requests(note), slots(*)'
 
 /** 내 예약 목록 (단체·사장님 모두 자기 것만 보임) */
 export async function listMyReservations(opts: { upcomingOnly?: boolean } = {}): Promise<ReservationRow[]> {

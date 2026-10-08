@@ -19,7 +19,7 @@ export default function Start() {
         <p className="muted">어떤 역할로 이용할까요?</p>
       </section>
       <RoleTiles role={role} onChange={setRole} />
-      <p className="meta" style={{ textAlign: 'center' }}>이미 계정이 있나요? <Button variant="text" onClick={() => nav(paths.login)}>로그인</Button></p>
+      <p className="meta" style={{ textAlign: 'center' }}>이미 계정이 있나요? <Button variant="text" onClick={() => nav(paths.login, { state: { role } })}>로그인</Button></p>
     </Page>
   )
 }

@@ -14,6 +14,7 @@ import RsvpPublic from './pages/common/RsvpPublic'
 
 // 화면별 코드 분할 (첫 로딩을 가볍게)
 const Signup = lazy(() => import('./pages/auth/Signup'))
+const ResetPassword = lazy(() => import('./pages/auth/ResetPassword'))
 const OnboardingGroup = lazy(() => import('./pages/auth/OnboardingGroup'))
 const OnboardingStore = lazy(() => import('./pages/auth/OnboardingStore'))
 const Notifications = lazy(() => import('./pages/common/Notifications'))
@@ -56,6 +57,7 @@ export default function App() {
       {/* 로그인 없이 */}
       <Route path="/r/:token" element={<RsvpPublic />} />
       <Route path="/dev" element={<DevCheck />} />
+      <Route path={paths.resetPassword} element={<ResetPassword />} />
       <Route element={<RedirectIfLoggedIn />}>
         <Route path={paths.start} element={<Start />} />
         <Route path={paths.login} element={<Login />} />

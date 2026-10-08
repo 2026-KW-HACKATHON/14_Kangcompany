@@ -9,6 +9,7 @@ export function setScenario(value: string) {
   opened = []
   slotAttempts = 0
   batchResults.clear()
+  surveyClosed = false
 }
 const clone = (v: any) => structuredClone(v)
 const timestamp = new Date().toISOString()
@@ -113,6 +114,10 @@ export const slot = {
   created_at: timestamp,
   stores: store,
 }
+export const slotForCase = () => scenario === 'slot-min' ? { ...slot, min_headcount: 10, price_per_person: 25000, note: '단체석 한 공간' }
+  : scenario === 'slot-free' ? { ...slot, min_headcount: 10, price_per_person: 0 }
+  : scenario === 'slot-closed' ? { ...slot, status: 'closed' }
+  : slot
 function makeItems() {
   return scenario === 'receipt-empty'
     ? []
@@ -141,6 +146,7 @@ function makeItems() {
 let items = makeItems()
 let opened: any[] = []
 let slotAttempts = 0
+let surveyClosed = false
 const batchResults = new Map<string, any[]>()
 const record = (method: string, args: unknown[]) => {
   calls.push({ method, args: clone(args) })
@@ -172,7 +178,7 @@ function api(namespace: string, methods: Record<string, (...a: any[]) => any>) {
 }
 export const auth = api('auth', {
   getMe: () => {
-    if (['anonymous', 'start'].includes(scenario)) return null
+    if (['anonymous', 'start', 'social-enabled'].includes(scenario)) return null
     const role =
       scenario === 'wrong-role'
         ? 'group'
@@ -191,6 +197,11 @@ export const auth = api('auth', {
   signIn: () => ({ session: null }),
   signUp: () => ({ session: null }),
   updateMe: () => null,
+  applyPendingRole: () => false,
+  enabledSocialProviders: () => ({ kakao: scenario === 'social-enabled', naver: scenario === 'social-enabled' }),
+  signInWithProvider: () => null,
+  requestPasswordReset: () => null,
+  updatePassword: () => null,
 })
 // Subscription functions return cleanup synchronously, as the real client does.
 auth.onAuthChange = () => () => {}
@@ -304,7 +315,9 @@ const actions = {
   can_view_contacts: false,
 }
 const reservationForCase = () =>
-  scenario === 'pay-confirmed'
+  scenario.startsWith('rsvp-min-')
+    ? { ...reservation, headcount: surveyClosed ? 10 : 24, source: 'slot', slot_id: 1, slots: { min_headcount: 10 } }
+    : scenario === 'pay-confirmed'
     ? { ...reservation, status: 'confirmed' }
     : scenario === 'pay-zero-confirmed'
       ? { ...reservation, status: 'confirmed', deposit_amount: 0 }
@@ -410,6 +423,7 @@ export const preorder = api('preorder', {
     editable: true,
   }),
   setPreorder: () => null,
+  setPreorderNote: () => null,
 })
 export const payments = api('payments', {
   confirmPaymentFromUrl: () => null,
@@ -425,20 +439,22 @@ export const notifications = api('notifications', {
 notifications.subscribeNotifications = () => () => {}
 export const rsvp = api('rsvp', {
   getRsvpForReservation: () =>
-    ['rsvp-after-first', 'rsvp-zero'].includes(scenario)
+    ['rsvp-after-first', 'rsvp-zero'].includes(scenario) || scenario.startsWith('rsvp-min-')
       ? {
           id: 1,
           reservation_id: 1,
           token: 'local',
           message: null,
           deadline: future + 'T17:00:00+09:00',
-          is_closed: false,
+          is_closed: surveyClosed,
           expected_headcount: 24,
           created_at: timestamp,
         }
       : null,
   listRsvpResponses: () =>
-    scenario === 'rsvp-after-first'
+    scenario.startsWith('rsvp-min-')
+      ? Array.from({ length: scenario === 'rsvp-min-ready' || scenario === 'rsvp-min-race' ? 10 : scenario === 'rsvp-min-zero' ? 0 : 1 }, (_, i) => ({id:i+1,rsvp_id:1,name:`참석${i+1}`,attending:true,note:null,created_at:timestamp,updated_at:timestamp}))
+      : scenario === 'rsvp-after-first'
       ? [
           {
             id: 1,
@@ -452,6 +468,7 @@ export const rsvp = api('rsvp', {
         ]
       : [],
   createRsvp: () => ({ id: 1 }),
+  closeRsvp: () => { if (scenario === 'rsvp-min-race') throw new Error('최소 10명까지 1명이 더 필요해요. 참석 응답을 더 받은 뒤 마감해 주세요.'); surveyClosed=true; return {attending_count:10,headcount:10} },
   getRsvpPublic: () => ({
     group_name: group.name,
     store_name: store.name,
