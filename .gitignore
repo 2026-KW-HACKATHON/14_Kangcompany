@@ -27,3 +27,6 @@ Thumbs.db
 
 # Vite 캐시 (시안 폴더를 로컬 서버로 열 때 생김)
 **/.vite/
+
+# Vercel CLI ���� ����
+.vercel
