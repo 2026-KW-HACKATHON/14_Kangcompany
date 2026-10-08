@@ -6,6 +6,8 @@
 
 🔗 **서비스 주소: https://wolgyedeoring.vercel.app** (휴대폰 화면 기준)
 
+📑 **최종발표 자료: [14조_강컴퍼니_최종발표_발표자료.pdf](docs/presentation/14조_강컴퍼니_최종발표_발표자료.pdf)** (2026.10.09)
+
 ---
 
 ## 한눈에 보기
@@ -147,6 +149,7 @@ cd ../wolgyedeoring-backend && npm test   # 실제 PostgreSQL(PGlite)로 SQL·�
 |---|---|
 | [`docs/ui-handoff/`](docs/ui-handoff/) | UI 작업 인계 — 페르소나, 디자인 토큰·컴포넌트, IA·콘텐츠 인벤토리·상태 정의, 시안 화면 |
 | [`docs/ui-handoff/react-port-diff.md`](docs/ui-handoff/react-port-diff.md) | 시안 ↔ React 화면별 차이와 남은 팀 결정 |
+| [`docs/presentation/`](docs/presentation/) | 최종발표 자료 (PDF) |
 | [`docs/release/`](docs/release/) | 배포·운영·시연 |
 | [`docs/planning/`](docs/planning/) | 기능명세서·유저플로우 |
 | [`wolgyedeoring-backend/docs/API.md`](wolgyedeoring-backend/docs/API.md) | API 문서 |
