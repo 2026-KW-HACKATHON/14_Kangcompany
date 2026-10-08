@@ -1,7 +1,7 @@
 # 월계더링 프런트엔드 (React + Vite + TypeScript)
 
 지금 들어 있는 것: **데이터 계층 + 화면 골격**(IA의 모든 화면에 라우트·가드·데이터 연결·기본 동작). 디자인은 골격용 최소 스타일뿐이라, 선택된 초안 방향으로 `components/ui.tsx`·`styles/app.css`·각 화면 마크업을 다듬으면 된다.
-BE 기준: `wolgyedeoring-backend` 마이그레이션 001~008, 호출 방법 원본은 `wolgyedeoring-backend/docs/API.md`.
+BE 기준: `wolgyedeoring-backend` 마이그레이션 001~010, 호출 방법 원본은 `wolgyedeoring-backend/docs/API.md`. 일괄 빈자리 공개를 사용하기 전에 010을 먼저 적용한다.
 
 ## 실행
 
@@ -11,6 +11,7 @@ npm install
 cp .env.example .env.local   # Supabase URL·anon(publishable) 키, 토스 테스트 "클라이언트" 키 입력
 npm run dev                  # http://localhost:5173/dev 에서 시연 계정으로 연결 확인
 npm run build                # 타입 검사 + 빌드
+npm run test:local           # 운영 DB 없이 로컬 가짜 API로 회귀 검사
 ```
 
 `.env.local` 은 커밋하지 않는다. service_role 키·토스 시크릿 키는 절대 넣지 않는다.

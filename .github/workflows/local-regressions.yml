@@ -1,0 +1,39 @@
+name: Local regressions
+on:
+  pull_request:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: wolgyedeoring-frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: wolgyedeoring-frontend/package-lock.json
+      - run: npm ci
+      - run: npm run test:local
+      - run: npm run build
+  backend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: wolgyedeoring-backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: '11.25.0'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: pnpm
+          cache-dependency-path: wolgyedeoring-backend/pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm test
