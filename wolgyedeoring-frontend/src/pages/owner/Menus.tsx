@@ -11,6 +11,7 @@ import { Button, Dock, Empty, ErrorBox, Field, Input, Loading, Segmented, Select
 import { MENU_CATEGORY_LABEL } from '../../lib/status'
 import { formatWon } from '../../lib/format'
 import type { Menu, MenuCategory } from '../../types/db'
+import { integerInRange } from '../../lib/validation'
 
 const CATS = Object.entries(MENU_CATEGORY_LABEL).map(([value, label]) => ({ value: value as MenuCategory, label }))
 type Edit = { id: number | null; name: string; price: string; category: MenuCategory }
@@ -23,9 +24,10 @@ export default function OwnerMenus() {
   const [edit, setEdit] = useState<Edit | null>(null)
   const act = useAction()
   const list = (q.data ?? []).filter((m) => (filter === 'active' ? m.is_active : !m.is_active))
+  const priceValid = Boolean(edit && (edit.price === '' || integerInRange(edit.price)))
 
   const save = () => act.run(async () => {
-    if (!edit) return
+    if (!edit?.name.trim() || !priceValid) return
     const price = edit.price === '' ? null : Number(edit.price)
     if (edit.id) await menus.updateMenu(edit.id, { name: edit.name.trim(), price, category: edit.category })
     else await menus.saveMenus(store.id, [{ name: edit.name.trim(), price, category: edit.category }])
@@ -38,11 +40,11 @@ export default function OwnerMenus() {
       dock={<Dock><Button variant="primary" onClick={() => nav(paths.ownerMenuScan)}>메뉴판 사진으로 등록</Button></Dock>}
       overlay={
         <Sheet open={Boolean(edit)} title={edit?.id ? '메뉴 수정' : '메뉴 직접 추가'} confirmLabel="저장" busy={act.busy} onClose={() => setEdit(null)}
-          onConfirm={edit?.name.trim() ? () => void save() : undefined}>
+          onConfirm={edit?.name.trim() && priceValid ? () => void save() : undefined}>
           {edit && (
             <>
               <Field label="메뉴명"><Input value={edit.name} maxLength={60} onChange={(e) => setEdit({ ...edit, name: e.target.value })} /></Field>
-              <Field label="가격 (원)" hint="비우면 사전 주문에서 고를 수 없어요"><Input type="number" inputMode="numeric" min={0} step={500} value={edit.price} onChange={(e) => setEdit({ ...edit, price: e.target.value })} /></Field>
+              <Field label="가격 (원)" hint="비우면 사전 주문에서 고를 수 없어요" error={!priceValid ? '가격은 0원 이상의 정수로 입력해 주세요.' : null}><Input type="number" inputMode="numeric" min={0} step={1} value={edit.price} onChange={(e) => setEdit({ ...edit, price: e.target.value })} /></Field>
               <Field label="분류"><Select title="분류" value={edit.category} onChange={(category) => setEdit({ ...edit, category })} options={CATS} /></Field>
               {act.error && <p className="note-error">{act.error}</p>}
             </>

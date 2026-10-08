@@ -14,6 +14,7 @@ import { EVENT_CHOICES } from '../../lib/status'
 import { dateLabel, formatWon, timeLabel } from '../../lib/format'
 import { MenuPicker, preorderTotal, toItems, type Qty } from './MenuPicker'
 import type { SlotWithStore } from '../../api/slots'
+import { integerInRange } from '../../lib/validation'
 
 export default function SlotBook() {
   const id = Number(useParams().id)
@@ -34,11 +35,14 @@ export default function SlotBook() {
   if (q.error || !q.data) return <Page title="빈자리 예약"><ErrorBox message={q.error?.message ?? '날짜를 찾을 수 없어요'} /></Page>
   const { slot, menus } = q.data
   const hc = Number(f.headcount)
-  const valid = Number.isInteger(hc) && hc > 0 && hc <= slot.capacity
+  const valid = integerInRange(f.headcount, 1, slot.capacity)
+    && (f.budget === '' || integerInRange(f.budget))
+    && slot.status === 'open' && Date.parse(slot.start_at) > Date.now()
   const total = preorderTotal(menus, qty)
   const choice = choices.find((c) => c.key === eventKey) ?? choices[0]
 
   const submit = () => act.run(async () => {
+    if (!valid || Date.parse(slot.start_at) <= Date.now()) return
     const r = await reservations.bookSlot({
       slotId: slot.id, groupId: group.id, eventType: choice.type, headcount: hc,
       budgetPerPerson: f.budget ? Number(f.budget) : null, items: toItems(qty),
@@ -62,7 +66,7 @@ export default function SlotBook() {
       <Field label="예상 인원" error={f.headcount && !valid ? `최대 ${slot.capacity}명까지 가능해요` : null}>
         <Input type="number" inputMode="numeric" min={1} max={slot.capacity} value={f.headcount} onChange={(e) => setF({ ...f, headcount: e.target.value })} placeholder="예: 20" />
       </Field>
-      <Field label="1인 예산 (선택, 원)"><Input type="number" inputMode="numeric" min={0} step={1000} value={f.budget} onChange={(e) => setF({ ...f, budget: e.target.value })} placeholder="예: 25000" /></Field>
+      <Field label="1인 예산 (선택, 원)" error={f.budget !== '' && !integerInRange(f.budget) ? '예산은 0원 이상의 정수로 입력해 주세요.' : null}><Input type="number" inputMode="numeric" min={0} step={1} value={f.budget} onChange={(e) => setF({ ...f, budget: e.target.value })} placeholder="예: 25000" /></Field>
       <Section title="사전 주문 (선택)">
         <MenuPicker menus={menus} qty={qty} onChange={setQty} />
         {total > 0 && <section className="card"><Row label="주문 합계" value={formatWon(total)} />{hc > 0 && <Row label="1인당 예상" value={formatWon(Math.ceil(total / hc))} />}</section>}

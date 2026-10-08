@@ -13,6 +13,7 @@ import { todayKst } from '../../components/Calendar'
 import { EVENT_CHOICES, composeNote, eventLabel, noteBody, type EventChoice } from '../../lib/status'
 import { dayLabel, formatWon, hmLabel, kstDay } from '../../lib/format'
 import type { Request, RequestReach } from '../../types/db'
+import { integerInRange } from '../../lib/validation'
 
 const BUDGETS = [20000, 25000, 30000]
 const TIMES = ['18:00', '18:30', '19:00']
@@ -44,7 +45,7 @@ export default function RequestNew() {
   const [choice, setChoice] = useState<EventChoice>(initialChoice)
   const [otherText, setOtherText] = useState(prev && initialChoice.key === 'other' ? eventLabel(prev.event_type, prev.note).replace('기타 모임', '') : '')
   const [day, setDay] = useState(state?.day ?? prevKst ?? addDays(todayKst(), 7))
-  const [time, setTime] = useState('18:30')
+  const [time, setTime] = useState(prev ? new Intl.DateTimeFormat('en-GB', { timeZone: 'Asia/Seoul', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).format(new Date(prev.desired_at)) : '18:30')
   const [headcount, setHeadcount] = useState(prev?.headcount ?? 24)
   const [budget, setBudget] = useState(prev?.budget_per_person ?? 25000)
   const [custom, setCustom] = useState(prev ? !BUDGETS.includes(prev.budget_per_person) : false)
@@ -56,13 +57,13 @@ export default function RequestNew() {
 
   const desiredIso = `${day}T${time}:00+09:00`
   const past = new Date(desiredIso).getTime() < Date.now()
-  const valid = headcount > 0 && headcount <= 200 && budget >= 0 && !past && Boolean(day && time)
+  const valid = integerInRange(headcount, 1, 200) && integerInRange(budget) && !past && Number.isFinite(Date.parse(desiredIso))
   const total = headcount * budget
 
   // 학생회용 모임을 고른 상태에서 일반 단체로 바꾸면 회식으로
   useEffect(() => { if (!student && choice.studentOnly) setChoice(EVENT_CHOICES[0]) }, [student, choice])
   useEffect(() => {
-    if (!(headcount > 0)) { setReach(null); return }
+    if (!integerInRange(headcount, 1, 200) || !Number.isFinite(Date.parse(desiredIso))) { setReach(null); return }
     const t = setTimeout(() => { requests.requestReach(headcount, desiredIso).then(setReach).catch(() => setReach(null)) }, 400)
     return () => clearTimeout(t)
   }, [headcount, desiredIso])
@@ -74,6 +75,7 @@ export default function RequestNew() {
     memo.trim() || '없음',
   ]
   const submit = () => act.run(async () => {
+    if (!valid || Date.parse(desiredIso) <= Date.now()) return
     const r = await requests.createRequest({
       group_id: group.id, event_type: choice.type, desired_at: desiredIso,
       headcount, budget_per_person: budget, note: composeNote(choice, otherText, memo),
