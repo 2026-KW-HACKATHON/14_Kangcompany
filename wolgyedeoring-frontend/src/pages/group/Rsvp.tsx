@@ -6,9 +6,9 @@ import { paths } from '../../app/paths'
 import { useGroupSession } from '../../app/session'
 import { useAction, useAsync } from '../../hooks/useAsync'
 import { Page } from '../../components/layout'
-import { Icon } from '../../components/icons'
+import { DatePicker, TimePicker } from '../../components/pickers'
 import { Button, Dock, ErrorBox, Field, Input, Intro, Loading, Metric, Metrics, Row, Textarea } from '../../components/ui'
-import { dateTimeLabel, dayLabel, hmLabel, kstDay } from '../../lib/format'
+import { dateTimeLabel, kstDay } from '../../lib/format'
 import { eventLabel } from '../../lib/status'
 
 export default function Rsvp() {
@@ -51,16 +51,21 @@ export default function Rsvp() {
   )
 
   if (!rv) {
-    const defDay = kstDay(new Date(new Date(r.start_at).getTime() - 24 * 3600e3))
-    const dl = deadline ?? { day: defDay, time: '18:00' }
+    // 고르지 않으면 서버 기본값(행사 24시간 전). 휠은 그 시각에서 시작
+    const before = new Date(new Date(r.start_at).getTime() - 24 * 3600e3)
+    const defHm = new Intl.DateTimeFormat('en-GB', { timeZone: 'Asia/Seoul', hour: '2-digit', minute: '2-digit', hour12: false }).format(before)
+    const dl = deadline ?? { day: kstDay(before), time: defHm }
     return (
       <Page title="참석 링크" dock={<Dock>{act.error && <p className="note-error" role="alert">{act.error}</p>}<Button variant="primary" busy={act.busy} onClick={() => void create()}>참석 링크 만들기</Button></Dock>}>
         {head}
         <Field label="안내 문구 (선택)" hint="300자 이내"><Textarea value={message} maxLength={300} onChange={(e) => setMessage(e.target.value)} placeholder="예: 금요일 뒤풀이! 참석 여부 알려주세요" /></Field>
         <div className="field">
-          <span className="field-label">응답 마감 (선택, 기본은 행사 24시간 전)</span>
-          <label className="date-trigger picker-native"><span>{deadline ? `${dayLabel(dl.day)} · ${hmLabel(dl.time)}` : '행사 24시간 전'}</span><Icon name="calendar" />
-            <input type="datetime-local" aria-label="응답 마감" value={`${dl.day}T${dl.time}`} onChange={(e) => { const [day, time] = e.target.value.split('T'); if (day && time) setDeadline({ day, time }) }} /></label>
+          <span className="field-label">응답 마감 (선택)</span>
+          <div className="condition-grid">
+            <DatePicker title="응답 마감 날짜" value={dl.day} onChange={(day) => setDeadline({ ...dl, day })} />
+            <TimePicker title="응답 마감 시간" value={dl.time} onChange={(time) => setDeadline({ ...dl, time })} />
+          </div>
+          <span className="meta">{deadline ? '고른 시각에 응답을 마감해요.' : '고르지 않으면 행사 24시간 전에 마감해요.'}</span>
         </div>
         <p className="meta">참석 인원은 마감할 때 예약 인원에 반영돼요.</p>
       </Page>

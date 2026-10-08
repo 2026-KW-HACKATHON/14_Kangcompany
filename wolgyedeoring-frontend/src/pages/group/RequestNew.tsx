@@ -8,6 +8,7 @@ import { useAction } from '../../hooks/useAsync'
 import { Page } from '../../components/layout'
 import { Icon, MiniArt, type IconName } from '../../components/icons'
 import { Rows, Sheet } from '../../components/ui'
+import { DatePicker, TimePicker } from '../../components/pickers'
 import { todayKst } from '../../components/Calendar'
 import { EVENT_CHOICES, composeNote, eventLabel, noteBody, type EventChoice } from '../../lib/status'
 import { dayLabel, formatWon, hmLabel, kstDay } from '../../lib/format'
@@ -150,16 +151,10 @@ export default function RequestNew() {
           </>)}
           {panel(1, <>
             <label className="field-label" htmlFor="req-date">희망 날짜</label>
-            <label className="date-control date-picker-trigger picker-native">
-              <span>{dayLabel(day)}</span><Icon name="calendar" />
-              <input id="req-date" type="date" value={day} min={todayKst()} onChange={(e) => e.target.value && setDay(e.target.value)} aria-label="희망 날짜" />
-            </label>
+            <DatePicker id="req-date" a2 className="date-control date-picker-trigger" title="희망 날짜" value={day} onChange={setDay} />
             <div className="spacing-top">
               <label className="field-label" htmlFor="req-time">희망 시간</label>
-              <label className="date-control time-picker-trigger picker-native">
-                <span>{hmLabel(time)}</span><Icon name="clock" />
-                <input id="req-time" type="time" value={time} step={600} onChange={(e) => e.target.value && setTime(e.target.value)} aria-label="희망 시간" />
-              </label>
+              <TimePicker id="req-time" a2 className="date-control time-picker-trigger" title="희망 시간" value={time} onChange={setTime} />
             </div>
             <div className="time-options" role="group" aria-label="희망 시간 빠른 선택">
               {TIMES.map((t) => <button key={t} type="button" className="choice" aria-pressed={time === t} onClick={() => setTime(t)}>{hmLabel(t)}</button>)}

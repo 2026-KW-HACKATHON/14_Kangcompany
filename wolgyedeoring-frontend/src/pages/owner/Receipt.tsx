@@ -100,7 +100,7 @@ function ItemRow({ item, menus, busy, onSave, onDelete }: {
         <Field label="단가 (원)"><Input type="number" min={0} value={f.price} onChange={(e) => setF({ ...f, price: e.target.value })} /></Field>
       </div>
       <Field label="연결할 메뉴">
-        <Select value={f.menu} onChange={(e) => setF({ ...f, menu: e.target.value })}
+        <Select title="연결할 메뉴" value={f.menu} onChange={(menu) => setF({ ...f, menu })}
           options={[{ value: '', label: '메뉴 선택' }, ...menus.map((m) => ({ value: String(m.id), label: `${m.name}${m.is_active ? '' : ' (판매 중지)'}` }))]} />
       </Field>
       <div className="row">
@@ -117,7 +117,7 @@ function AddItem({ menus, busy, onAdd }: { menus: Menu[]; busy: boolean; onAdd: 
   return (
     <div className="ocr-row">
       <h3>빠진 품목 추가</h3>
-      <Field label="메뉴"><Select value={f.menu} onChange={(e) => setF({ ...f, menu: e.target.value })} options={[{ value: '', label: '메뉴 선택' }, ...menus.map((m) => ({ value: String(m.id), label: `${m.name} ${formatWon(m.price)}` }))]} /></Field>
+      <Field label="메뉴"><Select title="메뉴" value={f.menu} onChange={(menu) => setF({ ...f, menu })} options={[{ value: '', label: '메뉴 선택' }, ...menus.map((m) => ({ value: String(m.id), label: `${m.name} ${formatWon(m.price)}` }))]} /></Field>
       <div className="pair">
         <Field label="수량"><Input type="number" min={1} value={f.qty} onChange={(e) => setF({ ...f, qty: e.target.value })} /></Field>
         <div className="field"><span className="field-label">&nbsp;</span><Button busy={busy} disabled={!menu || !Number(f.qty)} onClick={() => { onAdd(menu!.id, Number(f.qty), menu!.price ?? 0); setF({ menu: '', qty: '1' }) }}>추가</Button></div>

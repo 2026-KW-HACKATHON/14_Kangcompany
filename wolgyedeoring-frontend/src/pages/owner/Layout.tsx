@@ -215,7 +215,7 @@ export default function OwnerLayout() {
               </>
             ) : (
               <>
-                <Field label="시설 종류"><Select value={fixture!.kind} onChange={(e) => patchFixture(fixture!.id, { kind: e.target.value as FixtureKind })} options={FIXTURE_KINDS.map((k) => ({ value: k, label: FIXTURE_LABEL[k] }))} /></Field>
+                <Field label="시설 종류"><Select title="시설 종류" value={fixture!.kind} onChange={(kind) => patchFixture(fixture!.id, { kind })} options={FIXTURE_KINDS.map((k) => ({ value: k, label: FIXTURE_LABEL[k] }))} /></Field>
                 <Field label="시설 이름 (선택)"><Input value={fixture!.label ?? ''} maxLength={10} onChange={(e) => patchFixture(fixture!.id, { label: e.target.value || null })} /></Field>
               </>
             )}
