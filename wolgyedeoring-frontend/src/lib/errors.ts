@@ -55,7 +55,8 @@ export async function unwrapFunction<T>(res: { data: T | null; error: unknown })
   if (err.context && typeof (err.context as Response).json === 'function') {
     try {
       const body = (await (err.context as Response).clone().json()) as { error?: string; detail?: string }
-      if (body?.error) throw new ApiError(body.error, 'server')
+      // detail(토스 오류 코드 등)이 있으면 함께 보여 원인을 바로 알 수 있게
+      if (body?.error) throw new ApiError(body.detail ? `${body.error} (${body.detail})` : body.error, 'server')
     } catch (e) {
       if (e instanceof ApiError) throw e
     }
