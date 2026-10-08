@@ -1,4 +1,4 @@
--- 006 참석 조사 테스트 (001~006 적용된 빈 DB)
+-- 참석 조사 수동 테스트 (001~010 적용된 빈 DB, 응답 중 예약 인원 유지)
 \set ON_ERROR_STOP 1
 insert into auth.users (id, raw_user_meta_data) values
  ('00000000-0000-0000-0000-00000000000a', '{"role":"owner","display_name":"사장A"}'),
@@ -28,7 +28,7 @@ select 'public', get_rsvp_public(:'tok') - 'start_at' - 'deadline';
 select respond_rsvp(:'tok', ' 김 철수 ', true)->>'edit_key' as k1 \gset
 select 'r2', respond_rsvp(:'tok', '이영희', true, '늦게 도착')->>'attending_count';
 select 'r3 불참', respond_rsvp(:'tok', '박민수', false)->>'attending_count';
-reset role; select 'headcount after 2 attending', headcount from reservations where id = :r; set role anon;
+reset role; select 'headcount stays 2 before closing', headcount from reservations where id = :r; set role anon;
 select 'r4', respond_rsvp(:'tok', '최지훈', true)->>'attending_count';
 \set ON_ERROR_STOP 0
 select respond_rsvp(:'tok', '정원초과', true);

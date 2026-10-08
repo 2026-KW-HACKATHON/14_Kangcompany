@@ -1,0 +1,9 @@
+{
+  "name": "wolgyedeoring-backend-tests",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --experimental-strip-types --test tests/receipt.test.ts tests/menu.test.ts tests/layout.test.ts tests/toss.test.ts tests/functional-audit.test.mjs"
+  },
+  "devDependencies": { "@electric-sql/pglite": "0.5.8" }
+}

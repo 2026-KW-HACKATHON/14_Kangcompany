@@ -47,7 +47,7 @@ await supabase.from('profiles').update({ display_name, phone }).eq('id', me.id)
 | 사장님 | 가게 등록 | `supabase.from('stores').insert({ owner_id: me.id, name, address, max_capacity, phone, intro, lat, lng })` (사진은 아래 2-1) |
 | 사장님 | 가게 정보 수정 | `supabase.from('stores').update({ phone, intro, photo_url, lat, lng }).eq('id', store_id)` |
 | 사장님 | 메뉴 등록 | 메뉴판 사진 인식 또는 직접 입력 → `rpc('save_menus')` (아래 2-2 참고) |
-| 사장님 | 빈 날짜 열기 | `supabase.from('slots').insert({ store_id, start_at, end_at, capacity, deposit_amount })` |
+| 사장님 | 빈 날짜 일괄 열기 (010) | `supabase.rpc('publish_slots', { p_store_id, p_batch_id, p_slots })`. 같은 요청 키로 재시도하면 기존 결과 반환. 전체 성공/전체 실패 |
 | 사장님 | 빈 날짜 닫기 / 다시 열기 | `supabase.from('slots').update({ status: 'closed' }).eq('id', slot_id)` (`'open'` 으로 다시 열기). **예약된(`booked`) 날짜는 수정 불가** |
 | 단체 | 요청 보내기 | `supabase.from('requests').insert({ group_id, event_type, desired_at, flexible_days, headcount, budget_per_person, note }).select().single()` |
 | 단체 | 요청 메모 수정 | `supabase.from('requests').update({ note }).eq('id', request_id)` (메모 외 컬럼·삭제는 불가 → 철회는 `cancel_request`) |
@@ -168,6 +168,18 @@ supabase.from('request_responses').select('id', { count: 'exact', head: true }).
 - 사장님은 `request_responses` 에 직접 쓸 수 없다. 응답은 `respond_to_request` 로만
 
 ### ② 가게가 먼저 연 날짜를 고르는 경우
+
+010부터 사장님 일괄 공개는 다음 RPC를 사용한다. `p_batch_id`는 한 번 만들고 같은 조건의 통신 재시도에 그대로 사용한다. 모든 일정이 함께 저장되며 하나라도 잘못되면 전체 롤백한다. 응답 유실 후 같은 키/조건으로 재시도하면 기존 등록 결과를 반환한다. 키를 다른 조건에 재사용하면 거절한다.
+
+```js
+const batchId = crypto.randomUUID()
+const input = [{ start_at: '2026-10-15T18:00:00+09:00', end_at: '2026-10-15T20:00:00+09:00', capacity: 24, deposit_amount: 100000 }]
+const { data } = await supabase.rpc('publish_slots', { p_store_id: storeId, p_batch_id: batchId, p_slots: input })
+// data: slots 행 배열. 가게 소유자만 호출 가능. 1~1000개, 미래 시작 시각,
+// 종료 > 시작, 인원 <= 가게 최대 인원, 0원 이상 예약금, 중복 시간대 없음.
+```
+
+단건 insert와 닫힌 일정 재공개도 이미 지난 시작 시각은 서버가 거절한다.
 
 ```js
 // [단체] 열린 날짜 목록
@@ -332,7 +344,9 @@ supabase.rpc('confirm_receipt', { p_receipt_id })
 ## 4-1. 참석 조사 (RSVP)
 
 예약된 행사(결제 대기·확정)에 대해 단체 대표가 링크를 만들고, 구성원은 **로그인 없이** 웹앱의 `/r/:token` 화면에서 응답한다.
-참석 인원은 **예약 인원(`reservations.headcount`)에 자동 반영**된다.
+참석 인원은 **대표가 `close_rsvp`로 마감할 때만 예약 인원(`reservations.headcount`)에 반영**된다 (010). 응답·수정·삭제 중에는 예약 인원을 유지한다. 참석 0명으로 마감하면 기존 예약 인원을 유지하며 자동 취소하지 않는다.
+
+`rsvps.expected_headcount`는 조사 생성 시 예약 인원을 보관하고 재개·마감 후에도 유지한다. 홈 참석률과 미응답 인원은 이 모집 인원을 기준으로 계산한다. 010 이전 조사에서 이미 덮인 모집 인원은 자동 복원하지 않고 마이그레이션 시 현재 예약 인원으로 초기화한다.
 
 ### 대표 (앱)
 
@@ -356,7 +370,7 @@ supabase.channel('rsvp').on('postgres_changes',
 
 // 장난 응답 삭제 → 인원 재계산
 supabase.rpc('delete_rsvp_response', { p_response_id })
-// 마감 → 사장님에게 최종 인원 알림 (rsvp_closed)
+// 마감 → 참석 1명 이상이면 예약 인원 변경, 0명은 기존 인원 유지 → 사장님 알림 (rsvp_closed)
 supabase.rpc('close_rsvp', { p_reservation_id })
 ```
 
