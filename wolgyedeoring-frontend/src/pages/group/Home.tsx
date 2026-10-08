@@ -26,11 +26,11 @@ export default function GroupHome() {
     const [reqs, res] = await Promise.all([requests.listMyRequests(group.id), reservations.listMyReservations({ upcomingOnly: true })])
     const upcoming = res.filter((r) => r.status === 'awaiting_payment' || r.status === 'confirmed')
     const active = upcoming[0] ?? null
-    let count: { yes: number; no: number; deadline: string | null; open: boolean } | null = null
+    let count: { yes: number; no: number; total: number; deadline: string | null; open: boolean } | null = null
     if (active) {
       const rv = await rsvp.getRsvpForReservation(active.id)
       const list = rv ? await rsvp.listRsvpResponses(rv.id) : []
-      count = { yes: list.filter((x) => x.attending).length, no: list.filter((x) => !x.attending).length, deadline: rv?.deadline ?? null, open: Boolean(rv && !rv.is_closed) }
+      count = { yes: list.filter((x) => x.attending).length, no: list.filter((x) => !x.attending).length, total: rv?.expected_headcount ?? active.headcount, deadline: rv?.deadline ?? null, open: Boolean(rv && !rv.is_closed) }
     }
     return { waiting: reqs.filter((r) => effectiveRequestStatus(r) === 'open'), upcoming, active, count }
   }, [group.id])
@@ -59,7 +59,7 @@ export default function GroupHome() {
 
           {d.active && d.count && (() => {
             const a = d.active, c = d.count
-            const total = a.headcount
+            const total = c.total
             const pending = Math.max(0, total - c.yes - c.no)
             const st = RESERVATION_STATUS[a.status]
             return (

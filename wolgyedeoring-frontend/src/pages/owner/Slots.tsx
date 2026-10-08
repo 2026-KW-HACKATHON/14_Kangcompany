@@ -1,5 +1,5 @@
 // S-06 빈자리 관리 (시안 23): 여러 날짜 × 여러 시간대를 한 번에 공개 + 공개한 일정 목록(닫기/다시 공개)
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import { slots, stats } from '../../api'
 import { useOwnerSession } from '../../app/session'
@@ -11,6 +11,7 @@ import { TimePicker } from '../../components/pickers'
 import { Badge, Button, Dock, Empty, ErrorBox, Field, Input, Intro, Loading, Section } from '../../components/ui'
 import { dayLabel, formatWon, kstDay, timeLabel } from '../../lib/format'
 import { slotView } from '../../lib/status'
+import { integerInRange } from '../../lib/validation'
 
 type Range = { start: string; end: string }
 export default function OwnerSlots() {
@@ -28,19 +29,26 @@ export default function OwnerSlots() {
     return { list, st }
   }, [store.id])
   const act = useAction()
+  const batch = useRef<{ signature: string; id: string } | null>(null)
   const toggle = (d: string) => { setDone(null); setDates((ds) => (ds.includes(d) ? ds.filter((x) => x !== d) : [...ds, d].sort())) }
   const cap = Number(capacity)
-  const rangesOk = ranges.every((r) => r.start < r.end || r.end === '00:00')
-  const valid = dates.length > 0 && rangesOk && Number.isInteger(cap) && cap > 0 && cap <= store.max_capacity && Number(deposit) >= 0
+  const rangesOk = ranges.every((r) => r.start !== r.end && (r.start < r.end || r.end === '00:00'))
+  const futureOnly = dates.every((d) => ranges.every((r) => Date.parse(`${d}T${r.start}:00+09:00`) > Date.now()))
+  const valid = dates.length > 0 && rangesOk && integerInRange(capacity, 1, store.max_capacity) && integerInRange(deposit) && futureOnly
   const count = dates.length * ranges.length
 
   const publish = () => act.run(async () => {
-    for (const d of dates) for (const r of ranges) {
+    if (!valid) return
+    const input = dates.flatMap((d) => ranges.map((r) => {
       const start = new Date(`${d}T${r.start}:00+09:00`)
       let end = new Date(`${d}T${r.end}:00+09:00`)
       if (end <= start) end = new Date(end.getTime() + 864e5) // 자정 넘김
-      await slots.openSlot({ store_id: store.id, start_at: start.toISOString(), end_at: end.toISOString(), capacity: cap, deposit_amount: Number(deposit) })
-    }
+      if (start.getTime() <= Date.now()) throw new Error('이미 지난 시작 시간은 공개할 수 없어요.')
+      return { start_at: start.toISOString(), end_at: end.toISOString(), capacity: cap, deposit_amount: Number(deposit) }
+    }))
+    const signature = JSON.stringify(input)
+    if (batch.current?.signature !== signature) batch.current = { signature, id: crypto.randomUUID() }
+    await slots.openSlots(store.id, batch.current.id, input)
     setDone(`${count}개 빈자리를 공개했어요.`)
     setDates([])
     await q.reload()
@@ -73,11 +81,12 @@ export default function OwnerSlots() {
           </div>
         ))}
         {!rangesOk && <p className="note-error">종료 시간이 시작 시간보다 늦어야 해요.</p>}
+        {dates.length > 0 && !futureOnly && <p className="note-error">이미 지난 시작 시간이 있어요. 날짜나 시간을 바꿔 주세요.</p>}
       </Section>
       <Section title="공통 조건">
         <div className="condition-grid">
           <Field label="최대 인원"><Input type="number" inputMode="numeric" min={1} max={store.max_capacity} value={capacity} onChange={(e) => setCapacity(e.target.value)} /></Field>
-          <Field label="예약금 (원)"><Input type="number" inputMode="numeric" min={0} step={1000} value={deposit} onChange={(e) => setDeposit(e.target.value)} /></Field>
+          <Field label="예약금 (원)" error={!integerInRange(deposit) ? '예약금은 0원 이상의 정수로 입력해 주세요.' : null}><Input type="number" inputMode="numeric" min={0} step={1} value={deposit} onChange={(e) => setDeposit(e.target.value)} /></Field>
         </div>
         <p className="meta">최대 인원은 가게 최대 {store.max_capacity}명까지 정할 수 있어요.</p>
       </Section>

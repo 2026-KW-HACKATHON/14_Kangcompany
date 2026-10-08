@@ -200,6 +200,7 @@ export interface Rsvp {
   is_closed: boolean
   closed_at: Timestamp | null
   created_at: Timestamp
+  expected_headcount?: number // 010: 최초 모집 인원 (구버전 DB에서는 예약 인원으로 대체)
 }
 
 export interface RsvpResponse {
