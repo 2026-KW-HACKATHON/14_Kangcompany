@@ -1,4 +1,4 @@
-// 카카오·네이버 로그인 버튼 (시안 2 · experience.js socialButton)
+// 소셜 로그인 버튼 (시안 2 · experience.js socialButton). 지금은 카카오만 표시
 // Supabase 에서 켜지 않은 제공자는 누를 수 없게 하고 "준비 중"으로 알린다
 import { useEffect, useState } from 'react'
 import { auth } from '../../api'
@@ -11,6 +11,8 @@ const LOGO: Record<SocialProvider, string> = {
   naver: 'M0 0h7.5l9 13.2V0H24v24h-7.5l-9-13.2V24H0z',
 }
 const LABEL: Record<SocialProvider, string> = { kakao: '카카오', naver: '네이버' }
+// 화면에 보일 제공자. 네이버는 보류 (다시 쓰려면 'naver' 추가 + docs/release/04_소셜로그인_설정.md)
+const SHOWN: readonly SocialProvider[] = ['kakao']
 
 export function SocialButtons({ role }: { role: Role }) {
   const [enabled, setEnabled] = useState<Record<SocialProvider, boolean> | null>(null)
@@ -22,10 +24,10 @@ export function SocialButtons({ role }: { role: Role }) {
     setBusy(p); setError(null)
     try { await auth.signInWithProvider(p, role) } catch (e) { setError(toApiError(e).message); setBusy(null) }
   }
-  const off = (['kakao', 'naver'] as const).filter((p) => enabled && !enabled[p])
+  const off = SHOWN.filter((p) => enabled && !enabled[p])
   return (
     <>
-      {(['kakao', 'naver'] as const).map((p) => (
+      {SHOWN.map((p) => (
         <button key={p} type="button" className={`social-brand ${p}`} disabled={!enabled?.[p] || busy !== null} aria-busy={busy === p || undefined} onClick={() => void go(p)}>
           <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d={LOGO[p]} /></svg>
           <span>{busy === p ? '이동 중' : `${LABEL[p]}로 로그인`}</span>

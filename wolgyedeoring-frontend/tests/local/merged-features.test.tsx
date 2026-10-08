@@ -91,9 +91,10 @@ describe('PR20·21 통합 검증',()=>{
   expect(disabled('카카오로 로그인')).toBe(true)
  })
  it('설정된 소셜 로그인은 선택한 제공자로 전달',async()=>{
-  await open('/login','social-enabled');const button=await screen.findByRole('button',{name:'네이버로 로그인'})
+  await open('/login','social-enabled');const button=await screen.findByRole('button',{name:'카카오로 로그인'})
+  expect(screen.queryByRole('button',{name:'네이버로 로그인'})).toBeNull() // 네이버는 보류
   await waitFor(()=>expect((button as HTMLButtonElement).disabled).toBe(false));fireEvent.click(button)
-  await waitFor(()=>expect(calls.find(c=>c.method==='auth.signInWithProvider')?.args).toEqual(['naver','group']))
+  await waitFor(()=>expect(calls.find(c=>c.method==='auth.signInWithProvider')?.args).toEqual(['kakao','group']))
  })
  it('비밀번호 찾기는 로컬 이메일로 재설정 요청 및 완료 안내',async()=>{
   await open('/login','anonymous');fireEvent.click(await screen.findByRole('button',{name:'비밀번호 찾기'}))
