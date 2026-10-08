@@ -46,7 +46,7 @@ export default function PaySuccess() {
       {r && (
         <section className="card">
           <h2>{r.stores.name}</h2>
-          <Rows rows={[['방문 날짜', dateLabel(r.start_at)], ['방문 시간', timeLabel(r.start_at)], ['모임 종류', eventLabel(r.event_type, r.requests?.note)], ['예상 인원', `${r.headcount}명`], ['예약금', r.deposit_amount ? formatWon(r.deposit_amount) : '없음'], ['예약 번호', `WG-${String(r.id).padStart(4, '0')}`]]} />
+          <Rows rows={[['방문 날짜', dateLabel(r.start_at)], ['방문 시간', timeLabel(r.start_at)], ['모임 종류', eventLabel(r.event_type, r.requests?.note)], ['예상 인원', `${r.headcount}명`], ...(r.budget_per_person ? [['1인 예산', formatWon(r.budget_per_person)] as [string, string]] : []), ['예약 번호', `WG-${String(r.id).padStart(4, '0')}`]]} />
         </section>
       )}
       {reservationId && (

@@ -44,7 +44,7 @@ export default function Pay() {
         <p className="subtitle">{r.stores.name} · {eventLabel(r.event_type, r.requests?.note)}</p>
       </section>
       <section className="card">
-        <Rows rows={[['방문 날짜', dateLabel(r.start_at)], ['방문 시간', timeLabel(r.start_at)], ['예상 인원', `${r.headcount}명`], ...(r.budget_per_person ? [['1인 예산', formatWon(r.budget_per_person)] as [string, string]] : [])]} />
+        <Rows rows={[['방문 날짜', dateLabel(r.start_at)], ['방문 시간', timeLabel(r.start_at)], ['모임 종류', eventLabel(r.event_type, r.requests?.note)], ['예상 인원', `${r.headcount}명`], ...(r.budget_per_person ? [['1인 예산', formatWon(r.budget_per_person)] as [string, string]] : [])]} />
         <Row label="예약금" value={zero ? '없음' : formatWon(r.deposit_amount)} />
         <Row label="결제 상태" value="미결제" />
       </section>

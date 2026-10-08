@@ -41,7 +41,7 @@ export default function Preorder() {
         <Row label="주문 합계" value={formatWon(total)} />
         <Row label="1인당 예상" value={formatWon(per)} />
         {budget !== null && <Row label="1인 예산" value={formatWon(budget)} />}
-        <div className="divider"><p className="meta">{over ? `1인 예산을 ${formatWon(per - budget!)} 넘었어요. 수량을 다시 확인해 주세요.` : '예약금은 주문 합계와 별도로 확인해 주세요.'}</p></div>
+        <div className="divider"><p className="meta">{over ? `1인 예산을 ${formatWon(per - budget!)} 넘었어요. 수량을 다시 확인해 주세요.` : `${budget !== null ? '1인 예산 안에 있어요. ' : ''}예약금은 주문 합계와 별도로 확인해 주세요.`}</p></div>
       </section>
     </Page>
   )
