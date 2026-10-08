@@ -69,6 +69,12 @@ await supabase.rpc('choose_role', { p_role: 'owner' })
 - `lat`, `lng` 지도 좌표. 주소→좌표 변환 위치와 지도 서비스는 #8 결정 후 확정 (지금은 값을 받아 저장만)
 - 전화번호·대표 사진은 기획상 **필수**(D-05)지만 DB 는 null 허용 → 가게 등록 화면에서 필수로 받기
 
+**시안 입력 칸 (011)** — 모두 선택, 같은 insert·update 에 넣으면 된다
+- 가게 `stores`: `category` 업종 (`restaurant` 음식점 기본값, `cafe` 카페, `venue` 행사·공간), `address_detail` 상세주소(60자), `hours` 영업시간 안내(80자), `business_no` 사업자등록번호, `commerce_no` 통신판매신고번호
+- 단체 `groups`: `affiliation` 소속·학교·학과(40자), `region` 활동 지역(40자), `usual_size` 평소 인원(1~200), `description` 기타 단체 한 줄 설명(40자)
+- 빈 날짜 `slots`: `min_headcount` 최소 인원(최대 인원 이하), `price_per_person` 1인 금액, `note` 안내(100자). **최소 인원보다 적게 예약하면 `book_slot` 이 거절**
+- 사전 주문 메모: `rpc('set_preorder_note', { p_reservation_id, p_note })` → `reservations.preorder_note` (200자, 사전 주문과 같은 기간에만 수정, 빈 문자열이면 지움)
+
 **요청 생성 시 서버가 정하는 값**
 - `response_deadline` 가게 응답 기한: 행사까지 7일 초과면 생성 후 24시간, 그 외 12시간 (행사 시작보다 늦지 않게 보정). 숫자는 #6 결정에 따라 바뀔 수 있음
 - 행사 24시간 이내 요청은 같은 시간대에 진행 중인 다른 요청·예약이 있으면 거절

@@ -261,5 +261,22 @@ begin
   insert into public.store_layouts (store_id, layout, table_count, total_seats, source, updated_by)
   values (s_meat, v_layout, (v_sum ->> 'table_count')::int, (v_sum ->> 'total_seats')::int, 'photo', u_o1);
 
+  -- ----------------------------------------------------------------
+  -- 011 시안 입력 칸 (011 을 실행한 DB 에서만 채움)
+  -- ----------------------------------------------------------------
+  if exists (select 1 from information_schema.columns
+              where table_schema = 'public' and table_name = 'slots' and column_name = 'price_per_person') then
+    execute 'update public.stores set category = $1, hours = $2 where id = $3' using 'restaurant', '매일 11:00–23:00 · 단체석 예약 시 17시부터', s_meat;
+    execute 'update public.stores set category = $1, hours = $2 where id = $3' using 'restaurant', '매일 16:00–02:00', s_chicken;
+    execute 'update public.stores set category = $1, hours = $2 where id = $3' using 'cafe', '평일 09:00–21:00 · 주말 10:00–20:00', s_snack;
+    execute 'update public.groups set affiliation = $1, region = $2, usual_size = $3 where id = $4' using '광운대 소프트웨어학부', '월계1동', 40, g_sw;
+    execute 'update public.groups set affiliation = $1, region = $2, usual_size = $3 where id = $4' using '광운대 전자공학과', '월계1동', 30, g_ee;
+    execute 'update public.groups set affiliation = $1, region = $2, usual_size = $3 where id = $4' using '광운대 중앙동아리', '월계동', 20, g_band;
+    execute 'update public.groups set affiliation = $1, region = $2, usual_size = $3 where id = $4' using '광운대 중앙동아리', '월계동', 25, g_fc;
+    execute 'update public.groups set region = $1, usual_size = $2 where id = $3' using '월계1동', 15, g_town;
+    execute 'update public.slots set min_headcount = 10, price_per_person = 25000, note = $1 where store_id = $2 and status = $3' using '단체석 한 공간 · 모둠구이 세트', s_meat, 'open';
+    execute 'update public.slots set min_headcount = 10, price_per_person = 20000, note = $1 where store_id = $2 and status = $3' using '생맥주 단체 할인', s_chicken, 'open';
+  end if;
+
   raise notice '데모 데이터 생성 완료';
-end $$;
+end $;

@@ -8,12 +8,32 @@ import { Page } from '../../components/layout'
 import { Calendar, monthOf, todayKst } from '../../components/Calendar'
 import { Icon } from '../../components/icons'
 import { TimePicker } from '../../components/pickers'
-import { Badge, Button, Check, Dock, Empty, ErrorBox, Field, Input, Intro, Loading, Section } from '../../components/ui'
-import { dayLabel, formatWon, kstDay, timeLabel } from '../../lib/format'
+import { Badge, Button, Check, Dock, Empty, ErrorBox, Field, Input, Intro, Loading, Section, Textarea } from '../../components/ui'
+import { dayLabel, formatWon, kstDay, slotPeopleLine, timeLabel } from '../../lib/format'
 import { slotView } from '../../lib/status'
 
 type Range = { start: string; end: string }
-type Cond = { capacity: string; deposit: string }
+// 시안 23 batchConditionFields: 최소·최대 인원, 1인 금액, 예약금, 안내 (최소 인원·1인 금액·안내는 011)
+type Cond = { min: string; capacity: string; price: string; deposit: string; note: string }
+
+function CondFields({ value, onChange, max, error }: { value: Cond; onChange: (patch: Partial<Cond>) => void; max: number; error: string | null }) {
+  const num = (k: keyof Cond, extra: { min: number; max?: number; step?: number }) => (
+    <Input type="number" inputMode="numeric" {...extra} value={value[k]} onChange={(e) => onChange({ [k]: e.target.value })} />
+  )
+  return (
+    <>
+      <div className="condition-grid">
+        <Field label="최소 인원 (선택)">{num('min', { min: 1, max })}</Field>
+        <Field label="최대 인원" error={error}>{num('capacity', { min: 1, max })}</Field>
+      </div>
+      <div className="condition-grid">
+        <Field label="1인 금액 (선택, 원)">{num('price', { min: 0, step: 1000 })}</Field>
+        <Field label="예약금 (원)">{num('deposit', { min: 0, step: 1000 })}</Field>
+      </div>
+      <Field label="안내 (선택)"><Textarea value={value.note} maxLength={100} onChange={(e) => onChange({ note: e.target.value })} placeholder="예: 단체석 한 공간 · 모둠구이 세트" /></Field>
+    </>
+  )
+}
 export default function OwnerSlots() {
   const { store } = useOwnerSession()
   const initialDay = (useLocation().state as { day?: string } | null)?.day
@@ -21,8 +41,7 @@ export default function OwnerSlots() {
   const [dates, setDates] = useState<string[]>(initialDay && initialDay >= today ? [initialDay] : [])
   const [month, setMonth] = useState(monthOf(initialDay && initialDay >= today ? initialDay : today))
   const [ranges, setRanges] = useState<Range[]>([{ start: '18:00', end: '20:00' }])
-  const [capacity, setCapacity] = useState(String(store.max_capacity))
-  const [deposit, setDeposit] = useState('0')
+  const [common, setCommon] = useState<Cond>({ min: '', capacity: String(store.max_capacity), price: '', deposit: '0', note: '' })
   const [done, setDone] = useState<string | null>(null)
   // 시안 23 날짜별 조건: 켠 날짜만 공통 조건 대신 따로 (빈자리는 날짜·시간대마다 하나씩 저장되므로 그대로 넣으면 됨)
   const [individual, setIndividual] = useState(false)
@@ -33,10 +52,18 @@ export default function OwnerSlots() {
   }, [store.id])
   const act = useAction()
   const toggle = (d: string) => { setDone(null); setDates((ds) => (ds.includes(d) ? ds.filter((x) => x !== d) : [...ds, d].sort())) }
-  const condFor = (d: string): Cond => (individual && overrides[d]) || { capacity, deposit }
-  const condOk = (c: Cond) => { const n = Number(c.capacity); return Number.isInteger(n) && n > 0 && n <= store.max_capacity && c.deposit !== '' && Number(c.deposit) >= 0 }
+  const condFor = (d: string): Cond => (individual && overrides[d]) || common
+  /** 문제가 있으면 문구, 없으면 null */
+  const condError = (c: Cond): string | null => {
+    const n = Number(c.capacity), m = c.min ? Number(c.min) : null
+    if (!Number.isInteger(n) || n < 1 || n > store.max_capacity) return `최대 인원은 1~${store.max_capacity}명`
+    if (m !== null && (!Number.isInteger(m) || m < 1 || m > n)) return '최소 인원이 최대 인원보다 많아요'
+    if (c.deposit === '' || Number(c.deposit) < 0 || (c.price !== '' && Number(c.price) < 0)) return '금액을 확인해 주세요'
+    return null
+  }
+  const condOk = (c: Cond) => condError(c) === null
   const rangesOk = ranges.every((r) => r.start < r.end || r.end === '00:00')
-  const valid = dates.length > 0 && rangesOk && condOk({ capacity, deposit }) && dates.every((d) => condOk(condFor(d)))
+  const valid = dates.length > 0 && rangesOk && condOk(common) && dates.every((d) => condOk(condFor(d)))
   const count = dates.length * ranges.length
 
   const publish = () => act.run(async () => {
@@ -45,7 +72,8 @@ export default function OwnerSlots() {
       const start = new Date(`${d}T${r.start}:00+09:00`)
       let end = new Date(`${d}T${r.end}:00+09:00`)
       if (end <= start) end = new Date(end.getTime() + 864e5) // 자정 넘김
-      await slots.openSlot({ store_id: store.id, start_at: start.toISOString(), end_at: end.toISOString(), capacity: Number(c.capacity), deposit_amount: Number(c.deposit) })
+      await slots.openSlot({ store_id: store.id, start_at: start.toISOString(), end_at: end.toISOString(), capacity: Number(c.capacity), deposit_amount: Number(c.deposit),
+        min_headcount: c.min ? Number(c.min) : null, price_per_person: c.price ? Number(c.price) : null, note: c.note.trim() || null })
     }
     setDone(`${count}개 빈자리를 공개했어요.`)
     setDates([]); setOverrides({})
@@ -81,10 +109,7 @@ export default function OwnerSlots() {
         {!rangesOk && <p className="note-error">종료 시간이 시작 시간보다 늦어야 해요.</p>}
       </Section>
       <Section title="공통 조건">
-        <div className="condition-grid">
-          <Field label="최대 인원"><Input type="number" inputMode="numeric" min={1} max={store.max_capacity} value={capacity} onChange={(e) => setCapacity(e.target.value)} /></Field>
-          <Field label="예약금 (원)"><Input type="number" inputMode="numeric" min={0} step={1000} value={deposit} onChange={(e) => setDeposit(e.target.value)} /></Field>
-        </div>
+        <CondFields value={common} max={store.max_capacity} error={condError(common)} onChange={(patch) => setCommon({ ...common, ...patch })} />
         <p className="meta">최대 인원은 가게 최대 {store.max_capacity}명까지 정할 수 있어요.</p>
       </Section>
       <Section title="날짜별 조건" action={<Button variant="text" aria-expanded={individual} onClick={() => setIndividual(!individual)}>{individual ? '접기' : '각각 설정'}</Button>}>
@@ -97,11 +122,10 @@ export default function OwnerSlots() {
             <div key={d} className={`date-condition card${o ? ' is-custom' : ''}`}>
               <h3>{dayLabel(d)}</h3>
               <Check label="이 날짜만 다른 조건 사용" checked={Boolean(o)}
-                onChange={(on) => { const next = { ...overrides }; if (on) next[d] = { capacity, deposit }; else delete next[d]; setOverrides(next) }} />
+                onChange={(on) => { const next = { ...overrides }; if (on) next[d] = { ...common }; else delete next[d]; setOverrides(next) }} />
               {o && (
-                <div className="condition-grid date-condition-fields">
-                  <Field label="최대 인원" error={condOk(o) ? null : `1~${store.max_capacity}명`}><Input type="number" inputMode="numeric" min={1} max={store.max_capacity} value={o.capacity} onChange={(e) => set({ capacity: e.target.value })} /></Field>
-                  <Field label="예약금 (원)"><Input type="number" inputMode="numeric" min={0} step={1000} value={o.deposit} onChange={(e) => set({ deposit: e.target.value })} /></Field>
+                <div className="date-condition-fields">
+                  <CondFields value={o} max={store.max_capacity} error={condError(o)} onChange={set} />
                 </div>
               )}
             </div>
@@ -117,7 +141,8 @@ export default function OwnerSlots() {
             <div key={s.id} className="card available-card">
               <div className="row"><Badge tone={v.tone}>{v.label === '열림' ? '공개 중' : v.label}</Badge><span className="meta">{dayLabel(kstDay(s.start_at))}</span></div>
               <h3>{timeLabel(s.start_at)} – {timeLabel(s.end_at)}</h3>
-              <p>최대 {s.capacity}명</p>
+              <p>{slotPeopleLine(s)}</p>
+                      {s.note && <p className="meta">{s.note}</p>}
               <p className="meta">예약금 {s.deposit_amount > 0 ? formatWon(s.deposit_amount) : '없음'}</p>
               {s.status !== 'booked' && (
                 <div className="slot-actions">

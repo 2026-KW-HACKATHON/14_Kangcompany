@@ -120,6 +120,7 @@ export default function GroupReservationDetail() {
           </summary>
           <div className="disclosure-content">
             {pre.items.map((i) => <p key={i.name}>{i.name} {i.qty}개 × {formatWon(i.unit_price)}</p>)}
+            {r.preorder_note && <p>알레르기·식이 제한: {r.preorder_note}</p>}
             {pre.items.length > 0 && <p>{pre.over_budget ? '1인 예산을 넘었어요.' : r.budget_per_person ? `1인 예산 ${formatWon(r.budget_per_person)} 안에 있어요.` : ''}</p>}
             {act.preorder_deadline && <p className="muted">{dateTimeLabel(act.preorder_deadline)}까지 바꿀 수 있어요.</p>}
             {act.can_edit_preorder && <button type="button" className="control" style={CTRL} onClick={() => nav(paths.groupPreorder(id))}>{pre.items.length ? '사전 주문 수정하기' : '사전 주문 구성하기'}</button>}
@@ -150,10 +151,11 @@ export default function GroupReservationDetail() {
         )}
         <details className="disclosure">
           <summary className="prep-summary">
-            <div><strong>가게 정보</strong><p>{r.stores.address ?? '주소 미등록'}</p></div>
+            <div><strong>가게 정보</strong><p>{r.stores.address ? `${r.stores.address}${r.stores.address_detail ? ` ${r.stores.address_detail}` : ''}` : '주소 미등록'}</p></div>
             <Icon name="chevron" />
           </summary>
           <div className="disclosure-content">
+            {r.stores.hours && <p>영업시간 {r.stores.hours}</p>}
             {r.stores.photo_url && <img className="store-photo" src={r.stores.photo_url} alt={`${r.stores.name} 사진`} />}
             {contacts?.store.phone && <p>가게 전화 <a href={`tel:${contacts.store.phone}`}>{contacts.store.phone}</a></p>}
             {contacts?.store.owner_phone && <p>사장님 {contacts.store.owner_name} <a href={`tel:${contacts.store.owner_phone}`}>{contacts.store.owner_phone}</a></p>}

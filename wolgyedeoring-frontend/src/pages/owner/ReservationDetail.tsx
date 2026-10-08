@@ -90,6 +90,7 @@ export default function OwnerReservationDetail() {
       )}
 
       <Section title="사전 주문 (준비량)">
+        {r.preorder_note && <Notice tone="warning">알레르기·식이 제한: {r.preorder_note}</Notice>}
         {pre.items.length ? (
           <section className="menu-list">
             {pre.items.map((i) => (

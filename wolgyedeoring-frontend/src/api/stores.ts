@@ -3,7 +3,7 @@ import { unwrap, toApiError } from '../lib/errors'
 import type { Store } from '../types/db'
 
 export type StoreInput = Pick<Store, 'name' | 'max_capacity'> &
-  Partial<Pick<Store, 'address' | 'phone' | 'intro' | 'lat' | 'lng' | 'photo_url'>>
+  Partial<Pick<Store, 'address' | 'phone' | 'intro' | 'lat' | 'lng' | 'photo_url' | 'category' | 'address_detail' | 'hours' | 'business_no' | 'commerce_no'>>
 
 export async function getMyStore(ownerId: string): Promise<Store | null> {
   return unwrap(await supabase.from('stores').select('*').eq('owner_id', ownerId).order('id').limit(1).maybeSingle())

@@ -1,4 +1,4 @@
--- 001~010 적용 확인: SQL Editor 에서 실행 → ok 열이 모두 true 면 정상
+-- 001~011 적용 확인: SQL Editor 에서 실행 → ok 열이 모두 true 면 정상
 with expected_fn(name) as (values
   ('respond_to_request'), ('book_slot'), ('pay_deposit_test'), ('cancel_reservation'),
   ('finish_reservation'), ('correct_receipt_item'), ('add_receipt_item'), ('delete_receipt_item'), ('confirm_receipt'),
@@ -97,6 +97,11 @@ checks(no, item, expected, actual) as (
          coalesce((select has_function_privilege('authenticated', p.oid, 'execute')::text
             from pg_proc p join pg_namespace n on n.oid = p.pronamespace
            where n.nspname = 'public' and p.proname = 'choose_role'), 'false')
+  union all
+  select 24, '시안 입력 칸 (011): 가게 업종·빈자리 1인 금액·사전 주문 메모', '3',
+         (select count(*)::text from information_schema.columns
+           where table_schema = 'public'
+             and (table_name, column_name) in (('stores', 'category'), ('slots', 'price_per_person'), ('reservations', 'preorder_note')))
 )
 select no, item as "확인 항목", expected as "기대값", actual as "실제값", expected = actual as ok
 from checks order by no;

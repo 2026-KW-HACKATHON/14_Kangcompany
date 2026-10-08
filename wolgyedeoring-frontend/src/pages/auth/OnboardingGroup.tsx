@@ -10,6 +10,7 @@ import { Button, Dock, Field, Input, Intro, Select } from '../../components/ui'
 import { GROUP_TYPE_LABEL } from '../../lib/status'
 import type { GroupType } from '../../types/db'
 import { RoleSwitch } from './RoleSwitch'
+import { GroupMoreFields, GroupSizeField, GroupTypeOther, groupExtraForm, groupExtraInput } from './GroupFields'
 
 export default function OnboardingGroup() {
   const { loading, me, group, refresh } = useSessionContext()
@@ -17,6 +18,7 @@ export default function OnboardingGroup() {
   const [name, setName] = useState('')
   const [type, setType] = useState<GroupType>('student_council')
   const [leader, setLeader] = useState<{ name: string; phone: string } | null>(null)
+  const [extra, setExtra] = useState(groupExtraForm())
   const act = useAction()
   if (loading) return <FrameLoading />
   if (!me) return <Navigate to={paths.start} replace />
@@ -29,7 +31,7 @@ export default function OnboardingGroup() {
     if (l.name.trim() !== me.display_name || (l.phone.trim() || null) !== me.phone) {
       await auth.updateMe(me.id, { display_name: l.name.trim(), phone: l.phone.trim() || null })
     }
-    await groups.createGroup(me.id, name.trim(), type)
+    await groups.createGroup(me.id, name.trim(), type, groupExtraInput(extra, type))
     await refresh()
     nav(paths.groupHome, { replace: true })
   })
@@ -42,8 +44,11 @@ export default function OnboardingGroup() {
         <Field label="단체 유형">
           <Select title="단체 유형" value={type} onChange={setType} options={Object.entries(GROUP_TYPE_LABEL).map(([value, label]) => ({ value: value as GroupType, label }))} />
         </Field>
+        <GroupTypeOther type={type} value={extra} onChange={setExtra} />
+        <GroupMoreFields value={extra} onChange={setExtra} />
         <Field label="담당자 이름"><Input value={l.name} onChange={(e) => setLeader({ ...l, name: e.target.value })} maxLength={20} required /></Field>
         <Field label="담당자 연락처" hint="예약이 잡힌 가게에만 보여요"><Input type="tel" inputMode="tel" value={l.phone} onChange={(e) => setLeader({ ...l, phone: e.target.value })} placeholder="010-1234-5678" /></Field>
+        <GroupSizeField value={extra} onChange={setExtra} />
       </form>
       <RoleSwitch to="owner" />
     </Page>

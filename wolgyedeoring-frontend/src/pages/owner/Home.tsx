@@ -10,7 +10,7 @@ import { Calendar, monthOf, todayKst } from '../../components/Calendar'
 import { OwnerRequestCard, ReservationCard } from '../../components/cards'
 import { Icon } from '../../components/icons'
 import { Badge, Button, ErrorBox, LinkRow, Loading } from '../../components/ui'
-import { dayLabel, formatWon, kstDay, timeLabel } from '../../lib/format'
+import { dayLabel, formatWon, kstDay, slotPeopleLine, timeLabel } from '../../lib/format'
 import { slotView } from '../../lib/status'
 
 export default function OwnerHome() {
@@ -105,7 +105,8 @@ export default function OwnerHome() {
                     <div key={s.id} className="card available-card">
                       <div className="row"><Badge tone={v.tone}>{v.label === '열림' ? '공개 중' : v.label}</Badge><span className="meta">{dayLabel(kstDay(s.start_at))}</span></div>
                       <h3>{timeLabel(s.start_at)} – {timeLabel(s.end_at)}</h3>
-                      <p>최대 {s.capacity}명</p>
+                      <p>{slotPeopleLine(s)}</p>
+                      {s.note && <p className="meta">{s.note}</p>}
                       <p className="meta">예약금 {s.deposit_amount > 0 ? formatWon(s.deposit_amount) : '없음'}</p>
                       {s.status !== 'booked' && new Date(s.start_at) > new Date() && (
                         <div className="slot-actions">
