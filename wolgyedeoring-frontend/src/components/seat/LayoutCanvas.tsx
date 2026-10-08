@@ -1,6 +1,6 @@
 // 좌석 배치도 그리기 (SVG). editable 이면 끌어서 옮기기 + 화살표 키로 1칸씩(Shift 5칸) 이동
 // 좌표는 가로 100 기준 (lib/layout). 색은 디자인 토큰 의미 변수만 사용
-import { useRef, type KeyboardEvent, type PointerEvent } from 'react'
+import { useEffect, useRef, type KeyboardEvent, type PointerEvent } from 'react'
 import { FIXTURE_LABEL, type Layout } from '../../lib/layout'
 
 export type Selection = { kind: 'table' | 'fixture'; id: string } | null
@@ -20,6 +20,16 @@ export function LayoutCanvas({ layout, editable, selected, warnIds, onSelect, on
   const svgRef = useRef<SVGSVGElement>(null)
   // 끌기 시작 시점의 화면→SVG 변환을 고정: 끄는 도중 위쪽 내용(경고 문구 등)이 생겨 캔버스가 밀려도 손가락을 정확히 따라감
   const drag = useRef<{ kind: 'table' | 'fixture'; id: string; dx: number; dy: number; inv: DOMMatrix } | null>(null)
+  // 이동 반영은 화면 갱신 주기(requestAnimationFrame)마다 한 번만: 휴대폰에서 포인터 이벤트마다 화면 전체를 다시 그리면 끊김
+  const pending = useRef<{ kind: 'table' | 'fixture'; id: string; x: number; y: number } | null>(null)
+  const frame = useRef(0)
+  const flush = () => {
+    frame.current = 0
+    const p = pending.current
+    pending.current = null
+    if (p) onMove?.(p.kind, p.id, p.x, p.y)
+  }
+  useEffect(() => () => cancelAnimationFrame(frame.current), [])
 
   const toSvg = (e: PointerEvent, inv?: DOMMatrix) => {
     const m = inv ?? svgRef.current?.getScreenCTM()?.inverse()
@@ -41,9 +51,15 @@ export function LayoutCanvas({ layout, editable, selected, warnIds, onSelect, on
     const d = drag.current
     if (!d) return
     const p = toSvg(e, d.inv)
-    if (p) onMove?.(d.kind, d.id, Math.round(p.x - d.dx), Math.round(p.y - d.dy))
+    if (!p) return
+    // 정수로 반올림하지 않는다 (가로 100칸이라 휴대폰에서 3~4px 씩 뚝뚝 튐). 소수 한 자리 정리는 fitBox 가 함
+    pending.current = { kind: d.kind, id: d.id, x: p.x - d.dx, y: p.y - d.dy }
+    if (!frame.current) frame.current = requestAnimationFrame(flush)
   }
-  const end = () => { drag.current = null }
+  const end = () => {
+    drag.current = null
+    if (frame.current) { cancelAnimationFrame(frame.current); flush() } // 손을 뗀 마지막 위치는 바로 반영
+  }
 
   const keys = (kind: 'table' | 'fixture', id: string, x: number, y: number) => (e: KeyboardEvent<SVGGElement>) => {
     if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSelect?.({ kind, id }); return }
