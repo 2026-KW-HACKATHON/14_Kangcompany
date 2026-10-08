@@ -5,10 +5,9 @@ import { reservations } from '../../api'
 import { paths } from '../../app/paths'
 import { useAction, useAsync } from '../../hooks/useAsync'
 import { Page } from '../../components/layout'
-import { Icon } from '../../components/icons'
 import { Button, Dock, ErrorBox, Field, Input, Loading, Notice, Rows, Section, Textarea } from '../../components/ui'
-import { todayKst } from '../../components/Calendar'
-import { dateLabel, dayLabel, formatWon, hmLabel, kstDay, timeLabel } from '../../lib/format'
+import { DatePicker, TimePicker } from '../../components/pickers'
+import { dateLabel, formatWon, kstDay, timeLabel } from '../../lib/format'
 import { eventLabel } from '../../lib/status'
 
 export default function Modify() {
@@ -52,13 +51,11 @@ export default function Modify() {
           <>
             <div className="field">
               <span className="field-label">희망 날짜</span>
-              <label className="date-trigger picker-native"><span>{dayLabel(v.day)}</span><Icon name="calendar" />
-                <input type="date" value={v.day} min={todayKst()} aria-label="희망 날짜" onChange={(e) => e.target.value && set({ day: e.target.value })} /></label>
+              <DatePicker title="희망 날짜" value={v.day} onChange={(day) => set({ day })} />
             </div>
             <div className="field">
               <span className="field-label">희망 시간</span>
-              <label className="date-trigger picker-native"><span>{hmLabel(v.time)}</span><Icon name="clock" />
-                <input type="time" value={v.time} step={600} aria-label="희망 시간" onChange={(e) => e.target.value && set({ time: e.target.value })} /></label>
+              <TimePicker title="희망 시간" value={v.time} onChange={(time) => set({ time })} />
             </div>
           </>
         ) : <p className="meta">가게가 연 날짜로 잡은 예약은 인원만 바꿀 수 있어요.</p>}

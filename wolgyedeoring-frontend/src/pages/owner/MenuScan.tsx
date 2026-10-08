@@ -11,7 +11,7 @@ import { MENU_CATEGORY_LABEL } from '../../lib/status'
 import { formatWon } from '../../lib/format'
 import type { ExtractMenuResult, ExtractedMenuItem, MenuCategory } from '../../types/db'
 
-const CATS = Object.entries(MENU_CATEGORY_LABEL).map(([value, label]) => ({ value, label }))
+const CATS = Object.entries(MENU_CATEGORY_LABEL).map(([value, label]) => ({ value: value as MenuCategory, label }))
 const STATUS: Record<ExtractedMenuItem['status'], { label: string; tone: 'success' | 'warning' | 'muted' }> = {
   new: { label: '새 메뉴', tone: 'success' }, price_changed: { label: '가격 변경', tone: 'warning' },
   same: { label: '변경 없음', tone: 'muted' }, reactivate: { label: '다시 판매', tone: 'success' },
@@ -68,7 +68,7 @@ export default function MenuScan() {
                 <Field label="메뉴명"><Input value={m.name} onChange={(e) => update(i, { name: e.target.value })} /></Field>
                 <div className="pair">
                   <Field label="가격 (원)"><Input type="number" min={0} step={500} value={m.price ?? ''} onChange={(e) => update(i, { price: e.target.value === '' ? null : Number(e.target.value) })} /></Field>
-                  <Field label="분류"><Select value={m.category} onChange={(e) => update(i, { category: e.target.value as MenuCategory })} options={CATS} /></Field>
+                  <Field label="분류"><Select title="분류" value={m.category} onChange={(category) => update(i, { category })} options={CATS} /></Field>
                 </div>
                 <Check label="이 메뉴 포함" checked={m.include} onChange={(v) => update(i, { include: v })} />
               </div>

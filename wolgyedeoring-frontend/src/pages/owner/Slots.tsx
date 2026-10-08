@@ -7,8 +7,9 @@ import { useAction, useAsync } from '../../hooks/useAsync'
 import { Page } from '../../components/layout'
 import { Calendar, monthOf, todayKst } from '../../components/Calendar'
 import { Icon } from '../../components/icons'
+import { TimePicker } from '../../components/pickers'
 import { Badge, Button, Dock, Empty, ErrorBox, Field, Input, Intro, Loading, Section } from '../../components/ui'
-import { dayLabel, formatWon, hmLabel, kstDay, timeLabel } from '../../lib/format'
+import { dayLabel, formatWon, kstDay, timeLabel } from '../../lib/format'
 import { slotView } from '../../lib/status'
 
 type Range = { start: string; end: string }
@@ -64,9 +65,8 @@ export default function OwnerSlots() {
             {(['start', 'end'] as const).map((k) => (
               <div key={k} className="field">
                 <span className="field-label">{k === 'start' ? '시작 시간' : '종료 시간'}</span>
-                <label className="date-trigger picker-native"><span>{hmLabel(r[k])}</span><Icon name="clock" />
-                  <input type="time" step={600} value={r[k]} aria-label={`${i + 1}번째 ${k === 'start' ? '시작' : '종료'} 시간`}
-                    onChange={(e) => e.target.value && setRanges(ranges.map((x, j) => (j === i ? { ...x, [k]: e.target.value } : x)))} /></label>
+                <TimePicker title={k === 'start' ? '시작 시간' : '종료 시간'} value={r[k]}
+                  onChange={(hm) => setRanges(ranges.map((x, j) => (j === i ? { ...x, [k]: hm } : x)))} />
               </div>
             ))}
             {ranges.length > 1 && <button type="button" className="icon-btn" aria-label={`${i + 1}번째 시간대 삭제`} onClick={() => setRanges(ranges.filter((_, j) => j !== i))}><Icon name="close" /></button>}

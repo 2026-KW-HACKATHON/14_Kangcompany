@@ -1,5 +1,5 @@
 // 공통 부품 — 시안(docs/ui-handoff/full-ui) 의 클래스·마크업을 그대로 쓴다 (스타일: styles/proto/*.css)
-import { useEffect, useState, type ButtonHTMLAttributes, type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes, type TextareaHTMLAttributes } from 'react'
+import { useEffect, useState, type ButtonHTMLAttributes, type InputHTMLAttributes, type ReactNode, type TextareaHTMLAttributes } from 'react'
 import type { Tone } from '../lib/status'
 import { timeLeft } from '../lib/format'
 import { deadlineTone } from '../lib/status'
@@ -86,16 +86,8 @@ export function Textarea({ placeholder = ' ', ...props }: TextareaHTMLAttributes
   return <textarea placeholder={placeholder} {...props} />
 }
 
-export function Select({ options, ...props }: SelectHTMLAttributes<HTMLSelectElement> & { options: { value: string; label: string }[] }) {
-  return (
-    <span className="native-select">
-      <select {...props}>
-        {options.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
-      </select>
-      <Icon name="chevron" />
-    </span>
-  )
-}
+/** 선택 상자 (시안 selectField: 버튼 아래 목록) */
+export { Select } from './pickers'
 
 export function Check({ label, checked, onChange }: { label: ReactNode; checked: boolean; onChange: (v: boolean) => void }) {
   return (

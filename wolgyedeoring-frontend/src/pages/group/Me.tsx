@@ -28,7 +28,7 @@ export default function GroupMe() {
       <form onSubmit={(e) => { e.preventDefault(); void save() }}>
         <Field label="단체명"><Input value={g.name} onChange={(e) => { setG({ ...g, name: e.target.value }); touch() }} required /></Field>
         <Field label="단체 유형">
-          <Select value={g.type} onChange={(e) => { setG({ ...g, type: e.target.value as GroupType }); touch() }} options={Object.entries(GROUP_TYPE_LABEL).map(([value, label]) => ({ value, label }))} />
+          <Select title="단체 유형" value={g.type} onChange={(type) => { setG({ ...g, type }); touch() }} options={Object.entries(GROUP_TYPE_LABEL).map(([value, label]) => ({ value: value as GroupType, label }))} />
         </Field>
         <Field label="담당자 이름"><Input value={p.name} onChange={(e) => { setP({ ...p, name: e.target.value }); touch() }} required /></Field>
         <Field label="담당자 연락처" hint="예약이 잡힌 가게에만 보여요"><Input type="tel" value={p.phone} onChange={(e) => { setP({ ...p, phone: e.target.value }); touch() }} /></Field>

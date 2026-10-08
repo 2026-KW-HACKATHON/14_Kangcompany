@@ -32,7 +32,7 @@ export default function OnboardingGroup() {
       <form id="group-form" onSubmit={(e) => { e.preventDefault(); if (name.trim()) void submit() }}>
         <Field label="단체명"><Input value={name} onChange={(e) => setName(e.target.value)} placeholder="예: 소프트웨어학부 학생회" required /></Field>
         <Field label="단체 유형">
-          <Select value={type} onChange={(e) => setType(e.target.value as GroupType)} options={Object.entries(GROUP_TYPE_LABEL).map(([value, label]) => ({ value, label }))} />
+          <Select title="단체 유형" value={type} onChange={setType} options={Object.entries(GROUP_TYPE_LABEL).map(([value, label]) => ({ value: value as GroupType, label }))} />
         </Field>
         <Field label="담당자"><Input value={me.display_name} readOnly disabled /></Field>
       </form>

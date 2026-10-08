@@ -12,7 +12,7 @@ import { MENU_CATEGORY_LABEL } from '../../lib/status'
 import { formatWon } from '../../lib/format'
 import type { Menu, MenuCategory } from '../../types/db'
 
-const CATS = Object.entries(MENU_CATEGORY_LABEL).map(([value, label]) => ({ value, label }))
+const CATS = Object.entries(MENU_CATEGORY_LABEL).map(([value, label]) => ({ value: value as MenuCategory, label }))
 type Edit = { id: number | null; name: string; price: string; category: MenuCategory }
 
 export default function OwnerMenus() {
@@ -43,7 +43,7 @@ export default function OwnerMenus() {
             <>
               <Field label="메뉴명"><Input value={edit.name} maxLength={60} onChange={(e) => setEdit({ ...edit, name: e.target.value })} /></Field>
               <Field label="가격 (원)" hint="비우면 사전 주문에서 고를 수 없어요"><Input type="number" inputMode="numeric" min={0} step={500} value={edit.price} onChange={(e) => setEdit({ ...edit, price: e.target.value })} /></Field>
-              <Field label="분류"><Select value={edit.category} onChange={(e) => setEdit({ ...edit, category: e.target.value as MenuCategory })} options={CATS} /></Field>
+              <Field label="분류"><Select title="분류" value={edit.category} onChange={(category) => setEdit({ ...edit, category })} options={CATS} /></Field>
               {act.error && <p className="note-error">{act.error}</p>}
             </>
           )}

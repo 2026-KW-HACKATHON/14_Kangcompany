@@ -9,7 +9,15 @@ import { RequestCard } from '../../components/cards'
 import { Icon } from '../../components/icons'
 import { Badge, Button, ErrorBox, Loading } from '../../components/ui'
 import { RESERVATION_STATUS, effectiveRequestStatus, eventLabel } from '../../lib/status'
-import { dateLabel, dateTimeLabel, formatWon, timeLabel } from '../../lib/format'
+import { dateLabel, dateTimeLabel, formatWon, kstDay, timeLabel } from '../../lib/format'
+import { todayKst } from '../../components/Calendar'
+
+/** 시안 hub.js deadlineCopy: 응답 마감까지 N일 / 오늘 응답 마감 / 응답 마감됨 */
+function deadlineLabel(deadline: string, open: boolean) {
+  if (!open) return '응답 마감됨'
+  const days = Math.round((new Date(`${kstDay(deadline)}T12:00:00+09:00`).getTime() - new Date(`${todayKst()}T12:00:00+09:00`).getTime()) / 864e5)
+  return days > 0 ? `응답 마감까지 ${days}일` : days === 0 ? '오늘 응답 마감' : '응답 마감됨'
+}
 
 export default function GroupHome() {
   const { me, group } = useGroupSession()
@@ -72,10 +80,10 @@ export default function GroupHome() {
                     </div>
                     <p className="meta">미응답 {pending}명 · 불참 {c.no}명</p>
                     <div className="deadline">
-                      <strong>{c.deadline ? (c.open ? '응답 받는 중' : '응답 마감됨') : '참석 조사를 만들어 보세요'}</strong>
+                      <strong>{c.deadline ? deadlineLabel(c.deadline, c.open) : '참석 조사를 만들어 보세요'}</strong>
                       {c.deadline && <span>{dateTimeLabel(c.deadline)}</span>}
                     </div>
-                    {a.status === 'awaiting_payment' && a.deposit_amount > 0 && <p className="payment-deadline">예약금을 결제하면 확정돼요</p>}
+                    {a.status === 'awaiting_payment' && a.deposit_amount > 0 && <p className="payment-deadline">예약금 결제 기한 미정</p>}
                   </div>
                   <div className="meeting-actions">
                     <Button onClick={() => nav(paths.groupRsvpResponses(a.id))}>참석 현황</Button>

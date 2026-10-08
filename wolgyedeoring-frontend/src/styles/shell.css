@@ -18,16 +18,6 @@ body { margin: 0; background: var(--color-bg); }
 .app .appbar h1, .app .appbar h2 { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .app .overlay { position: absolute; }
 
-/* 네이티브 select 를 시안 선택 상자 모양으로 */
-.app .native-select { position: relative; display: block; }
-.app .native-select select {
-  appearance: none; width: 100%; min-height: 60px; padding: 16px 44px 16px 16px;
-  border-radius: var(--radius-control); border: 1px solid var(--color-border); background: var(--color-surface);
-  font-weight: var(--font-weight-semibold); box-shadow: 0 2px 4px rgb(25 38 65 / .025);
-}
-.app .native-select .icon { position: absolute; right: 16px; top: 50%; width: 20px; height: 20px; transform: translateY(-50%) rotate(90deg); color: var(--color-text-secondary); pointer-events: none; }
-.app .field .native-select select { border-bottom: 1px solid var(--color-border); }
-
 /* 시안에 없는 실제 앱 보조 요소 */
 .app .inline-error, .app .note-error { color: var(--tone-danger-fg); font-size: var(--text-body2-size); }
 .app .btn-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
@@ -53,10 +43,6 @@ body { margin: 0; background: var(--color-bg); }
 .dev-page table { width: 100%; border-collapse: collapse; }
 .dev-page td, .dev-page th { border-bottom: 1px solid var(--color-border); padding: 8px; text-align: left; }
 
-/* 날짜·시간: 시안의 버튼 모양 위에 투명한 기본 입력을 겹쳐 기기 기본 선택기를 쓴다 */
-.app .picker-native { position: relative; cursor: pointer; }
-.app .picker-native input { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; border: 0; padding: 0; margin: 0; min-height: 0; }
-.app .picker-native input::-webkit-calendar-picker-indicator { position: absolute; inset: 0; width: 100%; height: 100%; cursor: pointer; }
 /* 사진 올리기 상자 안 버튼은 회색 바탕 위에서 보이도록 흰 바탕 (시안 25·28 스크린샷) */
 .app .upload .secondary { background: var(--color-surface); border: 1px solid var(--color-border-strong); }
 
