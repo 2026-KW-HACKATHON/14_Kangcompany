@@ -24,6 +24,8 @@ export function SessionProvider({ children }: { children: ReactNode }) {
         me.role === 'group' ? groups.getMyGroup(me.id) : Promise.resolve(null),
         me.role === 'owner' ? stores.getMyStore(me.id) : Promise.resolve(null),
       ])
+      // 소셜 로그인으로 처음 들어왔으면 시작 화면에서 고른 역할로 (등록 전까지만)
+      if (await auth.applyPendingRole(me, Boolean(group || store)).catch(() => false)) return refresh()
       setState({ loading: false, me, group, store })
     } catch {
       setState({ loading: false, me: null, group: null, store: null })

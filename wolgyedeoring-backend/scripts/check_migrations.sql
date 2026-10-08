@@ -1,4 +1,4 @@
--- 001~009 적용 확인: SQL Editor 에서 실행 → ok 열이 모두 true 면 정상
+-- 001~010 적용 확인: SQL Editor 에서 실행 → ok 열이 모두 true 면 정상
 with expected_fn(name) as (values
   ('respond_to_request'), ('book_slot'), ('pay_deposit_test'), ('cancel_reservation'),
   ('finish_reservation'), ('correct_receipt_item'), ('add_receipt_item'), ('delete_receipt_item'), ('confirm_receipt'),
@@ -92,6 +92,11 @@ checks(no, item, expected, actual) as (
   union all
   select 22, '로그인 사용자가 배치도 직접 쓰기 가능?', 'false',
          has_table_privilege('authenticated', 'public.store_layouts', 'insert')::text
+  union all
+  select 23, '소셜 로그인 역할 고르기 choose_role (010)', 'true',
+         coalesce((select has_function_privilege('authenticated', p.oid, 'execute')::text
+            from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+           where n.nspname = 'public' and p.proname = 'choose_role'), 'false')
 )
 select no, item as "확인 항목", expected as "기대값", actual as "실제값", expected = actual as ok
 from checks order by no;

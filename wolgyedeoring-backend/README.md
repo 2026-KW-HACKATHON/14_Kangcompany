@@ -15,6 +15,7 @@ supabase/
     008_fe_requests.sql   FE 요청 반영(#10): 응답 기한·남은 자리, 요청 철회, 가게 수, 행동 플래그,
                           연락처, 가게 정보·좌표·사진 저장소, 수락 알림 통합, 테이블 직접 쓰기 권한 축소
     009_seat_layout.sql   좌석 배치도(명세 7): 가게당 게시본 1개, 서버 검증 (다시 실행해도 됨)
+    010_social_login.sql  소셜 로그인: 새 계정 이름을 제공자 이름으로, 등록 전 역할 고르기(choose_role) (다시 실행해도 됨)
   functions/
     extract-menu/         메뉴판 사진 → LLM 메뉴 후보 + 기존 메뉴 비교 (저장 안 함)
       index.ts, menu.ts
@@ -49,7 +50,8 @@ tests/                    로컬 테스트 (Supabase 에는 올리지 않음)
 7. `007_first_accept.sql` 실행
 8. `008_fe_requests.sql` 실행
 9. `009_seat_layout.sql` 실행
-10. 확인: `scripts/check_migrations.sql` 실행 → ok 열이 모두 true (7번 Realtime 은 Supabase 에서만 true)
+10. `010_social_login.sql` 실행 (카카오·네이버 로그인 설정은 `docs/release/04_소셜로그인_설정.md`)
+11. 확인: `scripts/check_migrations.sql` 실행 → ok 열이 모두 true (7번 Realtime 은 Supabase 에서만 true)
 
 > 이미 운영 중인 DB 에 008 을 적용하면 `open_requests_for_store` 반환 형식이 바뀐다 (컬럼 추가만, 기존 컬럼 유지).
 > 008 은 앱이 `requests`·`request_responses`·`profiles.role` 에 직접 쓰는 권한을 회수한다 → API.md 방식만 쓰면 영향 없음.

@@ -33,8 +33,14 @@ await supabase.auth.signInWithPassword({ email, password })
 // 내 정보
 const { data: me } = await supabase.from('profiles').select('*').single()
 
-// 내 정보 수정: 이름·전화번호만 가능 (role 은 바꿀 수 없음)
+// 내 정보 수정: 이름·전화번호만 가능 (role 은 직접 바꿀 수 없음)
 await supabase.from('profiles').update({ display_name, phone }).eq('id', me.id)
+
+// 소셜 로그인 (010): 처음이면 계정이 자동으로 만들어진다. role 은 기본 'group', 이름은 제공자가 준 이름
+await supabase.auth.signInWithOAuth({ provider: 'kakao', options: { redirectTo: `${location.origin}/login` } })
+await supabase.auth.signInWithOAuth({ provider: 'custom:naver', options: { redirectTo: `${location.origin}/login` } })
+// 역할 고르기: 단체·가게를 등록하기 전까지만 가능 (등록 후에는 오류)
+await supabase.rpc('choose_role', { p_role: 'owner' })
 ```
 
 ---
