@@ -20,7 +20,10 @@ export default function Login() {
   const [resetSent, setResetSent] = useState(false)
   const role = (useLocation().state as { role?: Role } | null)?.role ?? 'group'
   // 소셜 로그인에서 돌아왔는데 실패한 경우 (?error_description=…)
-  const oauthError = new URLSearchParams(window.location.search).get('error_description')
+  const query = new URLSearchParams(window.location.search)
+  const oauthError = query.get('error_description')
+  // 회원가입 인증 메일 링크로 들어온 경우 (?confirmed=1). 같은 기기면 바로 로그인되어 홈으로 이동한다
+  const confirmed = query.get('confirmed') === '1' && !oauthError
   // 로그인 성공 → 세션이 바뀌면 RedirectIfLoggedIn 이 역할별 홈으로 보냄
   const submit = () => act.run(() => auth.signIn(email.trim(), password))
   return (
@@ -28,7 +31,7 @@ export default function Login() {
       overlay={
         <Sheet open={resetOpen} title="비밀번호 찾기" confirmLabel={resetSent ? '닫기' : '재설정 메일 보내기'} busy={reset.busy} onClose={() => setResetOpen(false)}
           onConfirm={resetSent ? () => setResetOpen(false) : resetEmail.trim() ? () => void reset.run(async () => { await auth.requestPasswordReset(resetEmail.trim()); setResetSent(true) }) : undefined}>
-          {resetSent ? <p className="subtitle">{resetEmail.trim()} 로 메일을 보냈어요. 메일의 링크를 누르면 새 비밀번호를 정할 수 있어요.</p> : (
+          {resetSent ? <p className="subtitle">{resetEmail.trim()} 로 메일을 보냈어요. 이 기기의 이 브라우저에서 메일 링크를 열어야 새 비밀번호를 정할 수 있어요.</p> : (
             <>
               <p className="subtitle">가입한 이메일로 비밀번호 재설정 링크를 보내드려요. 카카오·네이버로 가입했다면 그 버튼으로 로그인해 주세요.</p>
               <Field label="이메일"><Input type="email" autoComplete="username" value={resetEmail} onChange={(e) => setResetEmail(e.target.value)} /></Field>
@@ -48,7 +51,8 @@ export default function Login() {
       <div className="row" style={{ justifyContent: 'flex-end' }}>
         <Button variant="text" onClick={() => { setResetEmail(email); setResetSent(false); setResetOpen(true) }}>비밀번호 찾기</Button>
       </div>
-      {oauthError && <p className="note-error" role="alert">소셜 로그인에 실패했어요: {oauthError}</p>}
+      {confirmed && <p className="meta" role="status" style={{ textAlign: 'center' }}>이메일 인증이 끝났어요. 가입한 이메일로 로그인해 주세요.</p>}
+      {oauthError && <p className="note-error" role="alert">로그인 링크를 처리하지 못했어요: {oauthError}</p>}
       <div className="social login-actions">
         <SocialButtons role={role} />
         <Button variant="primary" type="submit" form="login-form" busy={act.busy} disabled={!email || !password}>로그인</Button>

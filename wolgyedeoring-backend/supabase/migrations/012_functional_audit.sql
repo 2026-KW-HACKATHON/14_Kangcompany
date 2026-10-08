@@ -1,8 +1,8 @@
--- 010 소셜 로그인·011 입력 칸 이후 1회 실행. 일괄 공개·재시도·날짜별 조건, 지난 시간 차단,
+-- 010 소셜 로그인·011 입력 칸 이후 실행 (다시 실행해도 됨). 일괄 공개·재시도·날짜별 조건, 지난 시간 차단,
 -- 참석 조사 인원 반영 시점을 마감으로 통일한다.
 begin;
 
-create table public.slot_publish_batches (
+create table if not exists public.slot_publish_batches (
   id uuid primary key,
   store_id bigint not null references public.stores(id) on delete cascade,
   payload jsonb not null,
@@ -85,14 +85,17 @@ begin
   return new;
 end;
 $$;
+drop trigger if exists trg_slots_guard_future on public.slots;
 create trigger trg_slots_guard_future before insert or update on public.slots
 for each row execute function public._slots_guard_future();
 revoke execute on function public._slots_guard_future() from public, anon, authenticated;
 
-alter table public.rsvps add column expected_headcount int;
+alter table public.rsvps add column if not exists expected_headcount int;
 -- 과거 응답으로 이미 덮인 인원은 추측하여 복원하지 않는다. 현재 예약 인원으로 초기화.
-update public.rsvps v set expected_headcount = r.headcount from public.reservations r where r.id = v.reservation_id;
+update public.rsvps v set expected_headcount = r.headcount from public.reservations r
+ where r.id = v.reservation_id and v.expected_headcount is null;
 alter table public.rsvps alter column expected_headcount set not null;
+alter table public.rsvps drop constraint if exists rsvps_expected_headcount_positive;
 alter table public.rsvps add constraint rsvps_expected_headcount_positive check (expected_headcount > 0);
 
 create or replace function public._rsvps_capture_headcount()
@@ -104,6 +107,7 @@ begin
   return new;
 end;
 $$;
+drop trigger if exists trg_rsvps_capture_headcount on public.rsvps;
 create trigger trg_rsvps_capture_headcount before insert on public.rsvps
 for each row execute function public._rsvps_capture_headcount();
 revoke execute on function public._rsvps_capture_headcount() from public, anon, authenticated;

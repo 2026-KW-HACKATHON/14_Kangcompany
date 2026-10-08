@@ -181,3 +181,13 @@ test('시연 데이터 재생성도 참석 마감 전 예약 인원을 유지',a
   assert.equal((await sql("select count(*)::int n from stores s join auth.users u on u.id=s.owner_id where u.email like 'owner%@wolgye.demo'")).rows[0].n,3)
  }
 })
+
+test('010 이후 마이그레이션은 다시 실행해도 오류가 없다', async () => {
+  await db.exec('reset role')
+  const dir = new URL('../supabase/migrations/', import.meta.url)
+  for (const file of (await readdir(dir)).filter((f) => f.endsWith('.sql') && f >= '010').sort()) {
+    await db.exec(await readFile(new URL(file, dir), 'utf8'))
+  }
+  const { rows } = await db.query("select count(*)::int as n from pg_trigger where tgname in ('trg_slots_guard_future','trg_rsvps_capture_headcount')")
+  assert.equal(rows[0].n, 2)
+})

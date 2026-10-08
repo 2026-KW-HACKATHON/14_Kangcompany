@@ -30,7 +30,7 @@ export async function updateStore(id: number, patch: Partial<StoreInput>): Promi
 export async function uploadStorePhoto(storeId: number, file: File): Promise<Store> {
   const ext = (file.name.split('.').pop() || 'jpg').toLowerCase()
   const path = `${storeId}/main-${Date.now()}.${ext}`
-  const { error } = await supabase.storage.from('store-photos').upload(path, file, { upsert: true, contentType: file.type })
+  const { error } = await supabase.storage.from('store-photos').upload(path, file, { contentType: file.type || 'image/jpeg' })
   if (error) throw toApiError(error)
   const { data } = supabase.storage.from('store-photos').getPublicUrl(path)
   return updateStore(storeId, { photo_url: data.publicUrl })
