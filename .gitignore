@@ -30,3 +30,6 @@ Thumbs.db
 
 # Vercel CLI ¿¬°á Á¤º¸
 .vercel
+
+# Supabase CLI ì„ì‹œ íŒŒì¼
+**/supabase/.temp/
