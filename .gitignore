@@ -24,3 +24,6 @@ Thumbs.db
 .vscode/
 # Claude Code 로컬 설정·세션 파일
 .claude/
+
+# Vite 캐시 (시안 폴더를 로컬 서버로 열 때 생김)
+**/.vite/

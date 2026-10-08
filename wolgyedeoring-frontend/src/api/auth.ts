@@ -77,6 +77,18 @@ export async function applyPendingRole(me: Profile, registered: boolean): Promis
   return true
 }
 
+/** 비밀번호 재설정 메일 보내기. 메일 링크 → /reset-password (Supabase Redirect URLs 에 있어야 함) */
+export async function requestPasswordReset(email: string) {
+  const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: `${window.location.origin}/reset-password` })
+  if (error) throw toApiError(error)
+}
+
+/** 로그인된 상태(재설정 링크로 들어온 경우 포함)에서 비밀번호 바꾸기 */
+export async function updatePassword(password: string) {
+  const { error } = await supabase.auth.updateUser({ password })
+  if (error) throw toApiError(error)
+}
+
 export async function signOut() {
   const { error } = await supabase.auth.signOut()
   if (error) throw toApiError(error)

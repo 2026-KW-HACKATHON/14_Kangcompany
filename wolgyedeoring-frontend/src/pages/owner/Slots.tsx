@@ -8,11 +8,12 @@ import { Page } from '../../components/layout'
 import { Calendar, monthOf, todayKst } from '../../components/Calendar'
 import { Icon } from '../../components/icons'
 import { TimePicker } from '../../components/pickers'
-import { Badge, Button, Dock, Empty, ErrorBox, Field, Input, Intro, Loading, Section } from '../../components/ui'
+import { Badge, Button, Check, Dock, Empty, ErrorBox, Field, Input, Intro, Loading, Section } from '../../components/ui'
 import { dayLabel, formatWon, kstDay, timeLabel } from '../../lib/format'
 import { slotView } from '../../lib/status'
 
 type Range = { start: string; end: string }
+type Cond = { capacity: string; deposit: string }
 export default function OwnerSlots() {
   const { store } = useOwnerSession()
   const initialDay = (useLocation().state as { day?: string } | null)?.day
@@ -23,26 +24,31 @@ export default function OwnerSlots() {
   const [capacity, setCapacity] = useState(String(store.max_capacity))
   const [deposit, setDeposit] = useState('0')
   const [done, setDone] = useState<string | null>(null)
+  // 시안 23 날짜별 조건: 켠 날짜만 공통 조건 대신 따로 (빈자리는 날짜·시간대마다 하나씩 저장되므로 그대로 넣으면 됨)
+  const [individual, setIndividual] = useState(false)
+  const [overrides, setOverrides] = useState<Record<string, Cond>>({})
   const q = useAsync(async () => {
     const [list, st] = await Promise.all([slots.listMySlots(store.id), stats.getStoreStats(store.id).catch(() => null)])
     return { list, st }
   }, [store.id])
   const act = useAction()
   const toggle = (d: string) => { setDone(null); setDates((ds) => (ds.includes(d) ? ds.filter((x) => x !== d) : [...ds, d].sort())) }
-  const cap = Number(capacity)
+  const condFor = (d: string): Cond => (individual && overrides[d]) || { capacity, deposit }
+  const condOk = (c: Cond) => { const n = Number(c.capacity); return Number.isInteger(n) && n > 0 && n <= store.max_capacity && c.deposit !== '' && Number(c.deposit) >= 0 }
   const rangesOk = ranges.every((r) => r.start < r.end || r.end === '00:00')
-  const valid = dates.length > 0 && rangesOk && Number.isInteger(cap) && cap > 0 && cap <= store.max_capacity && Number(deposit) >= 0
+  const valid = dates.length > 0 && rangesOk && condOk({ capacity, deposit }) && dates.every((d) => condOk(condFor(d)))
   const count = dates.length * ranges.length
 
   const publish = () => act.run(async () => {
     for (const d of dates) for (const r of ranges) {
+      const c = condFor(d)
       const start = new Date(`${d}T${r.start}:00+09:00`)
       let end = new Date(`${d}T${r.end}:00+09:00`)
       if (end <= start) end = new Date(end.getTime() + 864e5) // 자정 넘김
-      await slots.openSlot({ store_id: store.id, start_at: start.toISOString(), end_at: end.toISOString(), capacity: cap, deposit_amount: Number(deposit) })
+      await slots.openSlot({ store_id: store.id, start_at: start.toISOString(), end_at: end.toISOString(), capacity: Number(c.capacity), deposit_amount: Number(c.deposit) })
     }
     setDone(`${count}개 빈자리를 공개했어요.`)
-    setDates([])
+    setDates([]); setOverrides({})
     await q.reload()
   })
   const quiet = q.data?.st?.by_weekday?.slice().sort((a, b) => a.reservations - b.reservations).slice(0, 2).map((d) => d.label).join('·')
@@ -80,6 +86,27 @@ export default function OwnerSlots() {
           <Field label="예약금 (원)"><Input type="number" inputMode="numeric" min={0} step={1000} value={deposit} onChange={(e) => setDeposit(e.target.value)} /></Field>
         </div>
         <p className="meta">최대 인원은 가게 최대 {store.max_capacity}명까지 정할 수 있어요.</p>
+      </Section>
+      <Section title="날짜별 조건" action={<Button variant="text" aria-expanded={individual} onClick={() => setIndividual(!individual)}>{individual ? '접기' : '각각 설정'}</Button>}>
+        <p className="meta">기본은 공통 조건이에요. 필요한 날짜만 바꿀 수 있어요.</p>
+        {individual && (dates.length ? dates.map((d) => {
+          const o = overrides[d]
+          const c = condFor(d)
+          const set = (patch: Partial<Cond>) => setOverrides({ ...overrides, [d]: { ...c, ...patch } })
+          return (
+            <div key={d} className={`date-condition card${o ? ' is-custom' : ''}`}>
+              <h3>{dayLabel(d)}</h3>
+              <Check label="이 날짜만 다른 조건 사용" checked={Boolean(o)}
+                onChange={(on) => { const next = { ...overrides }; if (on) next[d] = { capacity, deposit }; else delete next[d]; setOverrides(next) }} />
+              {o && (
+                <div className="condition-grid date-condition-fields">
+                  <Field label="최대 인원" error={condOk(o) ? null : `1~${store.max_capacity}명`}><Input type="number" inputMode="numeric" min={1} max={store.max_capacity} value={o.capacity} onChange={(e) => set({ capacity: e.target.value })} /></Field>
+                  <Field label="예약금 (원)"><Input type="number" inputMode="numeric" min={0} step={1000} value={o.deposit} onChange={(e) => set({ deposit: e.target.value })} /></Field>
+                </div>
+              )}
+            </div>
+          )
+        }) : <p className="meta">먼저 공개할 날짜를 골라 주세요.</p>)}
       </Section>
       <p className="meta">{dates.length}개 날짜 × {ranges.length}개 시간대 · 선택한 날짜마다 시간대가 동일하게 적용돼요.</p>
 
