@@ -12,6 +12,7 @@ DB(001~008)·데모 데이터와는 별개라서, SQL 체크(`check_migrations.s
 
 `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY` 는 Supabase 가 자동으로 넣어 준다 (따로 설정하지 않음).
 선택: `RECEIPT_MODEL`, `MENU_MODEL`, `LAYOUT_MODEL` (비우면 코드 기본 모델. 배치도는 공간 판단이 필요해 기본값이 더 큰 모델).
+- 운영(2026-10-08): 기본 모델(`claude-sonnet-5-5`)로 배치도 인식이 실패해 `LAYOUT_MODEL=claude-haiku-4-5-20251001` 로 지정 → 인식 성공. 더 정확한 모델로 바꿀 때는 이 비밀값을 바꾸거나 지운 뒤 다시 확인
 
 ---
 
