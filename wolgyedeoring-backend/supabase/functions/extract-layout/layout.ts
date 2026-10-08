@@ -245,7 +245,7 @@ const LAYOUT_TOOL = {
           properties: {
             ...BOX,
             shape: { type: "string", enum: SHAPES },
-            seats: { type: ["integer", "null"], description: "의자·좌석 표시 수. 보이지 않으면 null" },
+            seats: { type: ["integer", "null"], description: "이 테이블에 붙은 의자 표시(작은 동그라미 등) 수. 보이지 않으면 null" },
             label: { type: ["string", "null"], description: "테이블에 적힌 번호·이름 (예: 1, T3, 룸A). 없으면 null" },
             confidence: { type: "string", enum: ["high", "medium", "low"] },
           },
@@ -280,13 +280,17 @@ export function buildPrompt(storeName: string, maxCapacity?: number | null): str
     "1. 위치는 위에서 내려다본 배치 기준. x,y,w,h 는 이미지 가로·세로에 대한 % (0~100), x,y 는 왼쪽 위 모서리.",
     "2. 평면도·손그림은 그려진 위치 그대로. 비스듬한 실내 사진이면 상대 배치(앞뒤·좌우 순서, 줄 맞춤)를 유지해 대략적인 평면 위치로 옮긴다.",
     "   사진의 앞쪽(아래)이 평면의 아래쪽, 사진 안쪽이 위쪽.",
-    "3. 테이블 하나마다 하나씩. 붙여 놓은 긴 테이블이 한 덩어리로 쓰이면 하나로, 떨어져 있으면 각각.",
-    "4. seats: 의자·방석·좌석 표시를 센 수. 보이지 않거나 가려져 확실하지 않으면 null (추측해 채우지 말 것).",
-    "5. shape: 원형 테이블이면 round, 그 외 rect. 바(카운터) 좌석은 rect 테이블 하나로 기록하고 label 을 '바'로.",
-    "6. label: 테이블에 적힌 번호·이름만. 적힌 것이 없으면 null.",
-    "7. fixtures: 입구(entrance), 카운터·계산대(counter), 주방(kitchen), 화장실(restroom), 창(window)이 보이면 기록. 확실하지 않으면 생략.",
-    "8. confidence: 위치와 좌석 수가 선명하면 high, 일부 추정이면 medium, 대부분 추정이면 low.",
-    "9. 식당 홀과 관계없는 이미지면 is_layout=false, tables=[] 로 기록.",
+    "3. 평면도·손그림의 도형 읽기: 사각형(정사각형·직사각형)은 테이블, 테이블 둘레에 붙은 작은 동그라미(○·●)는 의자(좌석 1개)다.",
+    "   작은 동그라미는 tables 에 따로 기록하지 말고, 가장 가까운 테이블의 seats 로 센다.",
+    "   큰 원 둘레에 작은 동그라미가 있으면 큰 원이 원형 테이블이다. 크기가 비슷한 원끼리만 모여 있으면 모두 의자로 본다.",
+    "4. 테이블 하나마다 하나씩. 붙여 놓은 긴 테이블이 한 덩어리로 쓰이면 하나로, 떨어져 있으면 각각.",
+    "5. seats: 그 테이블에 붙은 의자 표시(작은 동그라미·의자 그림·방석)를 하나씩 센 수. 테이블 네 변을 모두 확인해 빠짐없이 센다.",
+    "   의자 표시가 없거나 가려져 확실하지 않으면 null (테이블 크기로 추측해 채우지 말 것).",
+    "6. shape: 원형 테이블이면 round, 그 외 rect. 바(카운터) 좌석은 rect 테이블 하나로 기록하고 label 을 '바'로.",
+    "7. label: 테이블에 적힌 번호·이름만. 적힌 것이 없으면 null.",
+    "8. fixtures: 입구(entrance), 카운터·계산대(counter), 주방(kitchen), 화장실(restroom), 창(window)이 보이면 기록. 확실하지 않으면 생략.",
+    "9. confidence: 위치와 좌석 수가 선명하면 high, 일부 추정이면 medium, 대부분 추정이면 low.",
+    "10. 식당 홀과 관계없는 이미지면 is_layout=false, tables=[] 로 기록.",
   ].filter((l) => l !== "").join("\n");
 }
 
