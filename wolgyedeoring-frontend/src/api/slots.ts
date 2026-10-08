@@ -30,7 +30,14 @@ export async function openSlot(input: Pick<Slot, 'store_id' | 'start_at' | 'end_
 /** 일괄 공개는 한 트랜잭션으로 처리. 같은 요청 키의 재시도는 기존 결과를 반환한다. */
 export type SlotPublishInput = Pick<Slot, 'start_at' | 'end_at' | 'capacity' | 'deposit_amount'> & Partial<Pick<Slot, 'min_headcount' | 'price_per_person' | 'note'>>
 export async function openSlots(storeId: number, batchId: string, input: SlotPublishInput[]): Promise<Slot[]> {
-  return unwrap(await supabase.rpc('publish_slots', { p_store_id: storeId, p_batch_id: batchId, p_slots: input })) as Slot[]
+  const res = await supabase.rpc('publish_slots', { p_store_id: storeId, p_batch_id: batchId, p_slots: input })
+  // 012 를 아직 적용하지 않은 DB (함수 없음 PGRST202): 예전처럼 한 건씩 저장. 012 적용 후에는 이 길을 타지 않는다
+  if (res.error?.code === 'PGRST202') {
+    const out: Slot[] = []
+    for (const s of input) out.push(await openSlot({ store_id: storeId, ...s }))
+    return out
+  }
+  return unwrap(res) as Slot[]
 }
 
 /** 닫기/다시 열기. 예약된(booked) 날짜는 서버가 거절 (008) */
