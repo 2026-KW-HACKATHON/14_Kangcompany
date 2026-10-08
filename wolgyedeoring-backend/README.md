@@ -29,6 +29,7 @@ supabase/
       validate.ts         검증 규칙 (산술, 합계, 메뉴 매칭, 일시)
     toss-payment/         토스 결제 승인·환불 취소
     extract-layout/       평면도·손그림·홀 사진 → LLM 테이블·시설 후보 (저장 안 함)
+    naver-userinfo/       네이버 로그인 사용자 정보를 표준 형태로 변환 (--no-verify-jwt 로 배포, 비밀값 없음)
       index.ts, layout.ts  (layout.ts 는 프런트와 공유하는 정리·검사 규칙)
       index.ts            진입점 (금액 검증, 승인 후 확정 실패 시 자동 환불)
       toss.ts             토스 API 호출
