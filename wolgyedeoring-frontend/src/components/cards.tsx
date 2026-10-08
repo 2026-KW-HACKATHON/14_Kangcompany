@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { paths } from '../app/paths'
 import { Badge, Countdown } from './ui'
 import { Icon } from './icons'
-import { dateTimeLabel, formatWon, timeLabel, dateLabel } from '../lib/format'
+import { dateTimeLabel, formatWon, timeLabel, dateLabel, slotPeopleLine } from '../lib/format'
 import { REQUEST_STATUS, RESERVATION_STATUS, effectiveRequestStatus, eventLabel, noteBody } from '../lib/status'
 import type { ReservationRow } from '../api/reservations'
 import type { Request } from '../types/db'
@@ -47,8 +47,8 @@ export function SlotCard({ s }: { s: SlotWithStore }) {
     <button type="button" className="offer-card available-card" onClick={() => nav(paths.groupSlotBook(s.id))}>
       <div className="row"><h3>{s.stores.name}</h3><Badge tone="success">예약 가능</Badge></div>
       <p className="slot-time">{timeLabel(s.start_at)} – {timeLabel(s.end_at)}</p>
-      <p>최대 {s.capacity}명 · 예약금 {s.deposit_amount > 0 ? formatWon(s.deposit_amount) : '없음'}</p>
-      {s.stores.intro && <p className="meta">{s.stores.intro}</p>}
+      <p>{slotPeopleLine(s)} · 예약금 {s.deposit_amount > 0 ? formatWon(s.deposit_amount) : '없음'}</p>
+      {(s.note || s.stores.intro) && <p className="meta">{s.note || s.stores.intro}</p>}
     </button>
   )
 }

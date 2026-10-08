@@ -10,7 +10,8 @@ if (!url || !anonKey) {
 
 /** 앱 전체에서 이 클라이언트 하나만 쓴다 */
 export const supabase = createClient(url ?? 'http://localhost', anonKey ?? 'missing-key', {
-  auth: { persistSession: true, autoRefreshToken: true },
+  // pkce: 소셜 로그인 사용자 정의 제공자(네이버)는 PKCE 필수. 돌아온 주소의 ?code= 는 자동으로 세션으로 바꾼다
+  auth: { persistSession: true, autoRefreshToken: true, flowType: 'pkce' },
 })
 
 export const isSupabaseConfigured = Boolean(url && anonKey)

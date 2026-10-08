@@ -28,7 +28,7 @@ export default function Pay() {
   const zero = flags.pay_method === 'zero'
   const pay = () => act.run(async () => {
     if (zero) { await payments.confirmZeroDeposit(id); nav(`${paths.paySuccess}?reservation=${id}&zero=1`, { replace: true }); return }
-    if (HAS_TOSS) { await payments.startDepositPayment(id, me.id); return }
+    if (HAS_TOSS) { await payments.startDepositPayment(id, me.id, method); return }
     await payments.payDepositTest(id) // 토스 키가 없는 환경: 시연용 결제
     nav(`${paths.paySuccess}?reservation=${id}&test=1`, { replace: true })
   })
@@ -51,7 +51,7 @@ export default function Pay() {
       {!zero && (
         <Section title="결제 방법">
           <OptionGrid value={method} onChange={setMethod} options={[{ value: 'card', label: '신용·체크카드' }, { value: 'bank', label: '계좌이체' }]} />
-          <p className="meta">{HAS_TOSS ? '토스페이먼츠 결제창에서 결제 수단을 한 번 더 고를 수 있어요.' : '테스트 환경이라 실제 결제 없이 시연용으로 처리돼요.'}</p>
+          <p className="meta">{HAS_TOSS ? '선택한 결제 수단으로 토스페이먼츠 결제창이 열려요.' : '테스트 환경이라 실제 결제 없이 시연용으로 처리돼요.'}</p>
         </Section>
       )}
       <Section title="결제 전 확인">

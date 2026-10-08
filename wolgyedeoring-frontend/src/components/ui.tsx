@@ -14,11 +14,11 @@ export function Loading({ label = '잠시만 기다려 주세요.' }: { label?: 
   )
 }
 
-export function ErrorBox({ message, onRetry }: { message: string; onRetry?: () => void }) {
+export function ErrorBox({ message, onRetry, title = '내용을 불러오지 못했어요.' }: { message: string; onRetry?: () => void; title?: string }) {
   return (
     <div className="empty-state" role="alert">
       <Art name="receipt" />
-      <h2>내용을 불러오지 못했어요.</h2>
+      <h2>{title}</h2>
       <p>{message}</p>
       {onRetry && <Button onClick={onRetry}>다시 시도</Button>}
     </div>
@@ -236,7 +236,7 @@ export function Quantity({ value, onChange, label, max = 200 }: { value: number;
   return (
     <div className="quantity">
       <button type="button" aria-label={`${label} 수량 줄이기`} disabled={value <= 0} onClick={() => onChange(Math.max(0, value - 1))}><Icon name="minus" /></button>
-      <input type="number" min={0} max={max} value={value} aria-label={`${label} 수량`} onChange={(e) => onChange(Math.min(max, Math.max(0, Number(e.target.value) || 0)))} />
+      <input type="number" min={0} max={max} step={1} value={value} aria-label={`${label} 수량`} onChange={(e) => onChange(Math.min(max, Math.max(0, Math.floor(Number(e.target.value) || 0))))} />
       <button type="button" aria-label={`${label} 수량 늘리기`} disabled={value >= max} onClick={() => onChange(Math.min(max, value + 1))}><Icon name="plus" /></button>
     </div>
   )

@@ -1,6 +1,6 @@
 -- =====================================================================
 -- 월계더링 시연용 데모 데이터
--- 전제: 001~009 실행 완료 + scripts/create-demo-users.mjs 로 데모 계정 생성 완료
+-- 전제: 001~012 실행 완료 + scripts/create-demo-users.mjs 로 데모 계정 생성 완료
 -- SQL Editor 에서 실행. 여러 번 실행해도 데모 계정의 기존 데이터를 지우고 다시 만든다
 -- 날짜는 실행 시점 기준 (지난 8주 이력 + 앞으로 2주 일정)
 -- =====================================================================
@@ -198,7 +198,7 @@ begin
    where store_id = s_chicken;
   update public.reservations set preorder_updated_at = now() where id = v_res;
 
-  -- 참석 조사 (006): 응답 18명 중 참석 15명 → 예약 인원 15명으로 반영된 상태
+  -- 참석 조사: 응답 18명 중 참석 15명. 마감 전에는 예약 인원 22명 유지 (012)
   insert into public.rsvps (reservation_id, token, message, deadline)
   values (v_res, 'demo' || replace(gen_random_uuid()::text, '-', ''), '토요일 경기 끝나고 치킨! 참석 여부 알려주세요',
           ((v_today + 7) + time '18:30') at time zone 'Asia/Seoul');
@@ -207,7 +207,6 @@ begin
          case when t.ord = 3 then '30분 늦어요' end, md5(gen_random_uuid()::text)
     from unnest(array['김민준','이서준','박도윤','최예준','정시우','강하준','조주원','윤지호','장지후','임준서',
                       '한건우','오현우','서우진','신선우','권연우','황유준','안정우','송승우']) with ordinality t(nm, ord);
-  update public.reservations set headcount = 15 where id = v_res;
 
   -- 결제 대기 1건
   insert into public.requests (group_id, event_type, desired_at, headcount, budget_per_person, status)
@@ -260,6 +259,23 @@ begin
   v_sum := public._validate_layout(v_layout);
   insert into public.store_layouts (store_id, layout, table_count, total_seats, source, updated_by)
   values (s_meat, v_layout, (v_sum ->> 'table_count')::int, (v_sum ->> 'total_seats')::int, 'photo', u_o1);
+
+  -- ----------------------------------------------------------------
+  -- 011 시안 입력 칸 (011 을 실행한 DB 에서만 채움)
+  -- ----------------------------------------------------------------
+  if exists (select 1 from information_schema.columns
+              where table_schema = 'public' and table_name = 'slots' and column_name = 'price_per_person') then
+    execute 'update public.stores set category = $1, hours = $2 where id = $3' using 'restaurant', '매일 11:00–23:00 · 단체석 예약 시 17시부터', s_meat;
+    execute 'update public.stores set category = $1, hours = $2 where id = $3' using 'restaurant', '매일 16:00–02:00', s_chicken;
+    execute 'update public.stores set category = $1, hours = $2 where id = $3' using 'cafe', '평일 09:00–21:00 · 주말 10:00–20:00', s_snack;
+    execute 'update public.groups set affiliation = $1, region = $2, usual_size = $3 where id = $4' using '광운대 소프트웨어학부', '월계1동', 40, g_sw;
+    execute 'update public.groups set affiliation = $1, region = $2, usual_size = $3 where id = $4' using '광운대 전자공학과', '월계1동', 30, g_ee;
+    execute 'update public.groups set affiliation = $1, region = $2, usual_size = $3 where id = $4' using '광운대 중앙동아리', '월계동', 20, g_band;
+    execute 'update public.groups set affiliation = $1, region = $2, usual_size = $3 where id = $4' using '광운대 중앙동아리', '월계동', 25, g_fc;
+    execute 'update public.groups set region = $1, usual_size = $2 where id = $3' using '월계1동', 15, g_town;
+    execute 'update public.slots set min_headcount = 10, price_per_person = 25000, note = $1 where store_id = $2 and status = $3' using '단체석 한 공간 · 모둠구이 세트', s_meat, 'open';
+    execute 'update public.slots set min_headcount = 10, price_per_person = 20000, note = $1 where store_id = $2 and status = $3' using '생맥주 단체 할인', s_chicken, 'open';
+  end if;
 
   raise notice '데모 데이터 생성 완료';
 end $$;

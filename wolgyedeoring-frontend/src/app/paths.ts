@@ -6,6 +6,7 @@ export const paths = {
   start: '/start', // A-01
   login: '/login', // A-02
   signup: '/signup', // A-03
+  resetPassword: '/reset-password', // 비밀번호 재설정 (메일 링크로 들어옴)
   onboardingGroup: '/onboarding/group', // A-04
   onboardingStore: '/onboarding/store', // A-05
   notifications: '/notifications', // C-01 (시안 33·34)

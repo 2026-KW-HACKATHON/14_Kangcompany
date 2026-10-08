@@ -9,14 +9,18 @@ import { Page } from '../../components/layout'
 import { Calendar, monthOf, todayKst } from '../../components/Calendar'
 import { RequestCard, ReservationCard, SlotCard } from '../../components/cards'
 import { Icon } from '../../components/icons'
-import { Button, ErrorBox, Loading } from '../../components/ui'
+import { Button, ErrorBox, FilterRow, Loading } from '../../components/ui'
 import { dayLabel, kstDay } from '../../lib/format'
-import { effectiveRequestStatus } from '../../lib/status'
+import { STORE_CATEGORY_LABEL, effectiveRequestStatus } from '../../lib/status'
+import type { SlotWithStore } from '../../api/slots'
+import type { StoreCategory } from '../../types/db'
 
 export default function Slots() {
   const { group } = useGroupSession()
   const nav = useNavigate()
   const [mode, setMode] = useState<'requests' | 'slots'>('slots')
+  // 시안 17 업종 필터 (011 업종이 없는 가게는 음식점으로)
+  const [kind, setKind] = useState<'all' | StoreCategory>('all')
   const [day, setDay] = useState(todayKst())
   const [month, setMonth] = useState(monthOf(todayKst()))
   const q = useAsync(async () => {
@@ -28,15 +32,16 @@ export default function Slots() {
     }
   }, [group.id])
 
+  const byKind = (s: SlotWithStore) => kind === 'all' || (s.stores.category ?? 'restaurant') === kind
   const counts = useMemo(() => {
     const c: Record<string, number> = {}
     const add = (iso: string) => { const k = kstDay(iso); c[k] = (c[k] ?? 0) + 1 }
     if (q.data) {
-      if (mode === 'slots') q.data.open.forEach((s) => add(s.start_at))
+      if (mode === 'slots') q.data.open.filter(byKind).forEach((s) => add(s.start_at))
       else { q.data.reqs.forEach((r) => add(r.desired_at)); q.data.res.forEach((r) => add(r.start_at)) }
     }
     return c
-  }, [q.data, mode])
+  }, [q.data, mode, kind]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const onMonth = (m: string) => {
     setMonth(m)
@@ -44,7 +49,7 @@ export default function Slots() {
     setDay(first ?? `${m}-01`)
   }
   const d = q.data
-  const daySlots = d ? d.open.filter((s) => kstDay(s.start_at) === day) : []
+  const daySlots = d ? d.open.filter((s) => kstDay(s.start_at) === day && byKind(s)) : []
   const dayReqs = d ? d.reqs.filter((r) => kstDay(r.desired_at) === day) : []
   const dayRes = d ? d.res.filter((r) => kstDay(r.start_at) === day) : []
   const n = mode === 'slots' ? daySlots.length : dayReqs.length + dayRes.length
@@ -66,6 +71,9 @@ export default function Slots() {
               <button type="button" className="date-quick date-quick-group" disabled={!canRequest} aria-label={`${dayLabel(day)} 예약 요청`}
                 onClick={() => nav(paths.groupRequestNew, { state: { day } })}><Icon name="plus" /><span>예약 요청</span></button>
             </div>
+            {mode === 'slots' && (
+              <FilterRow value={kind} onChange={setKind} options={[{ value: 'all', label: '전체' }, ...Object.entries(STORE_CATEGORY_LABEL).map(([value, label]) => ({ value: value as StoreCategory, label }))]} />
+            )}
             {n === 0 ? (
               <div className="calendar-empty">
                 <h3>{mode === 'slots' ? '공개된 빈자리가 없어요' : '이 날짜에는 내 예약이 없어요'}</h3>

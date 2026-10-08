@@ -11,7 +11,7 @@ export default function Start() {
   const nav = useNavigate()
   const [role, setRole] = useState<Role>('group')
   return (
-    <Page title="월계더링" back={false} role={role}
+    <Page title="월계더링" hideTitle back={false} role={role}
       dock={<Dock><Button variant="primary" onClick={() => nav(paths.signup, { state: { role } })}>이 역할로 시작하기</Button></Dock>}>
       <section className="onboarding-hero auth-hero">
         <img className="onboarding-app-icon" src="/app-icon.png" alt="월계더링 앱 아이콘" />
@@ -19,7 +19,7 @@ export default function Start() {
         <p className="muted">어떤 역할로 이용할까요?</p>
       </section>
       <RoleTiles role={role} onChange={setRole} />
-      <p className="meta" style={{ textAlign: 'center' }}>이미 계정이 있나요? <Button variant="text" onClick={() => nav(paths.login)}>로그인</Button></p>
+      <p className="meta" style={{ textAlign: 'center' }}>이미 계정이 있나요? <Button variant="text" onClick={() => nav(paths.login, { state: { role } })}>로그인</Button></p>
     </Page>
   )
 }

@@ -9,6 +9,7 @@ import { Button, Dock, ErrorBox, Field, Input, Loading, Notice, Rows, Section, T
 import { DatePicker, TimePicker } from '../../components/pickers'
 import { dateLabel, formatWon, kstDay, timeLabel } from '../../lib/format'
 import { eventLabel } from '../../lib/status'
+import { integerInRange } from '../../lib/validation'
 
 export default function Modify() {
   const id = Number(useParams().id)
@@ -26,9 +27,11 @@ export default function Modify() {
   const dateChanged = canChangeDate && (v.day !== kstDay(r.start_at) || v.time !== startHm)
   const hc = Number(v.headcount)
   const hcChanged = hc !== r.headcount
-  const valid = (dateChanged || hcChanged) && Number.isInteger(hc) && hc > 0
+  const valid = (dateChanged || hcChanged) && integerInRange(v.headcount, 1, 200)
+    && (!dateChanged || Date.parse(`${v.day}T${v.time}:00+09:00`) > Date.now())
 
   const submit = () => act.run(async () => {
+    if (!valid) return
     await reservations.requestModification(id, {
       startAt: dateChanged ? `${v.day}T${v.time}:00+09:00` : undefined,
       headcount: hcChanged ? hc : undefined, note: v.note.trim() || undefined,

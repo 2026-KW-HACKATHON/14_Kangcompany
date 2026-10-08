@@ -15,32 +15,45 @@ export default function PaySuccess() {
   const nav = useNavigate()
   const reservationId = params.get('reservation')
   const direct = params.has('zero') || params.has('test')
-  const [state, setState] = useState<'working' | 'done' | 'error'>(direct ? 'done' : 'working')
+  const [state, setState] = useState<'working' | 'done' | 'error'>('working')
   const [error, setError] = useState('')
   const [r, setR] = useState<ReservationRow | null>(null)
-  const ran = useRef(false) // StrictMode 에서 두 번 호출 방지 (서버도 중복 승인은 막음)
+  const job = useRef<{ key: string; promise: Promise<ReservationRow> } | null>(null)
+  const search = params.toString()
 
   useEffect(() => {
-    if (ran.current) return
-    ran.current = true
-    const load = () => (reservationId ? reservations.getReservation(Number(reservationId)).then(setR).catch(() => undefined) : undefined)
-    if (direct) { void load(); return }
-    payments.confirmPaymentFromUrl()
-      .then(() => { setState('done'); void load() })
-      .catch((e) => { setState('error'); setError(toApiError(e).message) })
-  }, [direct, reservationId])
+    let active = true
+    setState('working')
+    setR(null)
+    // StrictMode에서도 같은 결제 승인은 한 번만 호출하고 결과 구독만 다시 연결한다.
+    if (job.current?.key !== search) {
+      const promise = (async () => {
+        const id = Number(reservationId)
+        if (!reservationId || !Number.isSafeInteger(id) || id <= 0) throw new Error('예약 정보가 올바르지 않아요.')
+        if (!direct) await payments.confirmPaymentFromUrl(`?${search}`)
+        const result = await reservations.getReservation(id)
+        if (result.status !== 'confirmed') throw new Error('아직 예약 확정이 확인되지 않았어요. 예약 상세에서 결제 상태를 확인해 주세요.')
+        return result
+      })()
+      job.current = { key: search, promise }
+    }
+    job.current.promise
+      .then((result) => { if (active) { setR(result); setState('done') } })
+      .catch((e) => { if (active) { setState('error'); setError(toApiError(e).message) } })
+    return () => { active = false }
+  }, [direct, reservationId, search])
 
   if (state === 'working') return <Page title="예약 확정" back={false}><Loading label="결제를 확인하고 있어요." /></Page>
   if (state === 'error') return (
     <Page title="결제 결과" back={false} dock={<Dock><Button variant="primary" onClick={() => nav(reservationId ? paths.groupReservation(reservationId) : paths.groupHome)}>예약 상세로</Button></Dock>}>
-      <ErrorBox message={error} />
+      <ErrorBox title="예약 확정을 확인하지 못했어요." message={error} />
     </Page>
   )
   return (
     <Page title="예약 확정" back={reservationId ? paths.groupReservation(reservationId) : paths.groupHome}
       dock={<Dock><Button variant="primary" onClick={() => nav(reservationId ? paths.groupReservation(reservationId) : paths.groupHome, { replace: true })}>예약 상세 보기</Button></Dock>}>
       <SuccessHero art="check" title="모일 준비가 끝났어요.">
-        {params.has('zero') ? <>예약금 없이<br />예약이 확정됐어요.</> : <>예약금 결제가 완료되어<br />예약이 확정됐어요.</>}
+        {r?.deposit_amount === 0 ? <>예약금 없이<br />예약이 확정됐어요.</> : <>예약금 결제가 완료되어<br />예약이 확정됐어요.</>}
       </SuccessHero>
       <Badge tone="success">확정</Badge>
       {r && (

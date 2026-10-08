@@ -1,4 +1,4 @@
--- 001~009 적용 확인: SQL Editor 에서 실행 → ok 열이 모두 true 면 정상
+-- 001~012 적용 확인: SQL Editor 에서 실행 → ok 열이 모두 true 면 정상
 with expected_fn(name) as (values
   ('respond_to_request'), ('book_slot'), ('pay_deposit_test'), ('cancel_reservation'),
   ('finish_reservation'), ('correct_receipt_item'), ('add_receipt_item'), ('delete_receipt_item'), ('confirm_receipt'),
@@ -9,10 +9,10 @@ with expected_fn(name) as (values
   ('create_rsvp'), ('get_rsvp_public'), ('respond_rsvp'), ('delete_rsvp_response'), ('close_rsvp'),
   ('expire_old_requests'), ('_store_committed_headcount'),
   ('reservation_contacts'), ('cancel_request'), ('request_reach'), ('reservation_actions'),
-  ('save_store_layout'), ('_validate_layout')
+  ('save_store_layout'), ('_validate_layout'), ('publish_slots'), ('_slots_guard_future'), ('_rsvps_capture_headcount'), ('choose_role'), ('set_preorder_note')
 ),
 checks(no, item, expected, actual) as (
-  select 1, '테이블 수', '16',  -- 009 에서 store_layouts 추가
+  select 1, '테이블 수', '17',  -- 012 에서 slot_publish_batches 추가
          (select count(*)::text from information_schema.tables where table_schema = 'public' and table_type = 'BASE TABLE')
   union all
   select 2, 'RLS 꺼진 테이블', '없음',
@@ -92,6 +92,23 @@ checks(no, item, expected, actual) as (
   union all
   select 22, '로그인 사용자가 배치도 직접 쓰기 가능?', 'false',
          has_table_privilege('authenticated', 'public.store_layouts', 'insert')::text
+  union all
+  select 23, '참석 모집 인원 컬럼', 'expected_headcount',
+         coalesce((select column_name from information_schema.columns where table_schema='public'
+           and table_name='rsvps' and column_name='expected_headcount'), '없음')
+  union all
+  select 24, '빈자리 과거 시간 보호 트리거', 'trg_slots_guard_future',
+         coalesce((select tgname from pg_trigger where tgname='trg_slots_guard_future'), '없음')
+  union all
+  select 25, '일괄 공개 기록 직접 읽기 가능?', 'false',
+         has_table_privilege('authenticated', 'public.slot_publish_batches', 'select')::text
+  union all
+  select 26, '소셜 로그인 역할 고르기 choose_role (010)', 'true',
+         has_function_privilege('authenticated', 'public.choose_role(text)', 'execute')::text
+  union all
+  select 27, '시안 입력 칸 (011): 업종·1인 금액·사전 주문 메모', '3',
+         (select count(*)::text from information_schema.columns where table_schema='public'
+          and (table_name,column_name) in (('stores','category'),('slots','price_per_person'),('reservations','preorder_note')))
 )
 select no, item as "확인 항목", expected as "기대값", actual as "실제값", expected = actual as ok
 from checks order by no;

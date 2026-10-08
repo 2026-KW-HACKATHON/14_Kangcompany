@@ -76,8 +76,9 @@ export function useRole(): 'group' | 'owner' {
  * back: true 면 이전 화면, 문자열이면 그 경로. bell: 알림 버튼. nav: 하단 탭. dock: 하단 고정 버튼 영역.
  * a2: 승인 A2 화면(예약 요청·예약 상세·받은 요청) 스타일 범위
  */
-export function Page({ title, back = true, bell, nav, dock, children, a2, kind, role: roleProp, overlay, actions }: {
+export function Page({ title, back = true, hideTitle = false, bell, nav, dock, children, a2, kind, role: roleProp, overlay, actions }: {
   title: string; back?: boolean | string; bell?: boolean; nav?: boolean; dock?: ReactNode; children: ReactNode
+  /** 제목만 숨기고 기존 헤더 높이는 유지 */ hideTitle?: boolean
   a2?: boolean; kind?: string; role?: 'group' | 'owner'; overlay?: ReactNode; actions?: ReactNode
   /** 이전 버전 호환 (무시) */ tabRoot?: boolean
 }) {
@@ -96,7 +97,7 @@ export function Page({ title, back = true, bell, nav, dock, children, a2, kind, 
         {back !== false && (
           <button type="button" className={a2 ? 'back' : 'icon-btn'} aria-label="뒤로" onClick={goBack}><Icon name="back" /></button>
         )}
-        {a2 ? <h2>{title}</h2> : <h1>{title}</h1>}
+        {a2 ? <h2 className={hideTitle ? 'appbar-title-hidden' : undefined}>{title}</h2> : <h1 className={hideTitle ? 'appbar-title-hidden' : undefined}>{title}</h1>}
         {actions}
         {bell && (
           <button type="button" className="icon-btn bell-button" aria-label={unread ? `알림 목록, 새 알림 ${unread}개` : '알림 목록'} onClick={() => navigate(paths.notifications)}>

@@ -8,7 +8,8 @@
     "build": "tsc -b && vite build",
     "typecheck": "tsc -b --noEmit",
     "preview": "vite preview",
-    "test:integration": "vitest run tests/flow.integration.test.ts && vitest run tests/screens.integration.test.tsx"
+    "test:integration": "vitest run tests/flow.integration.test.ts && vitest run tests/screens.integration.test.tsx",
+    "test:local": "vitest run --config vitest.local.config.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.117.2",

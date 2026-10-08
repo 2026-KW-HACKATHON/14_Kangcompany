@@ -7,6 +7,7 @@ export type Role = 'group' | 'owner'
 export type GroupType = 'student_council' | 'club' | 'residents' | 'hobby' | 'etc'
 export type EventType = 'opening_party' | 'snack_event' | 'after_party' | 'closing_party' | 'etc'
 export type MenuCategory = 'main' | 'side' | 'meal' | 'drink' | 'etc'
+export type StoreCategory = 'restaurant' | 'cafe' | 'venue' // 011
 
 export type RequestStatus = 'open' | 'confirmed' | 'cancelled' | 'expired'
 export type ResponseStatus = 'pending' | 'accepted' | 'declined' | 'modify_requested'
@@ -33,6 +34,11 @@ export interface Group {
   leader_id: string
   name: string
   group_type: GroupType
+  // 011 (실행 전 DB 에서는 없음)
+  affiliation?: string | null
+  region?: string | null
+  usual_size?: number | null
+  description?: string | null
   created_at: Timestamp
 }
 
@@ -47,6 +53,12 @@ export interface Store {
   intro: string | null // 008, 60자 이하
   lat: number | null // 008
   lng: number | null // 008
+  // 011 (실행 전 DB 에서는 없음)
+  category?: StoreCategory
+  address_detail?: string | null
+  hours?: string | null
+  business_no?: string | null
+  commerce_no?: string | null
   created_at: Timestamp
 }
 
@@ -69,6 +81,10 @@ export interface Slot {
   capacity: number
   deposit_amount: number
   status: SlotStatus
+  // 011 (실행 전 DB 에서는 없음)
+  min_headcount?: number | null
+  price_per_person?: number | null
+  note?: string | null
   created_at: Timestamp
 }
 
@@ -114,6 +130,7 @@ export interface Reservation {
   modify_start_at: Timestamp | null
   modify_headcount: number | null
   modify_note: string | null
+  preorder_note?: string | null // 011 알레르기·식이 제한
   modify_status: ModifyStatus | null
   preorder_updated_at: Timestamp | null
   created_at: Timestamp
@@ -200,6 +217,7 @@ export interface Rsvp {
   is_closed: boolean
   closed_at: Timestamp | null
   created_at: Timestamp
+  expected_headcount?: number // 010: 최초 모집 인원 (구버전 DB에서는 예약 인원으로 대체)
 }
 
 export interface RsvpResponse {

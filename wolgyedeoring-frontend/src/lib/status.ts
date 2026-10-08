@@ -2,7 +2,7 @@
 // 라벨을 바꾸려면 상태 정의도를 먼저 고치고 여기를 맞춘다
 
 import type {
-  EventType, GroupType, MenuCategory, PaymentStatus, ReceiptStatus,
+  EventType, GroupType, MenuCategory, StoreCategory, PaymentStatus, ReceiptStatus,
   ReservationStatus, RequestStatus, ResponseStatus, SlotStatus, ModifyStatus, Role,
 } from '../types/db'
 
@@ -16,6 +16,8 @@ export const EVENT_LABEL: Record<EventType, string> = {
 export const GROUP_TYPE_LABEL: Record<GroupType, string> = {
   student_council: '학생회', club: '동아리', residents: '주민모임', hobby: '동호회', etc: '기타',
 }
+/** 가게 업종 (011, 시안 5) */
+export const STORE_CATEGORY_LABEL: Record<StoreCategory, string> = { restaurant: '음식점', cafe: '카페', venue: '행사·공간' }
 export const MENU_CATEGORY_LABEL: Record<MenuCategory, string> = {
   main: '메인', side: '곁들임', meal: '식사', drink: '주류·음료', etc: '기타',
 }
