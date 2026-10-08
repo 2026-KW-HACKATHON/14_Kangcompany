@@ -13,6 +13,7 @@ body { margin: 0; background: var(--color-bg); }
   .app, .app.a2 { height: min(calc(100dvh - 32px), 900px); margin: 16px auto; max-width: 420px; border: 1px solid var(--color-border); border-radius: 32px; box-shadow: var(--shadow-soft); }
 }
 .app .appbar { padding-top: max(12px, env(safe-area-inset-top)); }
+.app .appbar .appbar-title-hidden { visibility: hidden; }
 .app .bottom-nav, .app .dock { padding-bottom: max(12px, env(safe-area-inset-bottom)); }
 .app .app-body { flex: 1; min-height: 0; overflow-y: auto; }
 .app .appbar h1, .app .appbar h2 { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

@@ -11,7 +11,7 @@ export default function Start() {
   const nav = useNavigate()
   const [role, setRole] = useState<Role>('group')
   return (
-    <Page title="월계더링" back={false} role={role}
+    <Page title="월계더링" hideTitle back={false} role={role}
       dock={<Dock><Button variant="primary" onClick={() => nav(paths.signup, { state: { role } })}>이 역할로 시작하기</Button></Dock>}>
       <section className="onboarding-hero auth-hero">
         <img className="onboarding-app-icon" src="/app-icon.png" alt="월계더링 앱 아이콘" />
