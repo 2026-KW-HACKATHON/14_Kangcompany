@@ -1,6 +1,6 @@
 // 좌석 배치도 그리기 (SVG). editable 이면 끌어서 옮기기 + 화살표 키로 1칸씩(Shift 5칸) 이동
 // 좌표는 가로 100 기준 (lib/layout). 색은 디자인 토큰 의미 변수만 사용
-import { useEffect, useRef, type KeyboardEvent, type PointerEvent } from 'react'
+import { useEffect, useRef, useState, type KeyboardEvent, type PointerEvent } from 'react'
 import { FIXTURE_LABEL, type Layout } from '../../lib/layout'
 
 export type Selection = { kind: 'table' | 'fixture'; id: string } | null
@@ -19,17 +19,21 @@ interface Props {
 export function LayoutCanvas({ layout, editable, selected, warnIds, onSelect, onMove, maxHeightPx = 520, label = '좌석 배치도' }: Props) {
   const svgRef = useRef<SVGSVGElement>(null)
   // 끌기 시작 시점의 화면→SVG 변환을 고정: 끄는 도중 위쪽 내용(경고 문구 등)이 생겨 캔버스가 밀려도 손가락을 정확히 따라감
-  const drag = useRef<{ kind: 'table' | 'fixture'; id: string; dx: number; dy: number; inv: DOMMatrix } | null>(null)
-  // 이동 반영은 화면 갱신 주기(requestAnimationFrame)마다 한 번만: 휴대폰에서 포인터 이벤트마다 화면 전체를 다시 그리면 끊김
-  const pending = useRef<{ kind: 'table' | 'fixture'; id: string; x: number; y: number } | null>(null)
+  const drag = useRef<{ kind: 'table' | 'fixture'; id: string; dx: number; dy: number; inv: DOMMatrix; w: number; h: number; x: number; y: number; moved: boolean } | null>(null)
+  // 끄는 동안의 위치는 이 캔버스 안에서만 그리고(live), 손을 뗄 때 onMove 로 한 번 반영한다.
+  // 포인터 이벤트마다 부모 화면 전체(겹침 경고·합계)를 다시 그리면 휴대폰에서 끊김
+  const [live, setLive] = useState<{ kind: 'table' | 'fixture'; id: string; x: number; y: number } | null>(null)
   const frame = useRef(0)
-  const flush = () => {
-    frame.current = 0
-    const p = pending.current
-    pending.current = null
-    if (p) onMove?.(p.kind, p.id, p.x, p.y)
-  }
   useEffect(() => () => cancelAnimationFrame(frame.current), [])
+
+  // 끄는 중에는 브라우저 스크롤을 막는다. SVG 안쪽 요소의 touch-action 은 iOS Safari 등에서 듣지 않아 touchmove 를 직접 막음
+  useEffect(() => {
+    const svg = svgRef.current
+    if (!svg || !editable) return
+    const block = (e: TouchEvent) => { if (drag.current) e.preventDefault() }
+    svg.addEventListener('touchmove', block, { passive: false })
+    return () => svg.removeEventListener('touchmove', block)
+  }, [editable])
 
   const toSvg = (e: PointerEvent, inv?: DOMMatrix) => {
     const m = inv ?? svgRef.current?.getScreenCTM()?.inverse()
@@ -38,28 +42,39 @@ export function LayoutCanvas({ layout, editable, selected, warnIds, onSelect, on
     return { x: p.x, y: p.y }
   }
 
-  const start = (kind: 'table' | 'fixture', id: string, x: number, y: number) => (e: PointerEvent<SVGGElement>) => {
+  const start = (kind: 'table' | 'fixture', id: string, x: number, y: number, w: number, h: number) => (e: PointerEvent<SVGGElement>) => {
     onSelect?.({ kind, id })
     if (!editable) return
     const inv = svgRef.current?.getScreenCTM()?.inverse()
     if (!inv) return
     const p = toSvg(e, inv)!
     e.currentTarget.setPointerCapture(e.pointerId)
-    drag.current = { kind, id, dx: p.x - x, dy: p.y - y, inv }
+    drag.current = { kind, id, dx: p.x - x, dy: p.y - y, inv, w, h, x, y, moved: false }
   }
   const move = (e: PointerEvent<SVGGElement>) => {
     const d = drag.current
     if (!d) return
     const p = toSvg(e, d.inv)
     if (!p) return
-    // 정수로 반올림하지 않는다 (가로 100칸이라 휴대폰에서 3~4px 씩 뚝뚝 튐). 소수 한 자리 정리는 fitBox 가 함
-    pending.current = { kind: d.kind, id: d.id, x: p.x - d.dx, y: p.y - d.dy }
-    if (!frame.current) frame.current = requestAnimationFrame(flush)
+    // 정수로 반올림하지 않는다 (가로 100칸이라 휴대폰에서 3~4px 씩 뚝뚝 튐). 저장할 때 fitBox 가 소수 한 자리로 정리
+    d.x = Math.min(Math.max(p.x - d.dx, 0), 100 - d.w)
+    d.y = Math.min(Math.max(p.y - d.dy, 0), layout.height - d.h)
+    d.moved = true
+    if (!frame.current) frame.current = requestAnimationFrame(() => {
+      frame.current = 0
+      const c = drag.current
+      if (c) setLive({ kind: c.kind, id: c.id, x: c.x, y: c.y })
+    })
   }
   const end = () => {
+    const d = drag.current
     drag.current = null
-    if (frame.current) { cancelAnimationFrame(frame.current); flush() } // 손을 뗀 마지막 위치는 바로 반영
+    cancelAnimationFrame(frame.current); frame.current = 0
+    if (d?.moved) onMove?.(d.kind, d.id, d.x, d.y)
+    setLive(null)
   }
+  const pos = <T extends { id: string; x: number; y: number }>(kind: 'table' | 'fixture', item: T) =>
+    live && live.kind === kind && live.id === item.id ? live : item
 
   const keys = (kind: 'table' | 'fixture', id: string, x: number, y: number) => (e: KeyboardEvent<SVGGElement>) => {
     if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSelect?.({ kind, id }); return }
@@ -88,10 +103,11 @@ export function LayoutCanvas({ layout, editable, selected, warnIds, onSelect, on
           const sel = isSel('fixture', f.id)
           const name = f.label || FIXTURE_LABEL[f.kind]
           const fs = Math.max(2, Math.min(5, f.h / 1.8, (f.w / Math.max(name.length, 2)) * 1.1))
+          const at = pos('fixture', f)
           return (
-            <g key={f.id} className={`seat-item seat-fixture-item${sel ? ' is-selected' : ''}`} transform={`translate(${f.x} ${f.y})`}
+            <g key={f.id} className={`seat-item seat-fixture-item${sel ? ' is-selected' : ''}`} transform={`translate(${at.x} ${at.y})`}
               tabIndex={editable ? 0 : -1} role={editable ? 'button' : undefined} aria-pressed={editable ? sel : undefined} aria-label={editable ? `시설 ${name}, 방향키로 이동` : undefined}
-              onPointerDown={start('fixture', f.id, f.x, f.y)} onPointerMove={move} onPointerUp={end} onPointerCancel={end}
+              onPointerDown={start('fixture', f.id, f.x, f.y, f.w, f.h)} onPointerMove={move} onPointerUp={end} onPointerCancel={end}
               onKeyDown={keys('fixture', f.id, f.x, f.y)}>
               <rect className="seat-fixture" width={f.w} height={f.h} rx={1} />
               <text className="seat-facility-name" x={f.w / 2} y={f.h / 2} style={{ fontSize: fs }}>{name}</text>
@@ -104,11 +120,12 @@ export function LayoutCanvas({ layout, editable, selected, warnIds, onSelect, on
           const warn = warnIds?.has(t.id)
           const low = Boolean(editable && t.confidence === 'low')
           const fs = Math.max(2, Math.min(5, t.h / 1.6, (t.w / Math.max(t.label.length, 2)) * 1.1))
+          const at = pos('table', t)
           return (
             <g key={t.id} className={`seat-item seat-table-item${sel ? ' is-selected' : ''}${low ? ' is-estimated' : ''}${warn ? ' is-overlapping' : ''}`}
-              transform={`translate(${t.x} ${t.y})`} tabIndex={0} role="button" aria-pressed={sel}
+              transform={`translate(${at.x} ${at.y})`} tabIndex={0} role="button" aria-pressed={sel}
               aria-label={`테이블 ${t.label}, ${t.seats}석${low ? ', 좌석 수 확인 필요' : ''}${warn ? ', 다른 테이블과 겹침' : ''}${editable ? ', 방향키로 이동' : ''}`}
-              onPointerDown={start('table', t.id, t.x, t.y)} onPointerMove={move} onPointerUp={end} onPointerCancel={end}
+              onPointerDown={start('table', t.id, t.x, t.y, t.w, t.h)} onPointerMove={move} onPointerUp={end} onPointerCancel={end}
               onKeyDown={keys('table', t.id, t.x, t.y)}
               style={editable ? undefined : { cursor: 'pointer', touchAction: 'auto' }}>
               {t.shape === 'round'
