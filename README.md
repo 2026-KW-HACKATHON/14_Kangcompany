@@ -61,35 +61,24 @@
 
 ## 구조
 
-```mermaid
-flowchart LR
-  subgraph Client["휴대폰 웹앱 (Vercel)"]
-    FE["React + Vite + TypeScript"]
-  end
-  subgraph Supabase
-    DB[("PostgreSQL<br/>RLS · RPC · Realtime")]
-    Auth["Auth<br/>이메일 · 카카오"]
-    EF["Edge Functions (Deno)"]
-    ST["Storage<br/>가게 대표 사진"]
-  end
-  FE -- "RPC · 조회" --> DB
-  FE --> Auth
-  FE --> ST
-  FE -- "사진 인식 · 결제 승인" --> EF
-  EF -- "메뉴판 · 영수증 · 배치도" --> Claude["Claude API"]
-  EF -- "결제 승인 · 취소" --> Toss["토스페이먼츠 (테스트)"]
-  FE -- "지도 · 주소→좌표" --> Kakao["카카오맵"]
-```
+![단체와 사장님은 이렇게 만나요 — 요청·수락으로 예약 성립, 결제·알림으로 예약 확정, 게시·열람으로 배치도 공유](docs/images/service-flow.webp)
+
+---
+
+## 기술 스택
+
+![월계더링 기술 스택 — 프런트엔드, 백엔드, AI 인식, 결제, 지도·로그인, 배포·협업](docs/images/tech-stack.png)
 
 | 구분 | 기술 | 쓰임 |
 |---|---|---|
-| 프런트엔드 | React 19 + Vite + TypeScript, 순수 CSS (디자인 토큰) | 단체·사장님 화면 39개, 휴대폰 화면 기준 |
+| 프런트엔드 | React 19 + Vite + TypeScript + React Router, 순수 CSS (디자인 토큰) | 단체·사장님 화면 39개, 휴대폰 화면 기준 |
 | 배포 | Vercel | `main` 머지 시 자동 배포, PR 마다 미리보기 주소 |
 | DB·인증·권한 | Supabase (PostgreSQL, Auth, Row Level Security, Realtime) | 마이그레이션 001~013, 상태 전이는 모두 서버 함수(RPC) |
 | 서버 로직 | Supabase Edge Functions (Deno) | `extract-menu` `process-receipt` `extract-layout` `toss-payment` |
 | AI 인식 | Claude API (이미지 입력 + 도구 호출로 출력 형식 고정) | 메뉴판·영수증: Haiku 4.5, 배치도: `LAYOUT_MODEL` 로 지정 |
 | 결제 | 토스페이먼츠 테스트 모드 | 예약금 결제·취소 (키가 없으면 "시연용 결제") |
-| 지도 | 카카오맵 JavaScript SDK | 가게 위치, 주소 → 좌표 변환 |
+| 지도·로그인 | 카카오맵 JavaScript SDK, 카카오 로그인 | 가게 위치, 주소 → 좌표 변환, 소셜 로그인 |
+| 협업·테스트 | GitHub (PR 리뷰), GitHub Actions, Vitest, PGlite | PR 마다 자동 회귀 테스트, 실제 PostgreSQL 로 SQL 검사 |
 
 ---
 
