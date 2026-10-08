@@ -14,7 +14,12 @@ export async function signUp(i: SignUpInput) {
   const { data, error } = await supabase.auth.signUp({
     email: i.email,
     password: i.password,
-    options: { data: { role: i.role, display_name: i.displayName, phone: i.phone ?? null } },
+    options: {
+      data: { role: i.role, display_name: i.displayName, phone: i.phone ?? null },
+      // 인증 메일 링크 → 배포 주소의 로그인 화면 (Supabase Redirect URLs 에 있어야 함).
+      // PKCE 라서 다른 기기에서 열면 자동 로그인은 안 되지만 인증 자체는 끝나므로, 로그인 화면에서 안내한다
+      emailRedirectTo: `${window.location.origin}/login?confirmed=1`,
+    },
   })
   if (error) throw toApiError(error)
   return data

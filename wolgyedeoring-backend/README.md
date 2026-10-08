@@ -18,7 +18,8 @@ supabase/
     010_social_login.sql  소셜 로그인: 새 계정 이름을 제공자 이름으로, 등록 전 역할 고르기(choose_role) (다시 실행해도 됨)
     011_proto_fields.sql  시안 입력 칸: 가게 업종·상세주소·영업시간·사업자번호, 단체 소속·지역·인원 규모,
                           빈자리 최소 인원·1인 금액·안내, 사전 주문 알레르기 메모 (다시 실행해도 됨)
-    012_functional_audit.sql  일괄 공개·재시도, 새 조건 저장, 과거 시간 차단, 참석 마감 시 인원 반영·최소 인원 보호 (1회 적용)
+    012_functional_audit.sql  일괄 공개·재시도, 새 조건 저장, 과거 시간 차단, 참석 마감 시 인원 반영·최소 인원 보호 (다시 실행해도 됨)
+    013_store_photo_select.sql  가게 대표 사진 업로드 RLS 오류 수정 (store-photos 읽기 정책) (다시 실행해도 됨)
   functions/
     extract-menu/         메뉴판 사진 → LLM 메뉴 후보 + 기존 메뉴 비교 (저장 안 함)
       index.ts, menu.ts
@@ -28,6 +29,7 @@ supabase/
       validate.ts         검증 규칙 (산술, 합계, 메뉴 매칭, 일시)
     toss-payment/         토스 결제 승인·환불 취소
     extract-layout/       평면도·손그림·홀 사진 → LLM 테이블·시설 후보 (저장 안 함)
+    naver-userinfo/       네이버 로그인 사용자 정보를 표준 형태로 변환 (--no-verify-jwt 로 배포, 비밀값 없음)
       index.ts, layout.ts  (layout.ts 는 프런트와 공유하는 정리·검사 규칙)
       index.ts            진입점 (금액 검증, 승인 후 확정 실패 시 자동 환불)
       toss.ts             토스 API 호출
@@ -55,8 +57,9 @@ tests/                    로컬 테스트 (Supabase 에는 올리지 않음)
 9. `009_seat_layout.sql` 실행
 10. `010_social_login.sql` 실행 (카카오·네이버 로그인 설정은 `docs/release/04_소셜로그인_설정.md`)
 11. `011_proto_fields.sql` 실행 → 시드를 다시 돌리면 새 칸에도 시연 값이 들어간다
-12. `012_functional_audit.sql` 실행 (010·011 다음, 1회만)
-13. 확인: `scripts/check_migrations.sql` 실행 → ok 열이 모두 true (7번 Realtime 은 Supabase 에서만 true)
+12. `012_functional_audit.sql` 실행 (010·011 다음)
+13. `013_store_photo_select.sql` 실행 (대표 사진 업로드)
+14. 확인: `scripts/check_migrations.sql` 실행 → ok 열이 모두 true (7번 Realtime 은 Supabase 에서만 true)
 
 > 이미 운영 중인 DB 에 008 을 적용하면 `open_requests_for_store` 반환 형식이 바뀐다 (컬럼 추가만, 기존 컬럼 유지).
 > 008 은 앱이 `requests`·`request_responses`·`profiles.role` 에 직접 쓰는 권한을 회수한다 → API.md 방식만 쓰면 영향 없음.

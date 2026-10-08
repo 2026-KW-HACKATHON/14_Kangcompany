@@ -17,7 +17,7 @@ export default function ResetPassword() {
   if (!me) return (
     <Page title="비밀번호 재설정" back={paths.login}>
       <Empty art="link" title="링크가 만료됐거나 잘못됐어요." action={<Button onClick={() => nav(paths.login)}>로그인 화면으로</Button>}>
-        로그인 화면의 "비밀번호 찾기"에서 메일을 다시 받아 주세요.
+        로그인 화면의 "비밀번호 찾기"에서 메일을 다시 받은 뒤, 요청한 기기·브라우저에서 링크를 열어 주세요.
       </Empty>
     </Page>
   )
