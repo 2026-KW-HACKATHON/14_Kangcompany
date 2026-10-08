@@ -8,7 +8,7 @@
 // 응답: { layout: { width, height, tables, fixtures }, summary: { table_count, total_seats, overlaps, warnings },
 //         source_type, note }
 //
-// 비밀값: ANTHROPIC_API_KEY (메뉴판·영수증 인식과 공용), LAYOUT_MODEL (선택)
+// 비밀값: GEMINI_API_KEY (메뉴판·영수증 인식과 공용), GEMINI_MODEL (선택, 기본 gemini-flash-latest)
 
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { extractLayout, type ImageMediaType } from "./layout.ts";
@@ -28,8 +28,8 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: CORS });
   if (req.method !== "POST") return json({ error: "POST 만 허용됩니다" }, 405);
 
-  const apiKey = Deno.env.get("ANTHROPIC_API_KEY");
-  if (!apiKey) return json({ error: "서버 설정 오류: ANTHROPIC_API_KEY 없음" }, 500);
+  const apiKey = Deno.env.get("GEMINI_API_KEY");
+  if (!apiKey) return json({ error: "서버 설정 오류: GEMINI_API_KEY 없음" }, 500);
 
   const userClient = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_ANON_KEY")!, {
     global: { headers: { Authorization: req.headers.get("Authorization") ?? "" } },
@@ -57,11 +57,11 @@ Deno.serve(async (req) => {
     const result = await extractLayout({
       apiKey, imageBase64: image, mediaType, storeName: store.name,
       imageWidth: Number(body.image_width) || null, imageHeight: Number(body.image_height) || null,
-      maxCapacity: store.max_capacity, model: Deno.env.get("LAYOUT_MODEL") ?? undefined,
+      maxCapacity: store.max_capacity, model: Deno.env.get("GEMINI_MODEL") || undefined,
     });
     return json(result);
   } catch (e) {
     console.error("extract-layout", String(e));
-    return json({ error: "배치도 인식에 실패했습니다. 다시 시도해 주세요." }, 502);
+    return json({ error: "배치도 인식에 실패했습니다. 다시 시도해 주세요.", detail: String(e).slice(0, 160) }, 502);
   }
 });

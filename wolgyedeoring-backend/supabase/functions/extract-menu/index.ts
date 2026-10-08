@@ -6,7 +6,7 @@
 //   body: { store_id, image_base64, media_type }
 // 응답: { items: [{ name, price, category, confidence, status, existing_menu_id, existing_price }], missing: [...] }
 //
-// 비밀값: ANTHROPIC_API_KEY (영수증 인식과 공용), MENU_MODEL (선택)
+// 비밀값: GEMINI_API_KEY (영수증 인식과 공용), GEMINI_MODEL (선택, 기본 gemini-flash-latest)
 
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { compareWithExisting, extractMenu, type ExistingMenu, type ImageMediaType } from "./menu.ts";
@@ -26,8 +26,8 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: CORS });
   if (req.method !== "POST") return json({ error: "POST 만 허용됩니다" }, 405);
 
-  const apiKey = Deno.env.get("ANTHROPIC_API_KEY");
-  if (!apiKey) return json({ error: "서버 설정 오류: ANTHROPIC_API_KEY 없음" }, 500);
+  const apiKey = Deno.env.get("GEMINI_API_KEY");
+  if (!apiKey) return json({ error: "서버 설정 오류: GEMINI_API_KEY 없음" }, 500);
 
   const userClient = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_ANON_KEY")!, {
     global: { headers: { Authorization: req.headers.get("Authorization") ?? "" } },
@@ -57,7 +57,7 @@ Deno.serve(async (req) => {
   try {
     const candidates = await extractMenu({
       apiKey, imageBase64: image, mediaType, storeName: store.name,
-      model: Deno.env.get("MENU_MODEL") ?? undefined,
+      model: Deno.env.get("GEMINI_MODEL") || undefined,
     });
     if (candidates.length === 0) {
       return json({ items: [], missing: [], note: "메뉴를 찾지 못했습니다. 메뉴판이 잘 보이게 다시 찍어 주세요." });
@@ -70,6 +70,6 @@ Deno.serve(async (req) => {
     });
   } catch (e) {
     console.error("extract-menu", String(e));
-    return json({ error: "메뉴판 인식에 실패했습니다. 다시 시도해 주세요." }, 502);
+    return json({ error: "메뉴판 인식에 실패했습니다. 다시 시도해 주세요.", detail: String(e).slice(0, 160) }, 502);
   }
 });

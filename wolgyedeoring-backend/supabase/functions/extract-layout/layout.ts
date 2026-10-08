@@ -1,4 +1,4 @@
-// 좌석 배치도: 사진 → 테이블·시설 후보 (Claude API, tool use) + 정리·검사 규칙
+// 좌석 배치도: 사진 → 테이블·시설 후보 (Gemini API, JSON 출력) + 정리·검사 규칙
 // 외부 의존성 없음 (Node 테스트, Deno Edge Function, 프런트에서 같은 규칙을 공유)
 //
 // 좌표계: 가로 100 기준. 세로 height(40~200)는 사진 비율로 정한다. x, y 는 왼쪽 위 모서리.
@@ -220,8 +220,6 @@ export function stripForSave(layout: Layout): Layout {
 // LLM 인식
 // ---------------------------------------------------------------------------
 
-export const DEFAULT_MODEL = "claude-sonnet-5-5"; // 공간 배치 판단이 필요해 메뉴판(haiku)보다 큰 모델. LAYOUT_MODEL 로 변경 가능
-const TOOL_NAME = "record_layout";
 
 const BOX = {
   x: { type: "number", description: "왼쪽 위 모서리 가로 위치, 이미지 가로의 % (0~100)" },
@@ -230,10 +228,7 @@ const BOX = {
   h: { type: "number", description: "세로 길이, 이미지 세로의 %" },
 };
 
-const LAYOUT_TOOL = {
-  name: TOOL_NAME,
-  description: "매장 평면도·손그림·실내 사진에서 읽은 테이블과 시설의 위치를 위에서 내려다본 배치로 기록한다.",
-  input_schema: {
+const LAYOUT_SCHEMA = {
     type: "object",
     properties: {
       is_layout: { type: "boolean", description: "식당 홀의 평면도·손그림·실내 사진이면 true, 아니면 false" },
@@ -266,15 +261,14 @@ const LAYOUT_TOOL = {
       },
       note: { type: ["string", "null"], description: "사장님에게 전할 짧은 확인 요청 (한국어, 한 문장). 없으면 null" },
     },
-    required: ["is_layout", "source_type", "tables", "fixtures", "note"],
-  },
+  required: ["is_layout", "source_type", "tables", "fixtures", "note"],
 };
 
 export function buildPrompt(storeName: string, maxCapacity?: number | null): string {
   return [
     `이 이미지는 "${storeName}" 가게의 매장(홀) 평면도, 손으로 그린 배치 스케치, 또는 실내 사진입니다.`,
     maxCapacity ? `참고: 사장님이 등록한 단체석 최대 인원은 ${maxCapacity}명입니다 (좌석 합계와 다를 수 있음).` : "",
-    `손님용 테이블과 주요 시설을 ${TOOL_NAME} 도구로 기록하세요.`,
+    `손님용 테이블과 주요 시설을 위에서 내려다본 배치로 JSON 에 기록하세요.`,
     "",
     "규칙:",
     "1. 위치는 위에서 내려다본 배치 기준. x,y,w,h 는 이미지 가로·세로에 대한 % (0~100), x,y 는 왼쪽 위 모서리.",
@@ -313,21 +307,35 @@ export async function extractLayout(opts: {
   imageWidth?: number | null; imageHeight?: number | null; maxCapacity?: number | null;
   model?: string; fetchFn?: typeof fetch;
 }): Promise<ExtractResult> {
-  const res = await (opts.fetchFn ?? fetch)("https://api.anthropic.com/v1/messages", {
+  const out = await callGeminiJson({
+    apiKey: opts.apiKey, model: opts.model, imageBase64: opts.imageBase64, mediaType: opts.mediaType,
+    prompt: buildPrompt(opts.storeName, opts.maxCapacity), schema: LAYOUT_SCHEMA, fetchFn: opts.fetchFn,
+  });
+  return toExtractResult(out, heightFromImage(opts.imageWidth, opts.imageHeight), opts.maxCapacity);
+}
+
+// ---- Gemini 호출 (무료 구간 사용). 이미지 + 지시문 → JSON 객체 ----
+// 모델은 GEMINI_MODEL 비밀값으로 바꿀 수 있음. 기본값은 최신 Flash 별칭.
+export const DEFAULT_MODEL = "gemini-flash-latest";
+
+async function callGeminiJson(opts: {
+  apiKey: string; model?: string; imageBase64: string; mediaType: string;
+  prompt: string; schema: unknown; fetchFn?: typeof fetch;
+}): Promise<Record<string, unknown>> {
+  const model = opts.model || DEFAULT_MODEL;
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`;
+  const res = await (opts.fetchFn ?? fetch)(url, {
     method: "POST",
-    headers: { "content-type": "application/json", "x-api-key": opts.apiKey, "anthropic-version": "2023-06-01" },
+    headers: { "content-type": "application/json", "x-goog-api-key": opts.apiKey },
     body: JSON.stringify({
-      model: opts.model ?? DEFAULT_MODEL,
-      max_tokens: 6000,
-      tools: [LAYOUT_TOOL],
-      tool_choice: { type: "tool", name: TOOL_NAME },
-      messages: [{
+      contents: [{
         role: "user",
-        content: [
-          { type: "image", source: { type: "base64", media_type: opts.mediaType, data: opts.imageBase64 } },
-          { type: "text", text: buildPrompt(opts.storeName, opts.maxCapacity) },
+        parts: [
+          { inlineData: { mimeType: opts.mediaType, data: opts.imageBase64 } },
+          { text: `${opts.prompt}\n\n응답은 아래 JSON 스키마를 따르는 JSON 객체 하나만 출력하세요. 설명 문장은 쓰지 마세요.\n${JSON.stringify(opts.schema)}` },
         ],
       }],
+      generationConfig: { responseMimeType: "application/json", temperature: 0, maxOutputTokens: 16384 },
     }),
   });
   if (!res.ok) {
@@ -335,7 +343,14 @@ export async function extractLayout(opts: {
     throw new Error(`LLM 호출 실패 (${res.status}): ${detail.slice(0, 300)}`);
   }
   const data = await res.json();
-  const block = (data.content ?? []).find((b: { type: string; name?: string }) => b.type === "tool_use" && b.name === TOOL_NAME);
-  if (!block) throw new Error("LLM 응답에 배치 기록이 없습니다");
-  return toExtractResult(block.input, heightFromImage(opts.imageWidth, opts.imageHeight), opts.maxCapacity);
+  const cand = data?.candidates?.[0];
+  const text = ((cand?.content?.parts ?? []) as { text?: string; thought?: boolean }[])
+    .filter((p) => typeof p.text === "string" && !p.thought).map((p) => p.text).join("").trim();
+  if (!text) throw new Error(`LLM 응답이 비어 있습니다 (${cand?.finishReason ?? data?.promptFeedback?.blockReason ?? "unknown"})`);
+  const cleaned = text.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "");
+  let parsed: unknown;
+  try { parsed = JSON.parse(cleaned); } catch { throw new Error(`LLM 응답이 JSON 이 아닙니다: ${cleaned.slice(0, 200)}`); }
+  if (Array.isArray(parsed)) parsed = parsed.length === 1 && !("name" in (parsed[0] ?? {})) ? parsed[0] : { items: parsed };
+  if (!parsed || typeof parsed !== "object") throw new Error("LLM 응답 형식이 올바르지 않습니다");
+  return parsed as Record<string, unknown>;
 }

@@ -48,13 +48,13 @@ test("기존 메뉴와 비교", () => {
 test("extractMenu: 요청 형식·응답 파싱", async () => {
   let sent: any;
   const f = (async (_u: string, init: any) => { sent = JSON.parse(init.body);
-    return new Response(JSON.stringify({ content: [{ type: "tool_use", name: "record_menu",
-      input: { items: [{ name: "떡볶이(대)", price: 8000, category: "main", confidence: "high" }] } }] }), { status: 200 });
+    return new Response(JSON.stringify({ candidates: [{ content: { parts: [{ text: JSON.stringify(
+      { items: [{ name: "떡볶이(대)", price: 8000, category: "main", confidence: "high" }] }) }] } }] }), { status: 200 });
   }) as typeof fetch;
   const r = await extractMenu({ apiKey: "k", imageBase64: "AA", mediaType: "image/png", storeName: "광운분식", fetchFn: f });
   assert.equal(r[0].name, "떡볶이(대)");
-  assert.equal(sent.tool_choice.name, "record_menu");
-  assert.ok(sent.messages[0].content[1].text.includes("광운분식"));
+  assert.equal(sent.generationConfig.responseMimeType, "application/json");
+  assert.ok(sent.contents[0].parts[1].text.includes("광운분식"));
 });
 
 test("extractMenu: API 오류", async () => {

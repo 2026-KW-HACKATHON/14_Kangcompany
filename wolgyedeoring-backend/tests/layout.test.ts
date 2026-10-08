@@ -88,23 +88,23 @@ test("인식 결과 → 응답: 배치가 아닌 사진, 실내 사진 안내", 
   assert.ok(photo.note?.includes("대략적"));
 });
 
-test("LLM 호출: 요청 형식과 tool 출력 처리", async () => {
+test("LLM 호출: 요청 형식과 Gemini 출력 처리", async () => {
   let sent: Record<string, unknown> | null = null;
   const fakeFetch = (async (_url: string, init: RequestInit) => {
     sent = JSON.parse(String(init.body));
     return new Response(JSON.stringify({
-      content: [{ type: "tool_use", name: "record_layout", input: {
+      candidates: [{ content: { parts: [{ text: "```json\n" + JSON.stringify({
         is_layout: true, source_type: "floor_plan", note: null,
         tables: [{ x: 10, y: 10, w: 20, h: 20, shape: "rect", seats: 6, label: null, confidence: "high" }],
         fixtures: [{ x: 0, y: 90, w: 10, h: 10, kind: "entrance", label: null }],
-      } }],
+      }) + "\n```" }] } }],
     }), { status: 200 });
   }) as typeof fetch;
   const r = await extractLayout({
     apiKey: "k", imageBase64: "AAA", mediaType: "image/jpeg", storeName: "고기굽는집",
     imageWidth: 1000, imageHeight: 500, maxCapacity: 60, fetchFn: fakeFetch,
   });
-  assert.equal((sent as unknown as { tool_choice: { name: string } }).tool_choice.name, "record_layout");
+  assert.equal((sent as unknown as { generationConfig: { responseMimeType: string } }).generationConfig.responseMimeType, "application/json");
   assert.equal(r.layout.height, 50);
   assert.deepEqual([r.layout.tables[0].y, r.layout.tables[0].h], [5, 10]);
   assert.equal(r.summary.total_seats, 6);

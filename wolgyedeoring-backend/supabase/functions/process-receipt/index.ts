@@ -7,8 +7,8 @@
 // 응답: { receipt_id, status, notes, items }
 //
 // 필요한 비밀값 (supabase secrets set):
-//   ANTHROPIC_API_KEY  (필수)
-//   RECEIPT_MODEL      (선택, 기본 claude-haiku-4-5-20251001)
+//   GEMINI_API_KEY  (필수)
+//   GEMINI_MODEL    (선택, 기본 gemini-flash-latest)
 // SUPABASE_URL / SUPABASE_ANON_KEY / SUPABASE_SERVICE_ROLE_KEY 는 Supabase 가 자동 제공
 
 import { createClient } from "npm:@supabase/supabase-js@2";
@@ -38,8 +38,8 @@ Deno.serve(async (req) => {
   const url = Deno.env.get("SUPABASE_URL")!;
   const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
   const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-  const apiKey = Deno.env.get("ANTHROPIC_API_KEY");
-  if (!apiKey) return json({ error: "서버 설정 오류: ANTHROPIC_API_KEY 없음" }, 500);
+  const apiKey = Deno.env.get("GEMINI_API_KEY");
+  if (!apiKey) return json({ error: "서버 설정 오류: GEMINI_API_KEY 없음" }, 500);
 
   // 1) 로그인 사용자 확인
   const authHeader = req.headers.get("Authorization") ?? "";
@@ -103,7 +103,7 @@ Deno.serve(async (req) => {
       mediaType,
       menus: menus ?? [],
       storeName,
-      model: Deno.env.get("RECEIPT_MODEL") ?? undefined,
+      model: Deno.env.get("GEMINI_MODEL") || undefined,
     });
 
     // 6) 검증
@@ -143,6 +143,6 @@ Deno.serve(async (req) => {
   } catch (e) {
     const message = e instanceof Error ? e.message : String(e);
     await admin.from("receipts").update({ status: "failed", validation_note: message.slice(0, 500) }).eq("id", receipt.id);
-    return json({ receipt_id: receipt.id, status: "failed", error: "영수증 인식에 실패했습니다. 다시 시도해 주세요." }, 502);
+    return json({ receipt_id: receipt.id, status: "failed", error: "영수증 인식에 실패했습니다. 다시 시도해 주세요.", detail: message.slice(0, 160) }, 502);
   }
 });

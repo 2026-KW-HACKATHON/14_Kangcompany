@@ -62,10 +62,10 @@ tests/                    로컬 테스트 (Supabase 에는 올리지 않음)
 
 ```bash
 npx supabase login
-npx supabase secrets set ANTHROPIC_API_KEY=발급받은키 --project-ref 프로젝트ID
+npx supabase secrets set GEMINI_API_KEY=발급받은키 --project-ref 프로젝트ID
 npx supabase functions deploy process-receipt --project-ref 프로젝트ID
-npx supabase functions deploy extract-menu --project-ref 프로젝트ID      # ANTHROPIC_API_KEY 공용
-npx supabase functions deploy extract-layout --project-ref 프로젝트ID    # 좌석 배치도, ANTHROPIC_API_KEY 공용
+npx supabase functions deploy extract-menu --project-ref 프로젝트ID      # GEMINI_API_KEY 공용
+npx supabase functions deploy extract-layout --project-ref 프로젝트ID    # 좌석 배치도, GEMINI_API_KEY 공용
 
 npx supabase secrets set TOSS_SECRET_KEY=테스트시크릿키 --project-ref 프로젝트ID
 npx supabase functions deploy toss-payment --project-ref 프로젝트ID
@@ -74,7 +74,7 @@ npx supabase functions deploy toss-payment --project-ref 프로젝트ID
 - 토스 키: tosspayments.com 가입 → 개발자센터 → API 키. 테스트 **클라이언트 키는 프런트에, 시크릿 키는 서버 비밀값에만**. 두 키는 같은 세트여야 함
 
 - 프로젝트 ID: 대시보드 주소 `supabase.com/dashboard/project/<여기>`
-- 모델을 바꾸려면: `npx supabase secrets set RECEIPT_MODEL=모델명 --project-ref 프로젝트ID` (메뉴판 `MENU_MODEL`, 배치도 `LAYOUT_MODEL`)
+- LLM 은 Google Gemini (AI Studio 무료 구간). 모델을 바꾸려면: `npx supabase secrets set GEMINI_MODEL=모델명 --project-ref 프로젝트ID` (기본 `gemini-flash-latest`, 세 함수 공용)
 - API 키는 저장소에 커밋하지 말 것
 
 ### 4. 프런트에 전달할 것

@@ -1,4 +1,4 @@
-// 메뉴판 이미지 → 메뉴 후보 (Claude API, tool use 로 출력 형식 고정) + 기존 메뉴와 비교
+// 메뉴판 이미지 → 메뉴 후보 (Gemini API, JSON 출력) + 기존 메뉴와 비교
 // 외부 의존성 없음. fetchFn 주입으로 테스트 가능
 
 export type Category = "main" | "side" | "meal" | "drink" | "etc";
@@ -19,14 +19,9 @@ export interface ComparedCandidate extends MenuCandidate {
   existing_price: number | null;
 }
 
-export const DEFAULT_MODEL = "claude-haiku-4-5-20251001";
-const TOOL_NAME = "record_menu";
 const CATEGORIES: Category[] = ["main", "side", "meal", "drink", "etc"];
 
-const MENU_TOOL = {
-  name: TOOL_NAME,
-  description: "메뉴판에서 읽은 메뉴를 기록한다.",
-  input_schema: {
+const MENU_SCHEMA = {
     type: "object",
     properties: {
       items: {
@@ -43,13 +38,12 @@ const MENU_TOOL = {
         },
       },
     },
-    required: ["items"],
-  },
+  required: ["items"],
 };
 
 export function buildPrompt(storeName: string): string {
   return [
-    `이 이미지는 "${storeName}" 가게의 메뉴판입니다. 모든 메뉴를 ${TOOL_NAME} 도구로 기록하세요.`,
+    `이 이미지는 "${storeName}" 가게의 메뉴판입니다. 모든 메뉴를 JSON 으로 기록하세요.`,
     "",
     "규칙:",
     "1. 메뉴명은 메뉴판에 적힌 그대로. 설명 문구·원산지·광고 문구는 빼고 메뉴명만.",
@@ -128,21 +122,35 @@ export async function extractMenu(opts: {
   apiKey: string; imageBase64: string; mediaType: ImageMediaType; storeName: string;
   model?: string; fetchFn?: typeof fetch;
 }): Promise<MenuCandidate[]> {
-  const res = await (opts.fetchFn ?? fetch)("https://api.anthropic.com/v1/messages", {
+  const out = await callGeminiJson({
+    apiKey: opts.apiKey, model: opts.model, imageBase64: opts.imageBase64, mediaType: opts.mediaType,
+    prompt: buildPrompt(opts.storeName), schema: MENU_SCHEMA, fetchFn: opts.fetchFn,
+  });
+  return normalizeMenu(out);
+}
+
+// ---- Gemini 호출 (무료 구간 사용). 이미지 + 지시문 → JSON 객체 ----
+// 모델은 GEMINI_MODEL 비밀값으로 바꿀 수 있음. 기본값은 최신 Flash 별칭.
+export const DEFAULT_MODEL = "gemini-flash-latest";
+
+async function callGeminiJson(opts: {
+  apiKey: string; model?: string; imageBase64: string; mediaType: string;
+  prompt: string; schema: unknown; fetchFn?: typeof fetch;
+}): Promise<Record<string, unknown>> {
+  const model = opts.model || DEFAULT_MODEL;
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`;
+  const res = await (opts.fetchFn ?? fetch)(url, {
     method: "POST",
-    headers: { "content-type": "application/json", "x-api-key": opts.apiKey, "anthropic-version": "2023-06-01" },
+    headers: { "content-type": "application/json", "x-goog-api-key": opts.apiKey },
     body: JSON.stringify({
-      model: opts.model ?? DEFAULT_MODEL,
-      max_tokens: 4000,
-      tools: [MENU_TOOL],
-      tool_choice: { type: "tool", name: TOOL_NAME },
-      messages: [{
+      contents: [{
         role: "user",
-        content: [
-          { type: "image", source: { type: "base64", media_type: opts.mediaType, data: opts.imageBase64 } },
-          { type: "text", text: buildPrompt(opts.storeName) },
+        parts: [
+          { inlineData: { mimeType: opts.mediaType, data: opts.imageBase64 } },
+          { text: `${opts.prompt}\n\n응답은 아래 JSON 스키마를 따르는 JSON 객체 하나만 출력하세요. 설명 문장은 쓰지 마세요.\n${JSON.stringify(opts.schema)}` },
         ],
       }],
+      generationConfig: { responseMimeType: "application/json", temperature: 0, maxOutputTokens: 16384 },
     }),
   });
   if (!res.ok) {
@@ -150,7 +158,14 @@ export async function extractMenu(opts: {
     throw new Error(`LLM 호출 실패 (${res.status}): ${detail.slice(0, 300)}`);
   }
   const data = await res.json();
-  const block = (data.content ?? []).find((b: { type: string; name?: string }) => b.type === "tool_use" && b.name === TOOL_NAME);
-  if (!block) throw new Error("LLM 응답에 메뉴 기록이 없습니다");
-  return normalizeMenu(block.input);
+  const cand = data?.candidates?.[0];
+  const text = ((cand?.content?.parts ?? []) as { text?: string; thought?: boolean }[])
+    .filter((p) => typeof p.text === "string" && !p.thought).map((p) => p.text).join("").trim();
+  if (!text) throw new Error(`LLM 응답이 비어 있습니다 (${cand?.finishReason ?? data?.promptFeedback?.blockReason ?? "unknown"})`);
+  const cleaned = text.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "");
+  let parsed: unknown;
+  try { parsed = JSON.parse(cleaned); } catch { throw new Error(`LLM 응답이 JSON 이 아닙니다: ${cleaned.slice(0, 200)}`); }
+  if (Array.isArray(parsed)) parsed = parsed.length === 1 && !("name" in (parsed[0] ?? {})) ? parsed[0] : { items: parsed };
+  if (!parsed || typeof parsed !== "object") throw new Error("LLM 응답 형식이 올바르지 않습니다");
+  return parsed as Record<string, unknown>;
 }

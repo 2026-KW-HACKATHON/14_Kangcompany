@@ -102,23 +102,22 @@ test("LLM 출력 형식 흔들림 보정", () => {
   assert.deepEqual(n.items[0], { raw_name: "삼겹살", menu_id: 1, qty: 8, unit_price: 15000, amount: 120000, confidence: "low" });
 });
 
-test("extractReceipt: 요청 형식과 tool_use 응답 파싱", async () => {
+test("extractReceipt: 요청 형식과 Gemini 응답 파싱", async () => {
   let sent: any;
   const fakeFetch = (async (_url: string, init: any) => {
     sent = JSON.parse(init.body);
     return new Response(JSON.stringify({
-      content: [{ type: "tool_use", name: "record_receipt", input: {
+      candidates: [{ content: { parts: [{ text: JSON.stringify({
         is_itemized: true, store_name: "가게A", receipt_datetime: "2026-10-14T21:30", total: 120000,
         items: [{ raw_name: "삼겹살", menu_id: 1, qty: 8, unit_price: 15000, amount: 120000, confidence: "high" }],
-      } }],
+      }) }] } }],
     }), { status: 200 });
   }) as typeof fetch;
 
   const r = await extractReceipt({ apiKey: "test", imageBase64: "AAAA", mediaType: "image/jpeg", menus, storeName: "가게A", fetchFn: fakeFetch });
   assert.equal(r.items[0].menu_id, 1);
-  assert.equal(sent.tool_choice.name, "record_receipt");
-  assert.equal(sent.messages[0].content[0].type, "image");
-  assert.ok(sent.messages[0].content[1].text.includes("id 1: 삼겹살"));
+  assert.equal(sent.contents[0].parts[0].inlineData.mimeType, "image/jpeg");
+  assert.ok(sent.contents[0].parts[1].text.includes("id 1: 삼겹살"));
 });
 
 test("extractReceipt: API 오류 시 예외", async () => {

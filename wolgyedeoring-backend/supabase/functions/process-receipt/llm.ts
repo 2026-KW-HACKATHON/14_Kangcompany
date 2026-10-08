@@ -1,18 +1,11 @@
-// 영수증 이미지 → 구조화 JSON (Claude API, tool use 로 출력 형식 고정)
+// 영수증 이미지 → 구조화 JSON (Gemini API, JSON 출력)
 // 다른 LLM 으로 바꾸려면 이 파일의 extractReceipt 만 교체하면 됨
 
 import type { LlmReceipt, Menu } from "./validate.ts";
 
 export type ImageMediaType = "image/jpeg" | "image/png" | "image/webp" | "image/gif";
 
-export const DEFAULT_MODEL = "claude-haiku-4-5-20251001";
-
-const TOOL_NAME = "record_receipt";
-
-const RECEIPT_TOOL = {
-  name: TOOL_NAME,
-  description: "영수증에서 읽은 내용을 기록한다.",
-  input_schema: {
+const RECEIPT_SCHEMA = {
     type: "object",
     properties: {
       is_itemized: { type: "boolean", description: "품목(메뉴명·수량·금액)이 인쇄된 영수증이면 true" },
@@ -38,8 +31,7 @@ const RECEIPT_TOOL = {
         },
       },
     },
-    required: ["is_itemized", "store_name", "receipt_datetime", "total", "items"],
-  },
+  required: ["is_itemized", "store_name", "receipt_datetime", "total", "items"],
 };
 
 export function buildPrompt(menus: Menu[], storeName: string): string {
@@ -48,7 +40,7 @@ export function buildPrompt(menus: Menu[], storeName: string): string {
     : "(등록된 메뉴 없음)";
 
   return [
-    `이 이미지는 "${storeName}" 가게의 영수증입니다. 내용을 ${TOOL_NAME} 도구로 기록하세요.`,
+    `이 이미지는 "${storeName}" 가게의 영수증입니다. 내용을 JSON 으로 기록하세요.`,
     "",
     "이 가게의 등록 메뉴:",
     menuLines,
@@ -73,44 +65,11 @@ export async function extractReceipt(opts: {
   model?: string;
   fetchFn?: typeof fetch; // 테스트용 주입
 }): Promise<LlmReceipt> {
-  const doFetch = opts.fetchFn ?? fetch;
-
-  const res = await doFetch("https://api.anthropic.com/v1/messages", {
-    method: "POST",
-    headers: {
-      "content-type": "application/json",
-      "x-api-key": opts.apiKey,
-      "anthropic-version": "2023-06-01",
-    },
-    body: JSON.stringify({
-      model: opts.model ?? DEFAULT_MODEL,
-      max_tokens: 2000,
-      tools: [RECEIPT_TOOL],
-      tool_choice: { type: "tool", name: TOOL_NAME },
-      messages: [
-        {
-          role: "user",
-          content: [
-            { type: "image", source: { type: "base64", media_type: opts.mediaType, data: opts.imageBase64 } },
-            { type: "text", text: buildPrompt(opts.menus, opts.storeName) },
-          ],
-        },
-      ],
-    }),
+  const out = await callGeminiJson({
+    apiKey: opts.apiKey, model: opts.model, imageBase64: opts.imageBase64, mediaType: opts.mediaType,
+    prompt: buildPrompt(opts.menus, opts.storeName), schema: RECEIPT_SCHEMA, fetchFn: opts.fetchFn,
   });
-
-  if (!res.ok) {
-    const detail = await res.text().catch(() => "");
-    throw new Error(`LLM 호출 실패 (${res.status}): ${detail.slice(0, 300)}`);
-  }
-
-  const data = await res.json();
-  const block = (data.content ?? []).find(
-    (b: { type: string; name?: string }) => b.type === "tool_use" && b.name === TOOL_NAME,
-  );
-  if (!block) throw new Error("LLM 응답에 영수증 기록이 없습니다");
-
-  return normalize(block.input);
+  return normalize(out);
 }
 
 // LLM 출력의 형식 흔들림 보정 (문자열 숫자, "15,000" 등)
@@ -142,4 +101,45 @@ export function normalize(input: Record<string, unknown>): LlmReceipt {
           "high" | "medium" | "low",
       })),
   };
+}
+
+// ---- Gemini 호출 (무료 구간 사용). 이미지 + 지시문 → JSON 객체 ----
+// 모델은 GEMINI_MODEL 비밀값으로 바꿀 수 있음. 기본값은 최신 Flash 별칭.
+export const DEFAULT_MODEL = "gemini-flash-latest";
+
+async function callGeminiJson(opts: {
+  apiKey: string; model?: string; imageBase64: string; mediaType: string;
+  prompt: string; schema: unknown; fetchFn?: typeof fetch;
+}): Promise<Record<string, unknown>> {
+  const model = opts.model || DEFAULT_MODEL;
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`;
+  const res = await (opts.fetchFn ?? fetch)(url, {
+    method: "POST",
+    headers: { "content-type": "application/json", "x-goog-api-key": opts.apiKey },
+    body: JSON.stringify({
+      contents: [{
+        role: "user",
+        parts: [
+          { inlineData: { mimeType: opts.mediaType, data: opts.imageBase64 } },
+          { text: `${opts.prompt}\n\n응답은 아래 JSON 스키마를 따르는 JSON 객체 하나만 출력하세요. 설명 문장은 쓰지 마세요.\n${JSON.stringify(opts.schema)}` },
+        ],
+      }],
+      generationConfig: { responseMimeType: "application/json", temperature: 0, maxOutputTokens: 16384 },
+    }),
+  });
+  if (!res.ok) {
+    const detail = await res.text().catch(() => "");
+    throw new Error(`LLM 호출 실패 (${res.status}): ${detail.slice(0, 300)}`);
+  }
+  const data = await res.json();
+  const cand = data?.candidates?.[0];
+  const text = ((cand?.content?.parts ?? []) as { text?: string; thought?: boolean }[])
+    .filter((p) => typeof p.text === "string" && !p.thought).map((p) => p.text).join("").trim();
+  if (!text) throw new Error(`LLM 응답이 비어 있습니다 (${cand?.finishReason ?? data?.promptFeedback?.blockReason ?? "unknown"})`);
+  const cleaned = text.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "");
+  let parsed: unknown;
+  try { parsed = JSON.parse(cleaned); } catch { throw new Error(`LLM 응답이 JSON 이 아닙니다: ${cleaned.slice(0, 200)}`); }
+  if (Array.isArray(parsed)) parsed = parsed.length === 1 && !("name" in (parsed[0] ?? {})) ? parsed[0] : { items: parsed };
+  if (!parsed || typeof parsed !== "object") throw new Error("LLM 응답 형식이 올바르지 않습니다");
+  return parsed as Record<string, unknown>;
 }
