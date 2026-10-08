@@ -1,4 +1,4 @@
-// A-02 로그인 (시안 2): 이메일 · 카카오 · 네이버. 소셜로 처음 들어오면 시작 화면에서 고른 역할로 가입
+// A-02 로그인 (시안 2): 이메일 · 카카오 (네이버는 보류). 소셜로 처음 들어오면 시작 화면에서 고른 역할로 가입
 import { useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { auth } from '../../api'
@@ -33,7 +33,7 @@ export default function Login() {
           onConfirm={resetSent ? () => setResetOpen(false) : resetEmail.trim() ? () => void reset.run(async () => { await auth.requestPasswordReset(resetEmail.trim()); setResetSent(true) }) : undefined}>
           {resetSent ? <p className="subtitle">{resetEmail.trim()} 로 메일을 보냈어요. 이 기기의 이 브라우저에서 메일 링크를 열어야 새 비밀번호를 정할 수 있어요.</p> : (
             <>
-              <p className="subtitle">가입한 이메일로 비밀번호 재설정 링크를 보내드려요. 카카오·네이버로 가입했다면 그 버튼으로 로그인해 주세요.</p>
+              <p className="subtitle">가입한 이메일로 비밀번호 재설정 링크를 보내드려요. 카카오로 가입했다면 카카오 버튼으로 로그인해 주세요.</p>
               <Field label="이메일"><Input type="email" autoComplete="username" value={resetEmail} onChange={(e) => setResetEmail(e.target.value)} /></Field>
               {reset.error && <p className="note-error" role="alert">{reset.error}</p>}
             </>
